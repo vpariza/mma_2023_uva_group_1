@@ -15,6 +15,11 @@ import h5py
 import numpy as np
 from sklearn.manifold import TSNE
 
+from sentence_transformers import SentenceTransformer
+
+
+NUM_DATAPOINTS = 1024
+
 
 def get_clip_embeddings(model_name, device, df, image_path, output_file):
     # load the model
@@ -43,6 +48,39 @@ def get_clip_embeddings(model_name, device, df, image_path, output_file):
     return skipped_indices
 
 
+def get_bert_embeddings(device, json_path, output_file):
+    
+    skipped_indices = []
+    d_embeddings = []
+
+    # load data
+    dataset = pd.read_json(json_path, lines=True)
+    corpus = dataset['description'].tolist()
+
+    # load the model
+    model = SentenceTransformer('krlng/sts-GBERT-bi-encoder').to(device)
+
+    batch_size = 32
+    total_batches = NUM_DATAPOINTS // batch_size
+    with torch.no_grad(), h5py.File(output_file, "w") as hf:
+        for i, batch_idx in tqdm(enumerate(range(total_batches))):
+            try:
+                batch_embeddings = model.encode(corpus[batch_idx*batch_size : (batch_idx+1)*batch_size])
+                d_embeddings.append(batch_embeddings)
+            except Exception as ex:
+                traceback.print_exc()
+                skipped_indices.append(batch_idx)
+    # Print skipped indices
+    print("Skipped Indices:", skipped_indices)
+
+    # Save image features to an H5 file
+    d_embeddings = np.concatenate(d_embeddings, axis=0)
+
+    with h5py.File(output_file, "w") as hf:
+        hf.create_dataset("text_features", data=d_embeddings)
+    return skipped_indices
+
+
 def make_umap(data, n_neighbors=6, n_components=2, metric='cosine'):
     return umap.UMAP(n_neighbors=n_neighbors, n_components=n_components, metric=metric).fit_transform(data)
 
@@ -51,7 +89,8 @@ def make_tsne(data, n_components=2, perplexity=30, n_iter=1000, metric='cosine')
     return TSNE(n_components=n_components, perplexity=perplexity, n_iter=n_iter, metric=metric).fit_transform(data)
 
 
-def process_data(df, output_path, image_features_path, image_path, column_names, model_name, device):
+def process_data(df, json_path, output_path, image_features_path, text_features_path, image_path, column_names, model_name, device):
+    get_bert_embeddings(device, json_path, output_file=text_features_path)
     get_clip_embeddings(model_name, device, df, image_path=image_path, output_file=image_features_path)
 
     # add the UMAP coordinates to the dataframe
@@ -76,7 +115,7 @@ def parse_real_estate_json(json_path):
         images_paths = []
         labels = []
         parsed = 0
-        while parsed < 1000:
+        while parsed < NUM_DATAPOINTS:
             ad = json.loads(ads_json.readline())
             if 'construction' in ad['features'] and 'kind of house' in ad['features']['construction']:
                 images_paths.append(ad['images_paths'][0])
@@ -87,10 +126,11 @@ def parse_real_estate_json(json_path):
     
 def argparser():
     parser = argparse.ArgumentParser(description='Load the Funda ads jsonlines file containing image_paths to real estate images and save the table in pickle format with an added column: "clip_embeddings" which contains the CLIP embedding of the images and produce a column "umap_x" and "umap_y" which contains the UMAP coordinates of the images based on the clip embeddings')
-    parser.add_argument('--json_path', type=str, help='path to the json file containing the image paths', default='./ads.jsonlines')
+    parser.add_argument('--json_path', type=str, help='path to the json file containing the image paths', default='./dataloading/data/ads.jsonlines')
     parser.add_argument('--output_path', type=str, help='path to the output pickle file',default='./dataloading/data/real_estate.pkl')
     parser.add_argument('--image_features_path', type=str, help='path where the image features file will be written', default='./dataloading/data/funda_image_features.h5')
-    parser.add_argument('--image_path', type=str, help='path to the folder containing the images', default='./images/')
+    parser.add_argument('--text_features_path', type=str, help='path where the text features file will be written', default='./dataloading/data/funda_text_features.h5')
+    parser.add_argument('--image_path', type=str, help='path to the folder containing the images', default='./dataloading/data/images/')
     parser.add_argument('--column_names', nargs='+', help='list of column names that should be used to create the tags', default=['labels'])
     parser.add_argument('--model_name', type=str, default='ViT-B/32', help='name of the CLIP model that should be used')
     parser.add_argument('--device', type=str, default='cpu', help='device that should be used to run the CLIP model on')
@@ -100,4 +140,4 @@ def argparser():
 if __name__ == '__main__':
     args = argparser()
     data = parse_real_estate_json(args.json_path)
-    process_data(data, args.output_path, args.image_features_path, args.image_path, args.column_names, args.model_name, args.device)
+    process_data(data, args.json_path, args.output_path, args.image_features_path, args.text_features_path, args.image_path, args.column_names, args.model_name, args.device)
