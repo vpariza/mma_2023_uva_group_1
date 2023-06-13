@@ -15,19 +15,34 @@ class MainWindow(QMainWindow):
         self.config, self.tags, self.points, self.img_paths = preprocessing.load_data()
 
         ## inialize widgets
-        query_widget = QueryWidget()
+        query_widgets = [QueryWidget() for i in range(2)]
         scatter_plot_widget = PlotWidget(self.points, self.config)
         
         ## set up main window 
-        self.make_layout(scatter_plot_widget, query_widget)
+        self.make_layout(scatter_plot_widget, query_widgets)
         
         
 
     
-    def make_layout(self, scatter_plot_widget, query_widget):   
+    def make_layout(self, scatter_plot_widget, query_widgets):   
         """Congifure layout for main window"""     
         self.setWindowTitle("Scatterplot Dashboard")
-        self.setMinimumSize(QSize(500, 500))
+        self.setMinimumSize(QSize(1000, 500))
+
+        ## Combine widgets in right column
+        vbox = QWidget()
+        vbox_layout = QVBoxLayout(self, spacing=0)
+        vbox_layout.addWidget(query_widgets[0])
+        vbox_layout.addWidget(query_widgets[1])
+        vbox.setLayout(vbox_layout)
+   
+        ## set the layout of the main window
+        main_widget = QWidget()
+        layout = QHBoxLayout(self, spacing=10)
+        layout.addWidget(scatter_plot_widget)
+        layout.addWidget(vbox)
+        main_widget.setLayout(layout)
+        self.setCentralWidget(main_widget)
 
 
 if __name__ == '__main__':
