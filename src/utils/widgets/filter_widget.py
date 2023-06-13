@@ -2,8 +2,9 @@ from PyQt6.QtWidgets import QWidget, QComboBox, QVBoxLayout, QLabel
 from PyQt6.QtGui import QFont
 
 class FilterWidget(QWidget):
-    def __init__(self):
+    def __init__(self, df):
         super().__init__()
+        self.df = df
 
         boldfont = QFont()
         boldfont.setBold(True)
@@ -15,7 +16,7 @@ class FilterWidget(QWidget):
         
         layout.addWidget(title_label)
         
-        self.pricefilter = PriceFilter()
+        self.pricefilter = PriceFilter(self.df)
         layout.addWidget(self.pricefilter.widget)
         
         widget.setLayout(layout)
@@ -24,45 +25,49 @@ class FilterWidget(QWidget):
 
 
 class PriceFilter(QWidget):
-    def __init__(self):
+    def __init__(self, df):
         super().__init__()
+        self.df = df
+        self.price_list = [0, 100, 500, 1000]
+        
 
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
 
         price_label = QLabel("Select price range:")
-        self.PriceFilter = QComboBox(self)
-
-        self.PriceFilter.addItems(['0k-100k', '100k-500k', '500k-1000k'])
-        self.PriceFilter.setPlaceholderText("Price Range")
+        self.MaxFilter = QComboBox(self)
+        self.MaxFilter.addItems([str(price) + 'k' for price in self.price_list])
+        self.MaxFilter.setPlaceholderText("Max Price")
 
         # Connect signals to the methods.
-        self.PriceFilter.activated.connect(self.check_index)
-        self.PriceFilter.activated.connect(self.current_text)
-        self.PriceFilter.activated.connect(self.current_text_via_index)
-        self.PriceFilter.activated.connect(self.current_count)
-        self.PriceFilter.activated.connect(self.update_data)
+        self.MaxFilter.activated.connect(self.check_index)
+        self.MaxFilter.activated.connect(self.current_text)
+        self.MaxFilter.activated.connect(self.current_text_via_index)
+        self.MaxFilter.activated.connect(self.current_count)
+        self.MaxFilter.currentTextChanged.connect(self.on_combobox_changed)
+
 
         layout.addWidget(price_label)
-        layout.addWidget(self.PriceFilter)
+        layout.addWidget(self.MaxFilter)
         
         self.widget.setLayout(layout)
         self.widget.move(20, 0)
     
     def check_index(self, index):
-        cindex = self.PriceFilter.currentIndex()
+        cindex = self.MaxFilter.currentIndex()
         print(f"Index signal: {index}, currentIndex {cindex}")
 
     def current_text(self, _): 
-        ctext = self.PriceFilter.currentText()
-        print("Current Price Range", ctext)
+        ctext = self.MaxFilter.currentText()
+        print("Current Max Price", ctext)
 
     def current_text_via_index(self, index):
-        ctext = self.PriceFilter.itemText(index) 
+        ctext = self.MaxFilter.itemText(index) 
 
     def current_count(self, index):
-        count = self.PriceFilter.count()
+        count = self.MaxFilter.count()
         print(f"Current Price Index {index+1}/{count}")
 
-    def update_data(self, df):
-        return 0
+    def on_combobox_changed(self):
+        new_df = self.df[self.df['price'] < 1e3*self.price_list[self.MaxFilter.currentIndex()]]
+        
