@@ -1,3 +1,4 @@
+import os, sys
 import json
 import re
 import traceback
@@ -14,6 +15,7 @@ from tqdm import tqdm
 import h5py
 import numpy as np
 from sklearn.manifold import TSNE
+from nltk.tokenize import sent_tokenize
 
 from sentence_transformers import SentenceTransformer
 
@@ -24,38 +26,63 @@ NUM_DATAPOINTS = 1024
 def get_clip_embeddings(model_name, device, df, image_path, output_file):
     # load the model
     model, preprocess = clip.load(model_name, device=device)
+    funda_ids = []
+    image_ids = []
     image_features = []
     skipped_indices = []
 
     with torch.no_grad(), h5py.File(output_file, "w") as hf:
-        for i, image_name in tqdm(enumerate(df['filepaths'])):
-            ## load the image, preprocess them and load clip embeddings
-            try:
-                image = preprocess(Image.open(image_path + image_name))
-                image_input = image.unsqueeze(0).to(device)
-                image_features.append(model.encode_image(image_input).cpu().numpy())
-            except Exception as ex:
-                traceback.print_exc()
-                skipped_indices.append(i)
+        for i, funda_id in tqdm(enumerate(df.index)):
+            for image_name in df.loc[funda_id]['images_paths']:
+                image_id = image_name.split('/')[-1].split('.')[0].replace("image", "")
+                ## load the image, preprocess them and load clip embeddings
+                try:
+                    image = preprocess(Image.open(os.path.join(image_path + image_name)))
+                    image_input = image.unsqueeze(0).to(device)
+                    image_features.append(model.encode_image(image_input).cpu().numpy())
+                    funda_ids.append(funda_id)
+                    image_ids.append(image_id)
+                except Exception as ex:
+                    traceback.print_exc()
+                    skipped_indices.append(i)
     # Print skipped indices
     print("Skipped Indices:", skipped_indices)
 
-    # Save image features to an H5 file
-    image_features = np.concatenate(image_features, axis=0)
+    df = pd.DataFrame({'funda_id': funda_ids, 'image_id': image_ids, 'image_features': image_features})
+    # df.to_pickle(output_file)
 
-    with h5py.File(output_file, "w") as hf:
-        hf.create_dataset("image_features", data=image_features)
-    return skipped_indices
+    # # Save image features to an H5 file
+    # image_features = np.concatenate(image_features, axis=0)
+
+    # with h5py.File(output_file, "w") as hf:
+    #     hf.create_dataset("image_features", data=image_features)
+    return df
 
 
-def get_bert_embeddings(device, json_path, output_file):
+def get_bert_embeddings(df, device, json_path, output_file, split_documents=False):
     
     skipped_indices = []
-    d_embeddings = []
 
-    # load data
-    dataset = pd.read_json(json_path, lines=True)
-    corpus = dataset['description'].tolist()
+    # preprocess the text
+    funda_ids = []
+    text_ids = []
+    texts = []
+    text_features = []
+    for funda_id, doc in df[["funda_id", 'description']]:
+        if split_documents:
+            text_id = 0
+            for text in sent_tokenize(doc):
+                texts.append(text)
+                funda_ids.append(funda_id)
+                text_ids.append(text_id)
+                text_id += 1
+        else:
+            funda_ids.append(funda_id)
+            texts.append(doc)
+            text_ids.append(0)
+        
+    texts = [re.sub(r'\s+', ' ', t) for t in texts]
+    texts = [t.strip() for t in texts]
 
     # load the model
     model = SentenceTransformer('krlng/sts-GBERT-bi-encoder').to(device)
@@ -63,22 +90,21 @@ def get_bert_embeddings(device, json_path, output_file):
     batch_size = 32
     total_batches = NUM_DATAPOINTS // batch_size
     with torch.no_grad(), h5py.File(output_file, "w") as hf:
-        for i, batch_idx in tqdm(enumerate(range(total_batches))):
+        for batch_idx in tqdm(range(total_batches)):
             try:
-                batch_embeddings = model.encode(corpus[batch_idx*batch_size : (batch_idx+1)*batch_size])
-                d_embeddings.append(batch_embeddings)
+                batch_embeddings = model.encode(texts[batch_idx*batch_size : min(len(texts) - 1, (batch_idx+1)*batch_size)])
+                text_features.append(batch_embeddings)
             except Exception as ex:
                 traceback.print_exc()
                 skipped_indices.append(batch_idx)
     # Print skipped indices
     print("Skipped Indices:", skipped_indices)
 
-    # Save image features to an H5 file
-    d_embeddings = np.concatenate(d_embeddings, axis=0)
+    text_features = np.concatenate(text_features, axis=0)
 
-    with h5py.File(output_file, "w") as hf:
-        hf.create_dataset("text_features", data=d_embeddings)
-    return skipped_indices
+    df = pd.DataFrame({'funda_id': funda_ids, 'text_id': text_ids, 'text_features': text_features})
+
+    return df
 
 
 def make_umap(data, n_neighbors=6, n_components=2, metric='cosine'):
@@ -89,28 +115,67 @@ def make_tsne(data, n_components=2, perplexity=30, n_iter=1000, metric='cosine')
     return TSNE(n_components=n_components, perplexity=perplexity, n_iter=n_iter, metric=metric).fit_transform(data)
 
 
-def process_data(df, json_path, output_path, image_features_path, text_features_path, image_path, column_names, model_name, device):
-    get_bert_embeddings(device, json_path, output_file=text_features_path)
-    get_clip_embeddings(model_name, device, df, image_path=image_path, output_file=image_features_path)
+def process_data(df, json_path, output_path, image_features_path, text_features_path, image_path, column_names, model_name, device, **kwargs):
+    """
+    pre-compute image-specific features
+    """
+    image_feature_df = get_clip_embeddings(model_name, device, df, image_path=image_path, output_file=image_features_path)
 
     # add the UMAP coordinates to the dataframe
-    with h5py.File(image_features_path, "r") as hf:
-        image_features = hf["image_features"][:]
+    image_features = image_feature_df['image_features'].tolist()
     umap_embeddings = make_umap(image_features)
-    df['umap_x'] = umap_embeddings[:, 0]
-    df['umap_y'] = umap_embeddings[:, 1]
+    image_feature_df['umap_x'] = umap_embeddings[:, 0]
+    image_feature_df['umap_y'] = umap_embeddings[:, 1]
 
+    # add the TSNE coordinates to the dataframe
     tsne_embeddings = make_tsne(image_features)
-    df['tsne_x'] = tsne_embeddings[:, 0]
-    df['tsne_y'] = tsne_embeddings[:, 1]
+    image_feature_df['tsne_x'] = tsne_embeddings[:, 0]
+    image_feature_df['tsne_y'] = tsne_embeddings[:, 1]
 
-    # create a column containing the tags, by combining the 'str' values of the columns in 'column_names with a ;
-    df['tags'] = df[column_names].apply(lambda x: ';'.join(x.astype(str)), axis=1)
-    # save the dataframe
-    df.to_pickle(output_path)
-    return df
+    # save the dataframes
+    image_feature_df.to_pickle(output_path.replace('.', '_image_features.'))
 
-def parse_real_estate_json(json_path):
+    """
+    pre-compute text-specific features
+    """
+    text_features_df = get_bert_embeddings(df, device, json_path, output_file=text_features_path)
+
+    # add the UMAP coordinates to the dataframe
+    text_features = text_features_df['text_features'].tolist()
+    umap_embeddings = make_umap(text_features)
+    text_features_df['umap_x'] = umap_embeddings[:, 0]
+    text_features_df['umap_y'] = umap_embeddings[:, 1]
+
+    # add the TSNE coordinates to the dataframe
+    tsne_embeddings = make_tsne(text_features)
+    text_features_df['tsne_x'] = tsne_embeddings[:, 0]
+    text_features_df['tsne_y'] = tsne_embeddings[:, 1]
+
+    # save the dataframes
+    text_features_df.to_pickle(output_path.replace('.', '_text_features.'))
+
+    """
+    pre-compute text-specific features with sentence splitting
+    """
+    text_features_df = get_bert_embeddings(df, device, json_path, output_file=text_features_path, split_documents=True)
+
+    # add the UMAP coordinates to the dataframe
+    text_features = text_features_df['text_features'].tolist()
+    umap_embeddings = make_umap(text_features)
+    text_features_df['umap_x'] = umap_embeddings[:, 0]
+    text_features_df['umap_y'] = umap_embeddings[:, 1]
+
+    # add the TSNE coordinates to the dataframe
+    tsne_embeddings = make_tsne(text_features)
+    text_features_df['tsne_x'] = tsne_embeddings[:, 0]
+    text_features_df['tsne_y'] = tsne_embeddings[:, 1]
+
+    # save the dataframes
+    text_features_df.to_pickle(output_path.replace('.', '_sentence_features.'))
+    
+    return image_feature_df, text_features_df
+
+def old_parse_real_estate_json(json_path):
     with open(json_path, 'r') as ads_json:
         images_paths = []
         labels = []
@@ -124,9 +189,14 @@ def parse_real_estate_json(json_path):
                 parsed += 1
         return pandas.DataFrame({'labels': labels, 'filepaths': images_paths})
     
+def parse_real_estate_json(json_path):
+    df = pd.read_json(json_path, lines=True)
+    df = df.set_index("funda_identifier")
+    return df
+    
 def argparser():
     parser = argparse.ArgumentParser(description='Load the Funda ads jsonlines file containing image_paths to real estate images and save the table in pickle format with an added column: "clip_embeddings" which contains the CLIP embedding of the images and produce a column "umap_x" and "umap_y" which contains the UMAP coordinates of the images based on the clip embeddings')
-    parser.add_argument('--json_path', type=str, help='path to the json file containing the image paths', default='./dataloading/data/ads.jsonlines')
+    parser.add_argument('--json_path', type=str, help='path to the json file containing the image paths', default='./dataloading/data/ads_trans_mini.jsonlines')
     parser.add_argument('--output_path', type=str, help='path to the output pickle file',default='./dataloading/data/real_estate.pkl')
     parser.add_argument('--image_features_path', type=str, help='path where the image features file will be written', default='./dataloading/data/funda_image_features.h5')
     parser.add_argument('--text_features_path', type=str, help='path where the text features file will be written', default='./dataloading/data/funda_text_features.h5')
@@ -135,9 +205,10 @@ def argparser():
     parser.add_argument('--model_name', type=str, default='ViT-B/32', help='name of the CLIP model that should be used')
     parser.add_argument('--device', type=str, default='cpu', help='device that should be used to run the CLIP model on')
     args = parser.parse_args()
-    return args
+    kwargs = vars(args)
+    return kwargs
 
 if __name__ == '__main__':
-    args = argparser()
-    data = parse_real_estate_json(args.json_path)
-    process_data(data, args.json_path, args.output_path, args.image_features_path, args.text_features_path, args.image_path, args.column_names, args.model_name, args.device)
+    kwargs = argparser()
+    data = parse_real_estate_json(kwargs["json_path"])
+    process_data(data, **kwargs)
