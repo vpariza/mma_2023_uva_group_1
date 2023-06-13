@@ -8,16 +8,31 @@ class FilterWidget(QWidget):
         boldfont = QFont()
         boldfont.setBold(True)
         
-
-        
         widget = QWidget(self)
         layout = QVBoxLayout(self)
         title_label = QLabel("Filter Data")
         title_label.setFont(boldfont)
+        
+        layout.addWidget(title_label)
+        
+        self.pricefilter = PriceFilter()
+        layout.addWidget(self.pricefilter.widget)
+        
+        widget.setLayout(layout)
+        widget.move(20, 0)
+        
 
+
+class PriceFilter(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.widget = QWidget(self)
+        layout = QVBoxLayout(self)
 
         price_label = QLabel("Select price range:")
         self.PriceFilter = QComboBox(self)
+
         self.PriceFilter.addItems(['0k-100k', '100k-500k', '500k-1000k'])
         self.PriceFilter.setPlaceholderText("Price Range")
 
@@ -26,16 +41,14 @@ class FilterWidget(QWidget):
         self.PriceFilter.activated.connect(self.current_text)
         self.PriceFilter.activated.connect(self.current_text_via_index)
         self.PriceFilter.activated.connect(self.current_count)
-        # Move Price Filter
+        self.PriceFilter.activated.connect(self.update_data)
 
-        layout.addWidget(title_label)
         layout.addWidget(price_label)
         layout.addWidget(self.PriceFilter)
         
-        widget.setLayout(layout)
-        widget.move(20, 0)
-        
-
+        self.widget.setLayout(layout)
+        self.widget.move(20, 0)
+    
     def check_index(self, index):
         cindex = self.PriceFilter.currentIndex()
         print(f"Index signal: {index}, currentIndex {cindex}")
@@ -50,3 +63,6 @@ class FilterWidget(QWidget):
     def current_count(self, index):
         count = self.PriceFilter.count()
         print(f"Current Price Index {index+1}/{count}")
+
+    def update_data(self, df):
+        return 0
