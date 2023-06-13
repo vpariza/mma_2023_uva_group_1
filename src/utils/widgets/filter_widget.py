@@ -8,70 +8,83 @@ class FilterWidget(QWidget):
 
         boldfont = QFont()
         boldfont.setBold(True)
-        
+
+        # Set filterdict
+        self.filters = {'Max Price': -1,
+                        'Min Price': 0
+                        } 
+
+        # Configure price ranges
+        price_list = [0, 100, 500, 1000]
+        price_tags = [str(value) + 'k' for value in price_list]    
+
+        # Construct filters
+        self.pricefilter_max = ComboFilter('Max Price', self.df, scatter_plot_widget, price_list, price_tags, "Select max price:", self.filters)
+        #self.pricefilter_min = ComboFilter('Min Price', self.df, scatter_plot_widget, price_list, price_tags, "Select min price:", filters)
+
+        # Configure layout of widgets
         widget = QWidget(self)
         layout = QVBoxLayout(self)
         title_label = QLabel("Filter Data")
         title_label.setFont(boldfont)
         
         layout.addWidget(title_label)
-        
-        self.pricefilter = PriceFilter(self.df, scatter_plot_widget)
-        layout.addWidget(self.pricefilter.widget)
-        
+        layout.addWidget(self.pricefilter_max.widget)
         widget.setLayout(layout)
         widget.move(20, 0)
         
+    def make_layout():
+        pass
 
 
-class PriceFilter(QWidget):
-    def __init__(self, df, scatter_plot_widget):
+class ComboFilter(QWidget):
+    def __init__(self, name, df, scatter_plot_widget, filter_list, filter_tags, label, filters):
         super().__init__()
+        self.name = name
         self.df = df
+        self.label = label
+        self.filters = filters
         self.scatterplot = scatter_plot_widget
-        self.price_list = [0, 100, 500, 1000]
-        self.price_list_str = [str(price) + 'k' for price in self.price_list]    
-
+        self.filter_list = filter_list #[0, 100, 500, 1000]
+        self.filter_tages = filter_tags #
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
 
-        price_label = QLabel("Select price range:")
-        self.MaxFilter = QComboBox(self)
-        self.MaxFilter.addItems(self.price_list_str)
-        self.MaxFilter.setPlaceholderText("Max Price")
+        label = QLabel(label)
+        self.Filter = QComboBox(self)
+        self.Filter.addItems(filter_tags)
 
         # Connect signals to the methods.
-        self.MaxFilter.activated.connect(self.check_index)
-        self.MaxFilter.activated.connect(self.current_text)
-        self.MaxFilter.activated.connect(self.current_text_via_index)
-        self.MaxFilter.activated.connect(self.current_count)
-        self.MaxFilter.currentTextChanged.connect(self.on_combobox_changed)
+        self.Filter.activated.connect(self.check_index)
+        self.Filter.activated.connect(self.current_text)
+        self.Filter.activated.connect(self.current_text_via_index)
+        self.Filter.activated.connect(self.current_count)
+        self.Filter.currentTextChanged.connect(self.on_combobox_changed)
 
-        #self.MaxFilter.activated.connect(self.scatterplot.update_scatterplot)
-
-        layout.addWidget(price_label)
-        layout.addWidget(self.MaxFilter)
+        layout.addWidget(label)
+        layout.addWidget(self.Filter)
         
         self.widget.setLayout(layout)
         self.widget.move(20, 0)
     
     def check_index(self, index):
-        cindex = self.MaxFilter.currentIndex()
+        cindex = self.Filter.currentIndex()
         #print(f"Index signal: {index}, currentIndex {cindex}")
 
     def current_text(self, _): 
-        ctext = self.MaxFilter.currentText()
-        print("Current Max Price", ctext)
+        ctext = self.Filter.currentText()
+        print(self.label, ctext)
 
     def current_text_via_index(self, index):
-        ctext = self.MaxFilter.itemText(index) 
+        ctext = self.Filter.itemText(index) 
 
     def current_count(self, index):
-        count = self.MaxFilter.count()
+        count = self.Filter.count()
         #print(f"Current Price Index {index+1}/{count}")
 
     def on_combobox_changed(self):
-        new_df = self.df[self.df['price'] < 1e3*self.price_list[self.MaxFilter.currentIndex()]]
+        
+        new_df = self.df[self.df['price'] < 1e3*self.filter_list[self.Filter.currentIndex()]]
         x = new_df['umap_x'].values
         y = new_df['umap_y'].values
         self.scatterplot.update_scatterplot(x, y)
