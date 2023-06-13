@@ -13,12 +13,12 @@ class MainWindow(QMainWindow):
 
         #load data using the config file 'config.ini'
         preprocessing = Preprocessing()
-        self.config, self.tags, self.points, self.img_paths = preprocessing.load_data()
-
+        self.config, self.tags, self.points, self.img_paths, self.df = preprocessing.load_data()
+        
         ## inialize widgets
         self.query_widgets = [QueryWidget() for i in range(2)]
         self.scatter_plot_widget = PlotWidget(self.points, self.config)
-        self.filter_widget = FilterWidget()
+        self.filter_widget = FilterWidget(self.df, self.scatter_plot_widget)
         
         ## set up main window 
         self.make_layout()

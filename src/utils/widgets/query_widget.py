@@ -6,13 +6,13 @@ class QueryWidget(QWidget):
     def __init__(self):
         super().__init__()
         
-        self.nameLabel = QLabel(self)
-        self.nameLabel.setText('Query:')
-        self.query = QLineEdit(self)
+        self.QueryLabel = QLabel(self)
+        self.QueryLabel.setText('Query:')
+        self.Query = QLineEdit(self)
 
-        self.query.move(20, 40)
-        self.query.resize(200, 32)
-        self.nameLabel.move(20, 20)
+        self.Query.move(20, 40)
+        self.Query.resize(200, 32)
+        self.QueryLabel.move(20, 20)
 
         pybutton = QPushButton('Search', self)
         pybutton.clicked.connect(self.clickMethod)
@@ -20,4 +20,4 @@ class QueryWidget(QWidget):
         pybutton.move(20, 80)        
 
     def clickMethod(self):
-        print('Query: ' + self.query.text())
+        print('Query: ' + self.Query.text())

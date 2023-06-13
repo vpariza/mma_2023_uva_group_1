@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QComboBox, QVBoxLayout, QLabel
 from PyQt6.QtGui import QFont
 
 class FilterWidget(QWidget):
-    def __init__(self, df):
+    def __init__(self, df, scatter_plot_widget):
         super().__init__()
         self.df = df
 
@@ -16,7 +16,7 @@ class FilterWidget(QWidget):
         
         layout.addWidget(title_label)
         
-        self.pricefilter = PriceFilter(self.df)
+        self.pricefilter = PriceFilter(self.df, scatter_plot_widget)
         layout.addWidget(self.pricefilter.widget)
         
         widget.setLayout(layout)
@@ -25,18 +25,19 @@ class FilterWidget(QWidget):
 
 
 class PriceFilter(QWidget):
-    def __init__(self, df):
+    def __init__(self, df, scatter_plot_widget):
         super().__init__()
         self.df = df
+        self.scatterplot = scatter_plot_widget
         self.price_list = [0, 100, 500, 1000]
-        
+        self.price_list_str = [str(price) + 'k' for price in self.price_list]    
 
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
 
         price_label = QLabel("Select price range:")
         self.MaxFilter = QComboBox(self)
-        self.MaxFilter.addItems([str(price) + 'k' for price in self.price_list])
+        self.MaxFilter.addItems(self.price_list_str)
         self.MaxFilter.setPlaceholderText("Max Price")
 
         # Connect signals to the methods.
@@ -46,6 +47,7 @@ class PriceFilter(QWidget):
         self.MaxFilter.activated.connect(self.current_count)
         self.MaxFilter.currentTextChanged.connect(self.on_combobox_changed)
 
+        #self.MaxFilter.activated.connect(self.scatterplot.update_scatterplot)
 
         layout.addWidget(price_label)
         layout.addWidget(self.MaxFilter)
@@ -70,4 +72,6 @@ class PriceFilter(QWidget):
 
     def on_combobox_changed(self):
         new_df = self.df[self.df['price'] < 1e3*self.price_list[self.MaxFilter.currentIndex()]]
-        
+        x = new_df['umap_x'].values
+        y = new_df['umap_y'].values
+        self.scatterplot.update_scatterplot(x, y)

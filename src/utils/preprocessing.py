@@ -58,4 +58,4 @@ class Preprocessing():
             elif str(config['main']['embedding'])=='tsne':
                 points = self.compute_tsne(image_features)
         
-        return config, tags, points, img_paths
+        return config, tags, points, img_paths, df
