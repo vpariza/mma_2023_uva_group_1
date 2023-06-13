@@ -57,7 +57,7 @@ class PriceFilter(QWidget):
     
     def check_index(self, index):
         cindex = self.MaxFilter.currentIndex()
-        print(f"Index signal: {index}, currentIndex {cindex}")
+        #print(f"Index signal: {index}, currentIndex {cindex}")
 
     def current_text(self, _): 
         ctext = self.MaxFilter.currentText()
@@ -68,7 +68,7 @@ class PriceFilter(QWidget):
 
     def current_count(self, index):
         count = self.MaxFilter.count()
-        print(f"Current Price Index {index+1}/{count}")
+        #print(f"Current Price Index {index+1}/{count}")
 
     def on_combobox_changed(self):
         new_df = self.df[self.df['price'] < 1e3*self.price_list[self.MaxFilter.currentIndex()]]
