@@ -63,7 +63,8 @@ class MainWindow(QMainWindow):
         df = pd.read_pickle(data_path)
         with h5py.File(images_path, "r") as hf:
             image_features = hf["image_features"][:]
-            
+            print(len(image_features))
+            print(type(len(image_features)))
         ## select num_samples samples between
         if sample_selection == 'random':
             random_indices = np.random.choice(len(df), num_samples, replace=False)
