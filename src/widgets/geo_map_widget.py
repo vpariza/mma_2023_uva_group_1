@@ -75,7 +75,6 @@ class GeoMapWidget(QWidget):
         # self.setUpdatesEnabled()
         self.map_view.setPage(page)
         self.map_view.setHtml(self.__generate_html_map().getvalue().decode())
-        self.map_view.resize(640, 480)
         layout.addWidget(self.map_view)
         self.setLayout(layout)
 
@@ -91,7 +90,6 @@ class GeoMapWidget(QWidget):
     
     def update(self):
         self.map_view.setHtml(self.__generate_html_map(self._focus_coord).getvalue().decode())
-        self.map_view.resize(640, 480)
         self.map_view.update()
 
     def __generate_html_map(self, centroid=None):

@@ -22,7 +22,6 @@ class FilterWidget(QWidget):
         super().__init__()
 
         # Initialize main widget
-        self.widget = QWidget(self)
         vbox_layout = QVBoxLayout(self, spacing=2)
 
         #################################
@@ -44,7 +43,7 @@ class FilterWidget(QWidget):
         for filter in minmaxfilters:
             minmaxfilter = Layout(RangeFilter, filter, 'MinMax')
             self.minmaxfilters_dic[filter] = minmaxfilter
-            vbox_layout.addWidget(minmaxfilter.widget)
+            vbox_layout.addWidget(minmaxfilter)
 
         #################################
         # Block 3  - Combo Filters Title
@@ -69,14 +68,14 @@ class FilterWidget(QWidget):
         binary_tags = ['yes', 'no']    
 
         self.parkingfilter = ComboFilter('Parking Available:', binary, binary_tags)
-        combo_layout.addWidget(self.parkingfilter.widget)
+        combo_layout.addWidget(self.parkingfilter)
 
         """ Bedroom filter """
         ## Drop down menu elements
         bedroms, bedrom_tags = self.counter(1, 5)
         
         self.bedroomfilter = ComboFilter('Bedroom Available:', bedroms, bedrom_tags)
-        combo_layout.addWidget(self.bedroomfilter.widget)
+        combo_layout.addWidget(self.bedroomfilter)
 
         # Configure widget style
         self.combofilters.setLayout(combo_layout)
@@ -90,11 +89,11 @@ class FilterWidget(QWidget):
         # Controller for updating the plot
         #################################
         self.searchbutton = SearchWidget(self.minmaxfilters_dic)
-        vbox_layout.addWidget(self.searchbutton.widget)
+        vbox_layout.addWidget(self.searchbutton)
 
         # Configure widget style
-        self.widget.setLayout(vbox_layout)
-        self.widget.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
+        self.setLayout(vbox_layout)
+        self.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
 
     def counter(self, N_min, N_max):
         numerical = np.arange(N_min, N_max + 1)
@@ -119,18 +118,17 @@ class Layout(QWidget):
 
     def minmax_layout(self):
         ## Initialize widgets
-        self.widget = QWidget(self)
         minmax_layout = QHBoxLayout(self, spacing=2)
     
         self.Max = RangeFilter('Max ' + self.name)
-        minmax_layout.addWidget(self.Max.widget)
+        minmax_layout.addWidget(self.Max)
 
         self.Min = RangeFilter('Min ' + self.name)
-        minmax_layout.addWidget(self.Min.widget)
+        minmax_layout.addWidget(self.Min)
 
         # Configure widget style
-        self.widget.setLayout(minmax_layout)
-        self.widget.setStyleSheet("border: 0px;") 
+        self.setLayout(minmax_layout)
+        self.setStyleSheet("border: 0px;") 
 
 class RangeFilter(QWidget):
     """ Class for building singular Query-input style widgets
@@ -139,7 +137,6 @@ class RangeFilter(QWidget):
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.widget =  QWidget(self)
         widget_layout = QHBoxLayout(self, spacing=5)
 
         # Set box lable
@@ -155,9 +152,9 @@ class RangeFilter(QWidget):
         widget_layout.addWidget(self.QueryText)
 
         # Combine widgets
-        self.widget.setLayout(widget_layout )
-        self.widget.setStyleSheet("border: 0px;")
-        self.widget.setFixedSize(QSize(250 , 50))
+        self.setLayout(widget_layout )
+        self.setStyleSheet("border: 0px;")
+        self.setFixedSize(QSize(250 , 50))
         
 
 class ComboFilter(QWidget):
@@ -169,7 +166,6 @@ class ComboFilter(QWidget):
         self.name = name
         self.filter_list = filter_list #[0, 100, 500, 1000]
         self.filter_tages = filter_tags #
-        self.widget = QWidget(self)
         layout = QVBoxLayout(self)
 
         label = QLabel(self.name)
@@ -187,8 +183,8 @@ class ComboFilter(QWidget):
         layout.addWidget(label)
         layout.addWidget(self.Filter)
         
-        self.widget.setLayout(layout)
-        self.widget.setStyleSheet("border: 0px;")
+        self.setLayout(layout)
+        self.setStyleSheet("border: 0px;")
         
     
     def check_index(self, index):
@@ -215,7 +211,6 @@ class SearchWidget(QWidget):
         super().__init__()
         self.filters = minmax_filters
 
-        self.widget = QWidget(self)
         layout = QVBoxLayout(self)
         
         # Set search button 

@@ -1,5 +1,5 @@
-# import sys
-# sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
+import sys
+sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
 
 import sys
 from PyQt6 import QtCore
@@ -29,9 +29,10 @@ class MainWindow(QMainWindow):
         # BEGIN TEST: For Testing Purposes only
         from src.utils.file_utils import load_from_pickle
         self.df = load_from_pickle('data.pkl')
+        self.df.iloc[:100]
         # END TEST: For Testing Purposes only
         self.df_show = self.df.copy()
-        self.images_dir_path = ''
+        self.images_dir_path = '../Dataloading/Datasets/Funda/images'
         ## inialize widgets
         self.query_widgets = [QueryWidget() for i in range(2)]
         for query_widget in self.query_widgets:
@@ -48,7 +49,7 @@ class MainWindow(QMainWindow):
         # Define the Listings Table
         table_listings_model = TableListingsModel(self.df_show, self.images_dir_path)
         self.table_listings_widget = TableListingsView(table_listings_model)
-        self.table_listings_widget.entryClicked.connect(self.on_table_entry_clicked)
+        self.table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
 
         # Clear All Button Widget
         self.clear_all_button_widget = QPushButton('Clear All', self)
@@ -67,11 +68,11 @@ class MainWindow(QMainWindow):
         ## Combine widgets in right column
         vbox = QWidget()
         vbox_layout = QVBoxLayout(self, spacing=10)
-        vbox_layout.addWidget(self.table_listings_widget)
-        vbox_layout.addWidget(self.clear_all_button_widget)
-        # vbox_layout.addWidget(self.query_widgets[0])
+        vbox_layout.addWidget(self.query_widgets[0])
         #vbox_layout.addWidget(self.query_widgets[1])
         vbox_layout.addWidget(self.filter_widget)
+        vbox_layout.addWidget(self.table_listings_widget)
+        vbox_layout.addWidget(self.clear_all_button_widget)
         vbox.setLayout(vbox_layout)
    
         ## set the layout of the main window
@@ -119,11 +120,11 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot(object, QWidget)
     def on_map_entry_clicked(self, entry, source):
         # TODO
-        print('Map Entry on Map Clicked', entry)
+        print('Map Entry Clicked', entry)
         pass
 
     @QtCore.pyqtSlot(object, QWidget)
-    def on_table_entry_clicked(self, entry, source):
+    def on_table_entry_double_clicked(self, entry, source):
         self.geo_map_widget.focus_on_entry(entry)
         self.update()
 

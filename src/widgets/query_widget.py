@@ -15,7 +15,6 @@ class QueryWidget(QWidget):
         
         super().__init__()
         ## Initialize widgets
-        self.vbox = QWidget(self)
         vbox_layout = QVBoxLayout(self, spacing=2)
         hbox =  QWidget(self)
         hbox_layout = QHBoxLayout(self, spacing=5)
@@ -43,10 +42,10 @@ class QueryWidget(QWidget):
         hbox.setLayout(hbox_layout)
         hbox.setStyleSheet("border: 0px solid darkgray; background-color: #f5f5f5;")
         vbox_layout.addWidget(hbox)
-        self.vbox.setLayout(vbox_layout)
+        self.setLayout(vbox_layout)
         # set widget style
-        self.vbox.resize(450, 100)
-        self.vbox.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
+        self.resize(450, 100)
+        self.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
 
     def clickMethod(self):
         self.querySubmitted.emit(self.QueryText.text(), self)
