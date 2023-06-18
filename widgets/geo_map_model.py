@@ -20,7 +20,7 @@ class QGeoMapModel(QObject):
         LISTING_ID = 'funda_identifier'
 
     def __init__(self, data:pd.DataFrame, summary_keys:str=None, parent: typing.Optional['QObject'] = None ) -> None:
-        super(QObject, self).__init__(parent)
+        super(QGeoMapModel, self).__init__(parent)
         self._data = data
         self._summary_keys = summary_keys
 

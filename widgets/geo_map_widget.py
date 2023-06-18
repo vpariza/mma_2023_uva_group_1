@@ -29,7 +29,7 @@ class WebEngineGeoMapPage(QtWebEngineCore.QWebEnginePage):
     markerClicked = QtCore.pyqtSignal(list, QWidget)
 
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
-        super(QtWebEngineCore.QWebEnginePage, self).__init__(parent)
+        super(WebEngineGeoMapPage, self).__init__(parent)
 
     def javaScriptConsoleMessage(self, level, msg, line, sourceID):
         """
@@ -63,7 +63,7 @@ class GeoMapWidget(QWidget):
     entryClicked = QtCore.pyqtSignal(object, QWidget)
 
     def __init__(self, geo_map_model:QGeoMapModel, parent: typing.Optional['QWidget']=None, *args, **kwargs):
-        super(QWidget, self).__init__(parent=parent, *args, **kwargs)
+        super(GeoMapWidget, self).__init__(parent=parent, *args, **kwargs)
         self._geo_map_model = geo_map_model
         # the widget should have a layout
         layout = QVBoxLayout()
