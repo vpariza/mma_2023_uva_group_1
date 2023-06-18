@@ -1,9 +1,9 @@
 import sys
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget
-from src.utils.widgets.query_widget import QueryWidget
-from src.utils.widgets.plot_widget import PlotWidget
-from src.utils.widgets.filter_widget import FilterWidget
+from src.widgets.query_widget import QueryWidget
+from src.widgets.plot_widget import PlotWidget
+from src.widgets.filter_widget import FilterWidget
 from src.utils.preprocessing import Preprocessing
 
 
