@@ -1,4 +1,5 @@
-
+# import sys
+# sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
 
 import sys
 from PyQt6 import QtCore
@@ -13,6 +14,9 @@ from src.widgets.geo_map_widget import GeoMapWidget
 
 from src.widgets.table_listings_view import TableListingsView
 from src.widgets.table_llistings_model import TableListingsModel
+
+
+from PyQt6.QtWidgets import QWidget, QLineEdit, QComboBox, QHBoxLayout, QVBoxLayout, QLabel, QPushButton
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -46,9 +50,12 @@ class MainWindow(QMainWindow):
         self.table_listings_widget = TableListingsView(table_listings_model)
         self.table_listings_widget.entryClicked.connect(self.on_table_entry_clicked)
 
+        # Clear All Button Widget
+        self.clear_all_button_widget = QPushButton('Clear All', self)
+        self.clear_all_button_widget.clicked.connect(self.clear_all_button_clicked)
+
         ## set up main window 
         self.make_layout()
-        
         
     def make_layout(self):   
         """Congifure layout for main window"""  
@@ -60,8 +67,9 @@ class MainWindow(QMainWindow):
         ## Combine widgets in right column
         vbox = QWidget()
         vbox_layout = QVBoxLayout(self, spacing=10)
-        # vbox_layout.addWidget(self.table_listings_widget)
-        vbox_layout.addWidget(self.query_widgets[0])
+        vbox_layout.addWidget(self.table_listings_widget)
+        vbox_layout.addWidget(self.clear_all_button_widget)
+        # vbox_layout.addWidget(self.query_widgets[0])
         #vbox_layout.addWidget(self.query_widgets[1])
         vbox_layout.addWidget(self.filter_widget)
         vbox.setLayout(vbox_layout)
@@ -110,11 +118,20 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(object, QWidget)
     def on_map_entry_clicked(self, entry, source):
+        # TODO
+        print('Map Entry on Map Clicked', entry)
         pass
 
     @QtCore.pyqtSlot(object, QWidget)
     def on_table_entry_clicked(self, entry, source):
-        pass
+        self.geo_map_widget.focus_on_entry(entry)
+        self.update()
+
+    @QtCore.pyqtSlot()
+    def clear_all_button_clicked(self):
+        self.df_show = self.df.copy()
+        self.geo_map_widget.focus_on_coord(None)
+        self.update()
 
     ###### Other Utility Methods ######
     def apply_filters(self, df, filters): 

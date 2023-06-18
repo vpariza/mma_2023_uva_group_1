@@ -226,8 +226,8 @@ class SearchWidget(QWidget):
         layout.addWidget(self.QueryButton)
         
         # Combine widgets
-        self.widget.setLayout(layout)
-        self.widget.setStyleSheet("border: 0px;")  
+        self.setLayout(layout)
+        self.setStyleSheet("border: 0px;")  
 
     def clickMethod(self):
         self.filtersApplied.emit(self.filters, self)

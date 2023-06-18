@@ -79,3 +79,6 @@ class QGeoMapModel(QObject):
 
     def get_centroid_point(self):
         return np.mean((self._data[self.HouseInfoKeys.LATITUDE.value], self._data[self.HouseInfoKeys.LONGITUDE.value]), axis=1)
+    
+    def get_coords_of_entry(self, entry_id):
+        return self._data[self._data[self.HouseInfoKeys.LISTING_ID.value] == entry_id][[self.HouseInfoKeys.LATITUDE.value, self.HouseInfoKeys.LONGITUDE.value]].values.tolist()[0]

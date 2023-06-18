@@ -82,27 +82,33 @@ class GeoMapWidget(QWidget):
     def update_geo_map_model(self, geo_map_model:QGeoMapModel):
         self._geo_map_model = geo_map_model
         self.update()
+    
+    def focus_on_coord(self, coords):
+        self._focus_coord = coords
 
+    def focus_on_entry(self, entry_id):
+        self._focus_coord = self._geo_map_model.get_coords_of_entry(entry_id)
+    
     def update(self):
-        self.map_view.setHtml(self.__generate_html_map().getvalue().decode())
+        self.map_view.setHtml(self.__generate_html_map(self._focus_coord).getvalue().decode())
         self.map_view.resize(640, 480)
         self.map_view.update()
 
-    def __generate_html_map(self):
-        m = self.__create_basic_map()
+    def __generate_html_map(self, centroid=None):
+        m = self.__create_basic_map(centroid)
         self.__add_markers_on_map(m)
         self.__add_draw_features_on_map(m)
         data = io.BytesIO()
         m.save(data, close_file=False)
         return data
 
-    def __create_basic_map(self):
+    def __create_basic_map(self, centroid=None):
         # Modify Marker template to include the onClick event
         # Change template to custom template
         Marker._template = Template(self.__click_marker_template)
         # Define the folium map
         m = folium.Map(
-            location=self._geo_map_model.get_centroid_point(), tiles="OpenStreetMap", zoom_start=13
+            location=self._geo_map_model.get_centroid_point() if centroid is None else centroid, tiles="OpenStreetMap", zoom_start=13
         )
         
         e = folium.Element(self.__click_marker_js)
@@ -171,6 +177,5 @@ class GeoMapWidget(QWidget):
 
     @QtCore.pyqtSlot(list, QWidget)
     def marker_was_clicked(self, coords, source):
-        # print('Clicked marker_was_clicked')
         entry = self._geo_map_model.get_selected_entry(coords) 
         self.entryClicked.emit(entry, self)
