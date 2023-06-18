@@ -3,9 +3,15 @@ from PyQt6.QtCore import QSize
 
 
 class QueryWidget(QWidget):
+    """ Build main query input widget for free-text search
+    Can also be applied to build additional query widgets
+    
+    """
+
     def __init__(self):
+        
         super().__init__()
-        ## Combine widgets
+        ## Initialize widgets
         self.vbox = QWidget(self)
         vbox_layout = QVBoxLayout(self, spacing=2)
         hbox =  QWidget(self)
@@ -23,7 +29,7 @@ class QueryWidget(QWidget):
         self.QueryText.setStyleSheet("border: 1px solid darkgray;")   
         hbox_layout.addWidget(self.QueryText)
         
-        # Set search button
+        # Set search button 
         self.QueryButton = QPushButton('Search Query', self)
         self.QueryButton.clicked.connect(self.clickMethod)
         self.QueryButton.setFixedSize(QSize(150, 25))  

@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
 
         # Configure main window apperance    
         self.setWindowTitle("Scatterplot Dashboard")
-        self.setMinimumSize(QSize(1000, 500))
+        self.setMinimumSize(QSize(1250, 500))
 
         ## Combine widgets in right column
         vbox = QWidget()
