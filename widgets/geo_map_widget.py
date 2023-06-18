@@ -181,12 +181,13 @@ class GeoMapWidget(QWidget):
     @QtCore.pyqtSlot(list, QWidget)
     def area_was_selected(self, coords, source):
         entries = self._geo_map_model.get_selected_entries_from_area(coords) 
+        print(entries)
         self.entriesSelected.emit(entries, self)
 
     @QtCore.pyqtSlot(list, QWidget)
     def marker_was_clicked(self, coords, source):
-        # print('Clicked marker_was_clicked')
         entry = self._geo_map_model.get_selected_entry(coords) 
+        print(entry)
         self.entryClicked.emit(entry, self)
 
 if __name__ == '__main__': 
@@ -200,6 +201,7 @@ if __name__ == '__main__':
     data = file_utils.load_from_pickle('./data.pkl')
     data = add_points_as_coords(data)
     geo_map_model = QGeoMapModel(data.iloc[:200])
+    # geo_map_model.entriesSelected.connect()
     w.setCentralWidget(GeoMapWidget(geo_map_model))
     w.show()
     sys.exit(app.exec())
