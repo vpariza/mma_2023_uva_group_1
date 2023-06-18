@@ -16,20 +16,20 @@ class QGeoMapModel(QObject):
     class HouseInfoKeys(Enum):
         LONGITUDE = 'lon'
         LATITUDE = 'lat'
-        POINT_COORDS = 'coords'
         LISTING_ID = 'funda_identifier'
 
     def __init__(self, data:pd.DataFrame, summary_keys:str=None, parent: typing.Optional['QObject'] = None ) -> None:
         super(QObject, self).__init__(parent)
         self._data = data
         self._summary_keys = summary_keys
+        self._coords = self.__get_location_points()
 
     def __get_location_points(self):
         """
         Converts all the coordinates (latitude and longitude entries) to points so that it can process
         them easily.
         """
-        coords = self.data[[self.HouseInfoKeys.LATITUDE.value, self.HouseInfoKeys.LONGITUDE.value]].to_numpy()
+        coords = self._data[[self.HouseInfoKeys.LATITUDE.value, self.HouseInfoKeys.LONGITUDE.value]].to_numpy()
         return np.array([Point(coord) for coord in coords])
 
     def get_selected_entries_from_area(self, polygon_coords:List[List[float]]) -> list:
@@ -38,7 +38,7 @@ class QGeoMapModel(QObject):
         in the polygon.
         """
         polygon = Polygon(polygon_coords)
-        idces = np.where(polygon.contains(self._data[self.HouseInfoKeys.POINT_COORDS.value].to_numpy()))[0]
+        idces = np.where(polygon.contains(self._coords))[0]
         return self._data.iloc[idces][self.HouseInfoKeys.LISTING_ID.value].values.tolist()
     
     def get_selected_entry(self, coords:List[float]) -> object:

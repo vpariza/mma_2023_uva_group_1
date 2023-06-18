@@ -22,8 +22,10 @@ class MainWindow(QMainWindow):
         preprocessing = Preprocessing()
         # TODO: Return sirectory of Listings Images
         self.config, self.tags, self.points, self.img_paths, self.df = preprocessing.load_data()
+        # BEGIN TEST: For Testing Purposes only
         from src.utils.file_utils import load_from_pickle
         self.df = load_from_pickle('data.pkl')
+        # END TEST: For Testing Purposes only
         self.df_show = self.df.copy()
         self.images_dir_path = ''
         ## inialize widgets
@@ -43,8 +45,6 @@ class MainWindow(QMainWindow):
         table_listings_model = TableListingsModel(self.df_show, self.images_dir_path)
         self.table_listings_widget = TableListingsView(table_listings_model)
         self.table_listings_widget.entryClicked.connect(self.on_table_entry_clicked)
-        
-        # Connect the widgets to slots for hanlding signals
 
         ## set up main window 
         self.make_layout()
@@ -59,13 +59,11 @@ class MainWindow(QMainWindow):
 
         ## Combine widgets in right column
         vbox = QWidget()
-        vbox_layout = QVBoxLayout(self, spacing=0)
-
+        vbox_layout = QVBoxLayout(self, spacing=10)
+        # vbox_layout.addWidget(self.table_listings_widget)
         vbox_layout.addWidget(self.query_widgets[0])
         #vbox_layout.addWidget(self.query_widgets[1])
         vbox_layout.addWidget(self.filter_widget)
-        vbox_layout.addWidget(self.table_listings_widget)
-        
         vbox.setLayout(vbox_layout)
    
         ## set the layout of the main window
@@ -77,12 +75,20 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
     
-    # Update/Refresh all the widgets
-    def update(self):
+    def update_table(self):
         geo_map_model = QGeoMapModel(self.df_show)
         self.geo_map_widget.update_geo_map_model(geo_map_model)
+
+    def update_geo_map(self):
         table_listings_model = TableListingsModel(self.df_show, self.images_dir_path)
         self.table_listings_widget.update_model(table_listings_model)
+
+    def update(self):
+        """
+        Update/Refresh all the widgets
+        """
+        self.update_geo_map()
+        self.update_table()
 
     ###### HANDLING SINGALS FROM CHILD WIDGETS - SLOTS #######
     @QtCore.pyqtSlot(str, QWidget)
@@ -91,13 +97,16 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(object, QWidget)
     def on_filters_applied(self, filters, source):
-        self.apply_filters(filters) 
-        self.update()
+        filtered_df = self.apply_filters(self.df, filters) 
+        if len(filtered_df.index) > 0:
+            self.df_show = filtered_df
+            self.update()
 
     @QtCore.pyqtSlot(list, QWidget)
     def on_map_entries_selected(self, entries, source):
-        self.df_show = self.df_show[self.df_show['funda_identifier'].isin(entries)]
-        self.update()
+        if len(entries) > 0:
+            self.df_show = self.df_show[self.df_show['funda_identifier'].isin(entries)]
+            self.update()
 
     @QtCore.pyqtSlot(object, QWidget)
     def on_map_entry_clicked(self, entry, source):
@@ -108,8 +117,8 @@ class MainWindow(QMainWindow):
         pass
 
     ###### Other Utility Methods ######
-    def apply_filters(self, filters): 
-        new_df = self.df.copy()
+    def apply_filters(self, df, filters): 
+        new_df = df.copy()
         for tag, filter in filters.items():
             values = {'Max': filter.Max.QueryText.text(), 'Min': filter.Min.QueryText.text() }
             for bound, input in values.items():
@@ -126,7 +135,7 @@ class MainWindow(QMainWindow):
                     print(bound, tag, 'not provided')
                 except NameError:
                     print('invalid input for ', bound, tag)
-        self.df_show = new_df
+        return new_df
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

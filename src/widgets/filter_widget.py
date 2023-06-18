@@ -3,8 +3,6 @@ from PyQt6.QtCore import QSize
 from PyQt6 import QtCore
 import numpy as np
 
-import pandas as pd
-
 class FilterWidget(QWidget):
     """ Build main filtering widget for dashboard
 
