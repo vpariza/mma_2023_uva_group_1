@@ -136,7 +136,7 @@ class MainWindow(QMainWindow):
 
     ###### Other Utility Methods ######
     def apply_filters(self, df, filters): 
-        new_df = df.copy()
+        new_df = self.df_show.copy()
         for tag, filter in filters.items():
             values = {'Max': filter.Max.QueryText.text(), 'Min': filter.Min.QueryText.text() }
             for bound, input in values.items():

@@ -69,7 +69,7 @@ class GeoMapWidget(QWidget):
         layout = QVBoxLayout()
         self.map_view = QtWebEngineWidgets.QWebEngineView()
         page = WebEngineGeoMapPage(self.map_view)
-
+        self._focus_coord = None
         page.areaSelected.connect(self.area_was_selected)
         page.markerClicked.connect(self.marker_was_clicked)
         # self.setUpdatesEnabled()
