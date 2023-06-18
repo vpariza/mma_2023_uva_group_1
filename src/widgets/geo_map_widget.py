@@ -1,5 +1,5 @@
 
-from elements.draw import Draw
+from src.widgets.elements.draw import Draw
 import folium, io, sys, json
 from PyQt6 import QtCore, QtWidgets, QtWebEngineWidgets, QtWebEngineCore
 
@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget,
     QLabel, QVBoxLayout, QPushButton
 )
-from geo_map_model import QGeoMapModel
+from src.widgets.geo_map_model import QGeoMapModel
 
 from jinja2 import Template
 from folium.map import Marker
@@ -67,17 +67,6 @@ class GeoMapWidget(QWidget):
         self._geo_map_model = geo_map_model
         # the widget should have a layout
         layout = QVBoxLayout()
-        # MAP LABEL
-        # Maybe add a label for a title
-        # self.label = QLabel("Hello!")
-        # layout.addWidget(self.label)
-
-        # UPDATE MAP BUTTON
-        # button = QPushButton("Update Map", self)
-        # button.clicked.connect(self.update_button_clicked)
-        # layout.addWidget(button)
-        # Create the Web Page for the GeoMap
-
         self.map_view = QtWebEngineWidgets.QWebEngineView()
         page = WebEngineGeoMapPage(self.map_view)
 
@@ -98,9 +87,6 @@ class GeoMapWidget(QWidget):
         self.map_view.setHtml(self.__generate_html_map().getvalue().decode())
         self.map_view.resize(640, 480)
         self.map_view.update()
-
-    def update_button_clicked(self):
-        self.update_geo_map_model(geo_map_model)
 
     def __generate_html_map(self):
         m = self.__create_basic_map()

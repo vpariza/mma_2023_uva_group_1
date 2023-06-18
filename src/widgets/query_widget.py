@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QLineEdit, QLabel, QPushButton, QVBoxLayout, QHBoxLayout
 from PyQt6.QtCore import QSize
+from PyQt6 import QtCore
 
 
 class QueryWidget(QWidget):
@@ -7,6 +8,8 @@ class QueryWidget(QWidget):
     Can also be applied to build additional query widgets
     
     """
+    # Signal for Emitting the requrested query text
+    querySubmitted = QtCore.pyqtSignal(str, QWidget)
 
     def __init__(self):
         
@@ -46,4 +49,4 @@ class QueryWidget(QWidget):
         self.vbox.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
 
     def clickMethod(self):
-        print('Query: ' + self.QueryText.text())
+        self.querySubmitted.emit(self.QueryText.text(), self)

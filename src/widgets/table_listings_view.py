@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow,  QVBoxLayout, QWi
 from enum import Enum
 import os
 
-from table_llistings_model import TableListingsModel
+from src.widgets.table_llistings_model import TableListingsModel
 
 from typing import List
 class ImageWindow(QWidget):

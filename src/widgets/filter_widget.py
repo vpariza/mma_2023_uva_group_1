@@ -1,17 +1,18 @@
 from PyQt6.QtWidgets import QWidget, QLineEdit, QComboBox, QHBoxLayout, QVBoxLayout, QLabel, QPushButton
 from PyQt6.QtCore import QSize
+from PyQt6 import QtCore
 import numpy as np
+
+import pandas as pd
 
 class FilterWidget(QWidget):
     """ Build main filtering widget for dashboard
 
     """
-    def __init__(self, df, scatter_plot_widget, minmaxfilters = ['price', 'area'], combolist =  ['Parking', 'Bedroom']):
+    def __init__(self, minmaxfilters = ['price', 'area'], combolist =  ['Parking', 'Bedroom']):
         """ Init filtering widget for dashboard
 
         Args:
-            df: database
-            scatter_plot_widget: plot widget to be updated
             minmaxfilters: list of range filters to include 
             combofilters: list of roll-down menu filters to include 
         
@@ -21,7 +22,6 @@ class FilterWidget(QWidget):
         """
 
         super().__init__()
-        self.df = df
 
         # Initialize main widget
         self.widget = QWidget(self)
@@ -77,7 +77,7 @@ class FilterWidget(QWidget):
         ## Drop down menu elements
         bedroms, bedrom_tags = self.counter(1, 5)
         
-        self.bedroomfilter = ComboFilter('Bedrom Available:', bedroms, bedrom_tags)
+        self.bedroomfilter = ComboFilter('Bedroom Available:', bedroms, bedrom_tags)
         combo_layout.addWidget(self.bedroomfilter.widget)
 
         # Configure widget style
@@ -91,7 +91,7 @@ class FilterWidget(QWidget):
         #
         # Controller for updating the plot
         #################################
-        self.searchbutton = SearchWidget(self.df, scatter_plot_widget, self.minmaxfilters_dic)
+        self.searchbutton = SearchWidget(self.minmaxfilters_dic)
         vbox_layout.addWidget(self.searchbutton.widget)
 
         # Configure widget style
@@ -133,8 +133,6 @@ class Layout(QWidget):
         # Configure widget style
         self.widget.setLayout(minmax_layout)
         self.widget.setStyleSheet("border: 0px;") 
-
-
 
 class RangeFilter(QWidget):
     """ Class for building singular Query-input style widgets
@@ -208,16 +206,15 @@ class ComboFilter(QWidget):
     def current_count(self, index):
         count = self.Filter.count()
 
-
-
-
 class SearchWidget(QWidget):
     """ Class for building main filtering button and update plots
     """
-    def __init__(self, df, scatter_plot_widget, minmax_filters):
+
+    # Signal for Emitting the filtered data
+    filtersApplied = QtCore.pyqtSignal(object, QWidget)
+
+    def __init__(self, minmax_filters):
         super().__init__()
-        self.df = df
-        self.scatter_plot_widget = scatter_plot_widget
         self.filters = minmax_filters
 
         self.widget = QWidget(self)
@@ -235,26 +232,4 @@ class SearchWidget(QWidget):
         self.widget.setStyleSheet("border: 0px;")  
 
     def clickMethod(self):
-        new_df = self.df.copy()
-        print('---------- Filter Applied ----------')
-        for tag, filter in self.filters.items():
-            values = {'Max': filter.Max.QueryText.text(), 'Min': filter.Min.QueryText.text() }
-            for bound, input in values.items():
-                try: 
-                    input = eval(input)
-                    if bound == 'Min':
-                        print(bound, tag, input)
-                        new_df = new_df[new_df[tag] > input]
-                    elif bound == 'Max':
-                        print(bound, tag, input)
-                        new_df = new_df[new_df[tag] < input]
-
-                except SyntaxError:
-                    print(bound, tag, 'not provided')
-                except NameError:
-                    print('invalid input for ', bound, tag)
-
-        # Update plot
-        x = new_df['umap_x'].values
-        y = new_df['umap_y'].values
-        self.scatter_plot_widget.update_scatterplot(x, y)
+        self.filtersApplied.emit(self.filters, self)
