@@ -21,30 +21,42 @@ from sentence_transformers import SentenceTransformer
 
 
 NUM_DATAPOINTS = 1024
+BATCH_SIZE = 32
 
 
-def get_clip_embeddings(model_name, device, df, image_path, output_file):
+def get_clip_embeddings(model_name, device, df, image_path):
     # load the model
     model, preprocess = clip.load(model_name, device=device)
     funda_ids = []
     image_ids = []
+    images = []
     image_features = []
     skipped_indices = []
 
-    with torch.no_grad(), h5py.File(output_file, "w") as hf:
+    with torch.no_grad():
+        print("Loading images...")
         for i, funda_id in tqdm(enumerate(df.index)):
             for image_name in df.loc[funda_id]['images_paths']:
                 image_id = image_name.split('/')[-1].split('.')[0].replace("image", "")
                 ## load the image, preprocess them and load clip embeddings
                 try:
-                    image = preprocess(Image.open(os.path.join(image_path + image_name)))
-                    image_input = image.unsqueeze(0).to(device)
-                    image_features.append(model.encode_image(image_input).cpu().numpy())
+                    image = preprocess(Image.open(os.path.join(image_path + image_name))).unsqueeze(0).to(device)
+                    #image_input = image.unsqueeze(0).to(device)
+                    #image_features.append(model.encode_image(image_input).cpu().numpy())
                     funda_ids.append(funda_id)
                     image_ids.append(image_id)
                 except Exception as ex:
                     traceback.print_exc()
                     skipped_indices.append(i)
+
+        print("Computing image features...")
+        for batch_idx in tqdm(range(NUM_DATAPOINTS // BATCH_SIZE)):
+            try:
+                batch_embeddings = model.encode_image(image[batch_idx*BATCH_SIZE : (batch_idx+1)*BATCH_SIZE]).cpu().numpy()
+                image_features.append(batch_embeddings)
+            except Exception as ex:
+                traceback.print_exc()
+                skipped_indices.append(batch_idx)
     # Print skipped indices
     print("Skipped Indices:", skipped_indices)
 
@@ -59,7 +71,7 @@ def get_clip_embeddings(model_name, device, df, image_path, output_file):
     return df
 
 
-def get_bert_embeddings(df, device, json_path, output_file, split_documents=False):
+def get_bert_embeddings(df, device, split_documents=False):
     
     skipped_indices = []
 
@@ -87,12 +99,11 @@ def get_bert_embeddings(df, device, json_path, output_file, split_documents=Fals
     # load the model
     model = SentenceTransformer('krlng/sts-GBERT-bi-encoder').to(device)
 
-    batch_size = 32
-    total_batches = NUM_DATAPOINTS // batch_size
-    with torch.no_grad(), h5py.File(output_file, "w") as hf:
+    total_batches = NUM_DATAPOINTS // BATCH_SIZE
+    with torch.no_grad():
         for batch_idx in tqdm(range(total_batches)):
             try:
-                batch_embeddings = model.encode(texts[batch_idx*batch_size : min(len(texts) - 1, (batch_idx+1)*batch_size)])
+                batch_embeddings = model.encode(texts[batch_idx*BATCH_SIZE : min(len(texts) - 1, (batch_idx+1)*BATCH_SIZE)])
                 text_features.append(batch_embeddings)
             except Exception as ex:
                 traceback.print_exc()
@@ -115,11 +126,11 @@ def make_tsne(data, n_components=2, perplexity=30, n_iter=1000, metric='cosine')
     return TSNE(n_components=n_components, perplexity=perplexity, n_iter=n_iter, metric=metric).fit_transform(data)
 
 
-def process_data(df, json_path, output_path, image_features_path, text_features_path, image_path, column_names, model_name, device, **kwargs):
+def process_data(df, output_path, image_path, model_name, device, **kwargs):
     """
     pre-compute image-specific features
     """
-    image_feature_df = get_clip_embeddings(model_name, device, df, image_path=image_path, output_file=image_features_path)
+    image_feature_df = get_clip_embeddings(model_name, device, df, image_path=image_path)
 
     # add the UMAP coordinates to the dataframe
     image_features = image_feature_df['image_features'].tolist()
@@ -138,7 +149,7 @@ def process_data(df, json_path, output_path, image_features_path, text_features_
     """
     pre-compute text-specific features
     """
-    text_features_df = get_bert_embeddings(df, device, json_path, output_file=text_features_path)
+    text_features_df = get_bert_embeddings(df, device, split_documents=False)
 
     # add the UMAP coordinates to the dataframe
     text_features = text_features_df['text_features'].tolist()
@@ -157,7 +168,7 @@ def process_data(df, json_path, output_path, image_features_path, text_features_
     """
     pre-compute text-specific features with sentence splitting
     """
-    text_features_df = get_bert_embeddings(df, device, json_path, output_file=text_features_path, split_documents=True)
+    text_features_df = get_bert_embeddings(df, device, split_documents=True)
 
     # add the UMAP coordinates to the dataframe
     text_features = text_features_df['text_features'].tolist()
@@ -196,14 +207,11 @@ def parse_real_estate_json(json_path):
     
 def argparser():
     parser = argparse.ArgumentParser(description='Load the Funda ads jsonlines file containing image_paths to real estate images and save the table in pickle format with an added column: "clip_embeddings" which contains the CLIP embedding of the images and produce a column "umap_x" and "umap_y" which contains the UMAP coordinates of the images based on the clip embeddings')
-    parser.add_argument('--json_path', type=str, help='path to the json file containing the image paths', default='./dataloading/data/ads_trans_mini.jsonlines')
-    parser.add_argument('--output_path', type=str, help='path to the output pickle file',default='./dataloading/data/real_estate.pkl')
-    parser.add_argument('--image_features_path', type=str, help='path where the image features file will be written', default='./dataloading/data/funda_image_features.h5')
-    parser.add_argument('--text_features_path', type=str, help='path where the text features file will be written', default='./dataloading/data/funda_text_features.h5')
-    parser.add_argument('--image_path', type=str, help='path to the folder containing the images', default='./dataloading/data/images/')
-    parser.add_argument('--column_names', nargs='+', help='list of column names that should be used to create the tags', default=['labels'])
+    parser.add_argument('--json_path', type=str, help='path to the json file containing the image paths', default='./dataloading/Funda/ads_trans.jsonlines')
+    parser.add_argument('--output_path', type=str, help='path to the output pickle file',default='./dataloading/Funda/real_estate.pkl')
+    parser.add_argument('--image_path', type=str, help='path to the folder containing the images', default='./dataloading/Funda/images/')
     parser.add_argument('--model_name', type=str, default='ViT-B/32', help='name of the CLIP model that should be used')
-    parser.add_argument('--device', type=str, default='cpu', help='device that should be used to run the CLIP model on')
+    parser.add_argument('--device', type=str, default='cuda', help='device that should be used to run the CLIP model on')
     args = parser.parse_args()
     kwargs = vars(args)
     return kwargs
