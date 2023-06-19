@@ -4,7 +4,7 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 import sys
 from PyQt6 import QtCore
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget
 from src.widgets.query_widget import QueryWidget
 from src.widgets.plot_widget import PlotWidget
 from src.widgets.filter_widget import FilterWidget
@@ -65,24 +65,31 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("READ: Real Estate Analytics Dashboard") # READ
         self.setMinimumSize(QSize(1250, 500))
 
+        # Tab Widget
+        tabwidget = QTabWidget()
+
         ## Combine widgets in right column
-        vbox = QWidget()
-        vbox_layout = QVBoxLayout(self, spacing=10)
-        vbox_layout.addWidget(self.query_widgets[0])
-        #vbox_layout.addWidget(self.query_widgets[1])
-        vbox_layout.addWidget(self.filter_widget)
-        vbox_layout.addWidget(self.table_listings_widget)
-        vbox_layout.addWidget(self.clear_all_button_widget)
-        vbox.setLayout(vbox_layout)
+        filterwidgets = QWidget()
+        filterwidgets_layout = QVBoxLayout(self, spacing=10)
+        filterwidgets_layout.addWidget(self.query_widgets[0])
+        filterwidgets_layout.addWidget(self.filter_widget)
+        filterwidgets_layout.addWidget(self.table_listings_widget)
+        filterwidgets_layout.addWidget(self.clear_all_button_widget)
+        filterwidgets.setLayout(filterwidgets_layout)
    
-        ## set the layout of the main window
-        main_widget = QWidget()
-        main_layout = QHBoxLayout(self, spacing=10)
-        main_layout.addWidget(self.geo_map_widget)
-        main_layout.addWidget(vbox)
+        ## set the layout of tab 1
+        tab1_widget = QWidget()
+        tab1_layout = QHBoxLayout(self, spacing=10)
+        tab1_layout.addWidget(self.geo_map_widget)
+        tab1_layout.addWidget(filterwidgets)
         
-        main_widget.setLayout(main_layout)
-        self.setCentralWidget(main_widget)
+        tab1_widget.setLayout(tab1_layout)
+        
+        # Build tabs
+        tabwidget.addTab(tab1_widget, "House Search")
+        label1 = QLabel("Sick Dashboard Visualizations.")
+        tabwidget.addTab(label1, "House Feature Exploration")
+        self.setCentralWidget(tabwidget)
     
     def update_table(self):
         geo_map_model = QGeoMapModel(self.df_show)
