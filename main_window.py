@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         # Define filters 
         combofilters_ = {'Parking': ['no', 'yes'],                                                  
                         'Bedroom': [str(i) for i in np.arange(0, 5 + 1)]}           # combofilters -> {Element Title: [displayed textprompt]}
-        minmaxfilters_ = ['price', 'area']
+        minmaxfilters_ = ['price', 'living_area']
 
         ## Filter widgets tab 1 with layoutoption 1
         self.filter_widget = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '1')
@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
     ###### Other Utility Methods ######
     def apply_filters(self, df, filters): 
         new_df = self.df_show.copy()
-        for tag, filter in filters.items():
+        for tag, filter in filters['range'].items():
             values = {'Max': filter.Max.QueryText.text(), 'Min': filter.Min.QueryText.text() }
             for bound, input in values.items():
                 try: 
@@ -206,6 +206,7 @@ class MainWindow(QMainWindow):
                     print(bound, tag, 'not provided')
                 except NameError:
                     print('invalid input for ', bound, tag)
+        
         return new_df
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ class FilterWidget(QWidget):
         # Block 2  - Range Filters (MinMax format)
         self.minmaxfilters_widgets = {}
         for filter in self.minmaxfilters:
-            minmaxfilter = self.minmax_layout(filter)
+            minmaxfilter = MinMaxWidget(RangeFilter, filter)
             self.minmaxfilters_widgets[filter] = minmaxfilter
         
         # Block 3  - Combo Filters Title
@@ -37,15 +37,18 @@ class FilterWidget(QWidget):
         self.querylabel.setText('Other filtering options:')
         
         # Block 4  - Combo Filters (Roll-down format)
-        self.combofilters_dic = {}
+        self.combofilters_widgets = {}
         for filter in self.combofilters:
             combofilter = ComboFilter(filter, self.combofilters[filter])
-            self.combofilters_dic[filter] = combofilter
+            self.combofilters_widgets[filter] = combofilter
         
-
         # Block 5  - Configure filtering button
-        ## Controller for updating the plot
-        self.searchbutton = SearchWidget(self.minmaxfilters_widgets)
+        self.filters = {}
+
+        self.filters.update({'combo': self.combofilters_widgets})
+        self.filters.update({'range': self.minmaxfilters_widgets})
+        
+        self.searchbutton = SearchWidget(self.filters)
 
         # Configure widget style
         self.make_main_layout(config)
@@ -61,56 +64,63 @@ class FilterWidget(QWidget):
         if config == '1':
             widget_layout = QVBoxLayout()
             widget_layout.addWidget(self.boxtitle)
-
             # Add minmax filters
             for filter in self.minmaxfilters_widgets:
                 widget_layout.addWidget(self.minmaxfilters_widgets[filter])
             widget_layout.addWidget(self.querylabel)
-
             # Add drop-down filters
-            for filter in self.combofilters_dic:
-                hblock_layout.addWidget(self.combofilters_dic[filter])
+            for filter in self.combofilters_widgets:
+                hblock_layout.addWidget(self.combofilters_widgets[filter])
             hblock.setLayout(hblock_layout)
             
         if config == '2':
             widget_layout = QVBoxLayout()
-
             # Add minmax filters
             vblock_layout.addWidget(self.querylabel)
             for filter in self.minmaxfilters_widgets:
                 vblock_layout.addWidget(self.minmaxfilters_widgets[filter])
             vblock.setLayout(vblock_layout)
             hblock_layout.addWidget(vblock)
-    
             # Add drop-down filters
-            for filter in self.combofilters_dic:
-                vblock2_layout.addWidget(self.combofilters_dic[filter])
-
+            for filter in self.combofilters_widgets:
+                vblock2_layout.addWidget(self.combofilters_widgets[filter])
             vblock2.setLayout(vblock2_layout)
             hblock_layout.addWidget(vblock2)
             hblock.setLayout(hblock_layout)
             
         widget_layout.addWidget(hblock)
         widget_layout.addWidget(self.searchbutton, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-            
         self.setLayout(widget_layout)
         self.setStyleSheet("background-color: #f5f5f5;")
 
-    def minmax_layout(self, filter):
+
+class MinMaxWidget(QWidget):
+    """ Class for organizing layout of subwidgets
+    
+    """
+    def __init__(self, Filter, name, method = 'MinMax'):
+        super().__init__()
+        self.Filter = Filter
+        self.name = name 
+
+        if method == 'MinMax':
+            self.minmax_layout()
+        else:
+            print(method, ' layout method not implemented')
+
+    def minmax_layout(self):
         ## Initialize widgets
-        minmax_widget = QWidget()
         minmax_layout = QHBoxLayout(self, spacing=2)
     
-        self.Max = RangeFilter('Max ' + filter)
+        self.Max = RangeFilter('Max ' + self.name)
         minmax_layout.addWidget(self.Max)
 
-        self.Min = RangeFilter('Min ' + filter)
+        self.Min = RangeFilter('Min ' + self.name)
         minmax_layout.addWidget(self.Min)
 
         # Configure widget style
-        minmax_widget.setLayout(minmax_layout)
-        return minmax_widget
-        #self.setStyleSheet("border: 0px;") 
+        self.setLayout(minmax_layout)
+        self.setStyleSheet("border: 0px;") 
 
 class RangeFilter(QWidget):
     """ Class for building singular Query-input style widgets
@@ -123,7 +133,7 @@ class RangeFilter(QWidget):
 
         # Set box lable
         self.QueryLabel = QLabel(self)
-        self.QueryLabel.setText(self.name)
+        self.QueryLabel.setText(self.name.replace("_", " "))
         self.QueryLabel.setStyleSheet("border: 0px;")
         self.QueryLabel.setFixedSize(QSize(125, 25))  
         widget_layout.addWidget(self.QueryLabel)
@@ -189,10 +199,10 @@ class SearchWidget(QWidget):
     # Signal for Emitting the filtered data
     filtersApplied = QtCore.pyqtSignal(object, QWidget)
 
-    def __init__(self, minmax_filters):
+    def __init__(self, filters):
         super().__init__()
-        self.filters = minmax_filters
-
+        self.filters = filters
+        
         layout = QVBoxLayout(self)
         
         # Set search button 
