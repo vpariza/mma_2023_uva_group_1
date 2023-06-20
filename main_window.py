@@ -28,14 +28,13 @@ class MainWindow(QMainWindow):
         #load data using the config file 'config.ini'
         preprocessing = Preprocessing()
         # TODO: Return sirectory of Listings Images
-        self.config, self.tags, self.points, self.img_paths, self.df = preprocessing.load_data()
+        self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path = preprocessing.load_data()
         # BEGIN TEST: For Testing Purposes only
         from src.utils.file_utils import load_from_pickle
         self.df = load_from_pickle('data.pkl')
         self.df.iloc[:100]
         # END TEST: For Testing Purposes only
         self.df_show = self.df.copy()
-        self.images_dir_path = '../Dataloading/Datasets/Funda/images'
         ## inialize widgets
         self.query_widgets = [QueryWidget() for i in range(2)]
         for query_widget in self.query_widgets:
@@ -45,17 +44,16 @@ class MainWindow(QMainWindow):
         self.select_scatter_plot = SelectClusterWidget()
         self.scatter_plot_widget = ScatterPlotWidget(self.points, self.config)
         
-        # Select filters 
-        # combolist -> {Element Title: [index values, displayed textprompt]}
-        combofilters_ = {'Parking': ['no', 'yes'], 
-                        'Bedroom': [str(i) for i in np.arange(0, 5 + 1)]}
+        # Define filters 
+        combofilters_ = {'Parking': ['no', 'yes'],                                                  
+                        'Bedroom': [str(i) for i in np.arange(0, 5 + 1)]}           # combofilters -> {Element Title: [displayed textprompt]}
         minmaxfilters_ = ['price', 'area']
 
-
+        ## Filter widgets tab 1 with layoutoption 1
         self.filter_widget = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '1')
         self.filter_widget.searchbutton.filtersApplied.connect(self.on_filters_applied)
 
-
+        ## Filter widgets tab 2 with layoutoption 2
         self.filter_widget_tab2 = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '2')
         self.filter_widget_tab2.searchbutton.filtersApplied.connect(self.on_filters_applied)
 
@@ -74,16 +72,14 @@ class MainWindow(QMainWindow):
         histmodel = HistogramPlotModel(self.df)
         self.hist_plot_widget = HistogramPlotWidget(histmodel)
 
-
         # Clear All Button Widget
         self.clear_all_button_widget = QPushButton('Clear All', self)
         self.clear_all_button_widget.clicked.connect(self.clear_all_button_clicked)
 
-        ## set up main window 
+        # set up main window 
+        self.make_main_layout()
         
-        self.make_layout()
-        
-    def make_layout(self):   
+    def make_main_layout(self):   
         """Congifure layout for main window"""  
 
         # Configure main window apperance    
@@ -93,51 +89,51 @@ class MainWindow(QMainWindow):
         # Tab Widget
         tabwidget = QTabWidget()
 
-        ## Combine widgets in right column
+        ## Tab 1
+        ### Init Widgets
+        tab1_widget = QWidget()
+        tab1_layout = QHBoxLayout()
         filterwidgets = QWidget()
-        filterwidgets_layout = QVBoxLayout(self, spacing=10)
+        filterwidgets_layout = QVBoxLayout()
+
+        ### Add layout
         filterwidgets_layout.addWidget(self.query_widgets[0])
         filterwidgets_layout.addWidget(self.filter_widget)
         filterwidgets_layout.addWidget(self.table_listings_widget)
         filterwidgets_layout.addWidget(self.clear_all_button_widget)
         filterwidgets.setLayout(filterwidgets_layout)
    
-        ## set the layout of tab 1
-        tab1_widget = QWidget()
-        tab1_layout = QHBoxLayout(self, spacing=10)
         tab1_layout.addWidget(self.geo_map_widget)
         tab1_layout.addWidget(filterwidgets)
-        
         tab1_widget.setLayout(tab1_layout)
         
         
-        ## set the layout of tab 2
+        ## Tab 2
+        ### Init Widgets
         tab2_widget = QWidget()
-        tab2_layout = QHBoxLayout(self, spacing=10)
-        tab2_layout.addWidget(self.scatter_plot_widget)
-
-
-        V2_widget = QWidget()
-        V2_layout = QVBoxLayout(self, spacing=10)
-
-        H2_widget = QWidget()
-        H2_layout = QHBoxLayout(self, spacing=10)
-
-        H2_layout.addWidget(self.select_scatter_plot)
-        H2_layout.addWidget(self.hist_plot_widget)
-        H2_widget.setLayout(H2_layout)
-        V2_layout.addWidget(H2_widget)
-        V2_layout.addWidget(self.filter_widget_tab2)
-
-        V2_widget.setLayout(V2_layout)
+        tab2_layout = QHBoxLayout()
+        vblock = QWidget()
+        vblock_layout = QVBoxLayout()
+        hblock = QWidget()
+        hblock_layout = QHBoxLayout()
         
-        tab2_layout.addWidget(V2_widget)
+        ### Add layout
+        hblock_layout.addWidget(self.select_scatter_plot)
+        hblock_layout.addWidget(self.hist_plot_widget)
+        hblock.setLayout(hblock_layout)
+        vblock_layout.addWidget(hblock)
+        vblock_layout.addWidget(self.filter_widget_tab2)
+        vblock.setLayout(vblock_layout)
+
+        tab2_layout.addWidget(self.scatter_plot_widget)
+        tab2_layout.addWidget(vblock)
         tab2_widget.setLayout(tab2_layout)
         
         
-        # Build tabs
+        ## Populate tabs
         tabwidget.addTab(tab1_widget, "House Search")
         tabwidget.addTab(tab2_widget, "House Feature Exploration")
+
         self.setCentralWidget(tabwidget)
         
     

@@ -29,7 +29,7 @@ class FilterWidget(QWidget):
         # Block 2  - Range Filters (MinMax format)
         self.minmaxfilters_widgets = {}
         for filter in self.minmaxfilters:
-            minmaxfilter = Layout(RangeFilter, filter, 'MinMax')
+            minmaxfilter = self.minmax_layout(filter)
             self.minmaxfilters_widgets[filter] = minmaxfilter
         
         # Block 3  - Combo Filters Title
@@ -48,9 +48,9 @@ class FilterWidget(QWidget):
         self.searchbutton = SearchWidget(self.minmaxfilters_widgets)
 
         # Configure widget style
-        self.make_layout(config)
+        self.make_main_layout(config)
         
-    def make_layout(self, config = '1'):
+    def make_main_layout(self, config = '1'):
         hblock = QWidget()
         hblock_layout = QHBoxLayout()
         vblock = QWidget()
@@ -95,38 +95,22 @@ class FilterWidget(QWidget):
             
         self.setLayout(widget_layout)
         self.setStyleSheet("background-color: #f5f5f5;")
-            
-            
-            
 
-
-class Layout(QWidget):
-    """ Class for organizing layout of subwidgets
-    
-    """
-    def __init__(self, Filter, name, method = 'MinMax'):
-        super().__init__()
-        self.Filter = Filter
-        self.name = name 
-
-        if method == 'MinMax':
-            self.minmax_layout()
-        else:
-            print(method, ' layout method not implemented')
-
-    def minmax_layout(self):
+    def minmax_layout(self, filter):
         ## Initialize widgets
+        minmax_widget = QWidget()
         minmax_layout = QHBoxLayout(self, spacing=2)
     
-        self.Max = RangeFilter('Max ' + self.name)
+        self.Max = RangeFilter('Max ' + filter)
         minmax_layout.addWidget(self.Max)
 
-        self.Min = RangeFilter('Min ' + self.name)
+        self.Min = RangeFilter('Min ' + filter)
         minmax_layout.addWidget(self.Min)
 
         # Configure widget style
-        self.setLayout(minmax_layout)
-        self.setStyleSheet("border: 0px;") 
+        minmax_widget.setLayout(minmax_layout)
+        return minmax_widget
+        #self.setStyleSheet("border: 0px;") 
 
 class RangeFilter(QWidget):
     """ Class for building singular Query-input style widgets

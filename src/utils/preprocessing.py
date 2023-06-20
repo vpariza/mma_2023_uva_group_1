@@ -23,6 +23,7 @@ class Preprocessing():
         data_path = config['main']['pkl_path']
         # 16.865 image folders 
         images_path = config['main']['images_path']
+        image_dir_path = config['main']['images_dir_path']
         
         # config - 1000
         num_samples = int(config['main']['num_samples'])
@@ -58,4 +59,4 @@ class Preprocessing():
             elif str(config['main']['embedding'])=='tsne':
                 points = self.compute_tsne(image_features)
         
-        return config, tags, points, img_paths, df
+        return config, tags, points, img_paths, df, image_dir_path

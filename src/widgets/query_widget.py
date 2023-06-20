@@ -15,9 +15,9 @@ class QueryWidget(QWidget):
         
         super().__init__()
         ## Initialize widgets
-        vbox_layout = QVBoxLayout(self, spacing=2)
-        hbox =  QWidget(self)
-        hbox_layout = QHBoxLayout(self, spacing=5)
+        vbox_layout = QVBoxLayout()
+        hbox =  QWidget()
+        hbox_layout = QHBoxLayout()
 
         # Set box lable
         self.QueryLabel = QLabel(self)
