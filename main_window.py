@@ -147,7 +147,6 @@ class MainWindow(QMainWindow):
         self.table_listings_widget.update_model(table_listings_model)
     
     def update_scatterplot(self):
-        print(self.df_show)
         self.scatter_plot_widget.update_scatterplot(self.df_show['umap_x'], self.df_show['umap_y'] )
 
     def update(self):
