@@ -160,8 +160,8 @@ class ComboFilter(QWidget):
         self.filter_list = np.arange(0, len(self.filter_tags))
         layout = QVBoxLayout(self)
 
-        label = QLabel(self.name)
-        label.setStyleSheet("border: 0px;")
+        self.label = QLabel(self.name)
+        self.label.setStyleSheet("border: 0px;")
         self.Filter = QComboBox(self)
         self.Filter.setFixedSize(QSize(50, 25))  
         self.Filter.addItems(filter_tags)
@@ -172,7 +172,7 @@ class ComboFilter(QWidget):
         self.Filter.activated.connect(self.current_text_via_index)
         self.Filter.activated.connect(self.current_count)
         
-        layout.addWidget(label)
+        layout.addWidget(self.label)
         layout.addWidget(self.Filter)
         
         self.setLayout(layout)

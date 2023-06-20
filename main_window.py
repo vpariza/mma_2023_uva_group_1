@@ -45,8 +45,8 @@ class MainWindow(QMainWindow):
         self.scatter_plot_widget = ScatterPlotWidget(self.points, self.config)
         
         # Define filters 
-        combofilters_ = {'Parking': ['no', 'yes'],                                                  
-                        'Bedroom': [str(i) for i in np.arange(0, 5 + 1)]}           # combofilters -> {Element Title: [displayed textprompt]}
+        combofilters_ = {'status': ['Available', 'Under option'],                                                  
+                        'bedrooms': [str(i) for i in np.arange(0, 5 + 1)]}           # combofilters -> {Element Title: [displayed textprompt]}
         minmaxfilters_ = ['price', 'living_area']
 
         ## Filter widgets tab 1 with layoutoption 1
@@ -206,7 +206,10 @@ class MainWindow(QMainWindow):
                     print(bound, tag, 'not provided')
                 except NameError:
                     print('invalid input for ', bound, tag)
-        
+
+        for tag, filter in filters['combo'].items():
+            new_df = new_df[new_df[tag] == filter.Filter.currentText()]
+
         return new_df
 
 if __name__ == '__main__':
