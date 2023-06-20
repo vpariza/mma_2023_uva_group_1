@@ -20,7 +20,7 @@ class MplCanvas(FigureCanvasQTAgg):
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
-        self.fig.suptitle("Clustering of Dimensionally Reduced House Features")
+        self.fig.suptitle("Clustering of Dimensionally\nReduced House Features")
         super(MplCanvas, self).__init__(self.fig)
 
 

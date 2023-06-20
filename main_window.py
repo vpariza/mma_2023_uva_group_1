@@ -3,8 +3,8 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 
 import sys
 from PyQt6 import QtCore
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy
+from PyQt6.QtCore import QSize
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy
 from src.widgets.query_widget import QueryWidget
 from src.widgets.plot_widget import ScatterPlotWidget, SelectClusterWidget
 from src.widgets.filter_widget import FilterWidget
@@ -13,12 +13,13 @@ from src.widgets.geo_map_model import QGeoMapModel
 from src.widgets.geo_map_widget import GeoMapWidget
 from src.widgets.hist_plot_model import HistogramPlotModel
 from src.widgets.hist_plot_widget import HistogramPlotWidget
+import numpy as np 
 
 from src.widgets.table_listings_view import TableListingsView
 from src.widgets.table_llistings_model import TableListingsModel
 
 
-from PyQt6.QtWidgets import QWidget, QLineEdit, QComboBox, QHBoxLayout, QVBoxLayout, QLabel, QPushButton
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -44,11 +45,18 @@ class MainWindow(QMainWindow):
         self.select_scatter_plot = SelectClusterWidget()
         self.scatter_plot_widget = ScatterPlotWidget(self.points, self.config)
         
-        self.filter_widget = FilterWidget()
+        # Select filters 
+        # combolist -> {Element Title: [index values, displayed textprompt]}
+        combofilters_ = {'Parking': ['no', 'yes'], 
+                        'Bedroom': [str(i) for i in np.arange(0, 5 + 1)]}
+        minmaxfilters_ = ['price', 'area']
+
+
+        self.filter_widget = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '1')
         self.filter_widget.searchbutton.filtersApplied.connect(self.on_filters_applied)
 
 
-        self.filter_widget_tab2 = FilterWidget(config = '2')
+        self.filter_widget_tab2 = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '2')
         self.filter_widget_tab2.searchbutton.filtersApplied.connect(self.on_filters_applied)
 
         # Define the Geo Map Widget
