@@ -36,9 +36,19 @@ class Preprocessing():
         with h5py.File(images_path, "r") as hf:
             # Shape: (1000, 512)
             image_features = hf["image_features"][:]
-            
+        
                         
         ## select num_samples samples between
+        if sample_selection == 'new':
+            image_features = image_features[:num_samples]
+            points = self.compute_umap(image_features)
+            tags = []
+            image_features = image_features[:num_samples]
+            img_paths = []
+            df = df[:num_samples]
+            df['umap_x'] = points[:,0]
+            df['umap_y'] = points[:,1]
+
         if sample_selection == 'random':
             # Chooses 1000 random datapoints
             random_indices = np.random.choice(len(df), num_samples, replace=False)

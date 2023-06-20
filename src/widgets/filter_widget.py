@@ -163,8 +163,10 @@ class ComboFilter(QWidget):
         self.label = QLabel(self.name)
         self.label.setStyleSheet("border: 0px;")
         self.Filter = QComboBox(self)
-        self.Filter.setFixedSize(QSize(50, 25))  
+        self.Filter.setFixedSize(QSize(75, 25))  
         self.Filter.addItems(filter_tags)
+        self.Filter.setCurrentIndex(-1)
+        self.Filter.setPlaceholderText(self.name)
 
         # Connect signals to the methods.
         self.Filter.activated.connect(self.check_index)

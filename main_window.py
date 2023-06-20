@@ -31,8 +31,8 @@ class MainWindow(QMainWindow):
         self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path = preprocessing.load_data()
         # BEGIN TEST: For Testing Purposes only
         from src.utils.file_utils import load_from_pickle
-        self.df = load_from_pickle('data.pkl')
-        self.df.iloc[:100]
+        #self.df = load_from_pickle('data.pkl')
+        #self.df.iloc[:100]
         # END TEST: For Testing Purposes only
         self.df_show = self.df.copy()
         ## inialize widgets
@@ -144,6 +144,10 @@ class MainWindow(QMainWindow):
     def update_geo_map(self):
         table_listings_model = TableListingsModel(self.df_show, self.images_dir_path)
         self.table_listings_widget.update_model(table_listings_model)
+    
+    def update_scatterplot(self):
+        print(self.df_show)
+        self.scatter_plot_widget.update_scatterplot(self.df_show['umap_x'], self.df_show['umap_y'] )
 
     def update(self):
         """
@@ -151,6 +155,7 @@ class MainWindow(QMainWindow):
         """
         self.update_geo_map()
         self.update_table()
+        self.update_scatterplot()
 
     ###### HANDLING SINGALS FROM CHILD WIDGETS - SLOTS #######
     @QtCore.pyqtSlot(str, QWidget)
@@ -163,6 +168,7 @@ class MainWindow(QMainWindow):
         if len(filtered_df.index) > 0:
             self.df_show = filtered_df
             self.update()
+        
 
     @QtCore.pyqtSlot(list, QWidget)
     def on_map_entries_selected(self, entries, source):
@@ -189,7 +195,8 @@ class MainWindow(QMainWindow):
 
     ###### Other Utility Methods ######
     def apply_filters(self, df, filters): 
-        new_df = self.df_show.copy()
+        new_df = self.df.copy()
+        print(new_df)
         for tag, filter in filters['range'].items():
             values = {'Max': filter.Max.QueryText.text(), 'Min': filter.Min.QueryText.text() }
             for bound, input in values.items():
@@ -208,8 +215,10 @@ class MainWindow(QMainWindow):
                     print('invalid input for ', bound, tag)
 
         for tag, filter in filters['combo'].items():
-            new_df = new_df[new_df[tag] == filter.Filter.currentText()]
-
+            if filter.Filter.currentText() != '':
+                new_df = new_df[new_df[tag] == filter.Filter.currentText()]
+        
+        
         return new_df
 
 if __name__ == '__main__':
