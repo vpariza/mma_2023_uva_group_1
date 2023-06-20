@@ -123,6 +123,7 @@ class MainWindow(QMainWindow):
         hblock.setLayout(hblock_layout)
         vblock_layout.addWidget(hblock)
         vblock_layout.addWidget(self.filter_widget_tab2)
+        vblock_layout.addWidget(self.clear_all_button_widget)
         vblock.setLayout(vblock_layout)
 
         tab2_layout.addWidget(self.scatter_plot_widget)
@@ -196,7 +197,6 @@ class MainWindow(QMainWindow):
     ###### Other Utility Methods ######
     def apply_filters(self, df, filters): 
         new_df = self.df.copy()
-        print(new_df)
         for tag, filter in filters['range'].items():
             values = {'Max': filter.Max.QueryText.text(), 'Min': filter.Min.QueryText.text() }
             for bound, input in values.items():
