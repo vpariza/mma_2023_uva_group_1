@@ -7,7 +7,7 @@ class FilterWidget(QWidget):
     """ Build main filtering widget for dashboard
 
     """
-    def __init__(self, minmaxfilters = ['price', 'area'], combolist =  ['Parking', 'Bedroom']):
+    def __init__(self, minmaxfilters = ['price', 'area'], combolist =  ['Parking', 'Bedroom'], config = '1'):
         """ Init filtering widget for dashboard
 
         Args:
@@ -18,49 +18,39 @@ class FilterWidget(QWidget):
         TODO: Find better system to organize drop down menu elements
         TODO: Clean-up Syntax 
         """
-
         super().__init__()
 
-        # Initialize main widget
-        vbox_layout = QVBoxLayout(self, spacing=2)
+        self.minmaxfilters = minmaxfilters
+
 
         #################################
         # Block 1  - Main Box Title
         #################################
 
-        querylabel = QLabel(self)
-        querylabel.setText('Filtering of Houses appearing in the Map:')
-        querylabel.setStyleSheet("border: 0px;")
-        
-        vbox_layout.addWidget(querylabel)
+        self.querylabel = QLabel(self)
+        self.querylabel.setText('Filtering of Houses appearing in the Map:')
 
         #################################
         # Block 2  - Range Filters (MinMax format)
         #################################
 
         self.minmaxfilters_dic = {}
-
-        for filter in minmaxfilters:
+        for filter in self.minmaxfilters:
             minmaxfilter = Layout(RangeFilter, filter, 'MinMax')
             self.minmaxfilters_dic[filter] = minmaxfilter
-            vbox_layout.addWidget(minmaxfilter)
-
+            
         #################################
         # Block 3  - Combo Filters Title
         #################################
-        querylabel = QLabel(self)
-        querylabel.setText('Other filtering options:')
-        querylabel.setStyleSheet("border: 0px;")
-        vbox_layout.addWidget(querylabel)
 
+        self.querylabel2 = QLabel(self)
+        self.querylabel2.setText('Other filtering options:')
+        
         #################################
         # Block 4  - Combo Filters (Roll-down format)
         #
         # Requires spesification of drop-down menu elements
         #################################
-
-        self.combofilters = QWidget(self)
-        combo_layout = QHBoxLayout(self, spacing=2)
 
         """ Parking filter"""
         ## Drop down menu elements
@@ -68,19 +58,14 @@ class FilterWidget(QWidget):
         binary_tags = ['yes', 'no']    
 
         self.parkingfilter = ComboFilter('Parking Available:', binary, binary_tags)
-        combo_layout.addWidget(self.parkingfilter)
+        
 
         """ Bedroom filter """
         ## Drop down menu elements
         bedroms, bedrom_tags = self.counter(1, 5)
         
         self.bedroomfilter = ComboFilter('Bedroom Available:', bedroms, bedrom_tags)
-        combo_layout.addWidget(self.bedroomfilter)
-
-        # Configure widget style
-        self.combofilters.setLayout(combo_layout)
-        self.combofilters.setStyleSheet("border: 0px;") 
-        vbox_layout.addWidget(self.combofilters)
+        
 
 
         #################################
@@ -89,11 +74,61 @@ class FilterWidget(QWidget):
         # Controller for updating the plot
         #################################
         self.searchbutton = SearchWidget(self.minmaxfilters_dic)
-        vbox_layout.addWidget(self.searchbutton)
+        
 
         # Configure widget style
-        self.setLayout(vbox_layout)
-        self.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
+        self.make_layout(config)
+        
+    def make_layout(self, config = '1'):
+        # Initialize main widget
+        hbox_layout = QHBoxLayout(self, spacing=2)
+        vbox_layout = QVBoxLayout(self, spacing=2)
+        if config == '1':
+            vbox_layout.addWidget(self.querylabel)
+            for filter in self.minmaxfilters:
+                vbox_layout.addWidget(self.minmaxfilters_dic[filter])
+            vbox_layout.addWidget(self.querylabel2)
+            self.combofilters = QWidget(self)
+            combo_layout = QHBoxLayout(self, spacing=2)
+            # Configure widget style
+            combo_layout.addWidget(self.parkingfilter)
+            combo_layout.addWidget(self.bedroomfilter)
+            self.combofilters.setLayout(combo_layout)
+            vbox_layout.addWidget(self.combofilters)
+            vbox_layout.addWidget(self.searchbutton)
+            self.setLayout(vbox_layout)
+            self.setStyleSheet(" background-color: #f5f5f5;")
+
+        if config == '2':
+            vbox_layout.addWidget(self.querylabel)
+            for filter in self.minmaxfilters:
+                vbox_layout.addWidget(self.minmaxfilters_dic[filter])
+            
+            vbox = QWidget(self)
+            vbox.setLayout(vbox_layout)
+            hbox = QWidget(self)
+            hbox_layout.addWidget(vbox)
+            
+            combofilters = QWidget(self)
+            combo_layout = QHBoxLayout(self, spacing=2)
+            
+            # Configure widget style
+            combo_layout.addWidget(self.parkingfilter)
+            combo_layout.addWidget(self.bedroomfilter)
+            combofilters.setLayout(combo_layout)
+            hbox_layout.addWidget(combofilters)
+            
+            hbox.setLayout(hbox_layout)
+            #vbox_layout.addWidget(self.querylabel2)
+            button_layout = QVBoxLayout(self, spacing=2)
+            button_layout.addWidget(hbox)
+            button_layout.addWidget(self.searchbutton, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            
+            self.setLayout(button_layout)
+            self.setStyleSheet("background-color: #f5f5f5;")
+            
+            
+            
 
     def counter(self, N_min, N_max):
         numerical = np.arange(N_min, N_max + 1)
@@ -161,7 +196,7 @@ class ComboFilter(QWidget):
     """ Class for building singular drop-down menu style widgets
     
     """
-    def __init__(self, name, filter_list, filter_tags):
+    def __init__(self, name, filter_list = [], filter_tags = []):
         super().__init__()
         self.name = name
         self.filter_list = filter_list #[0, 100, 500, 1000]

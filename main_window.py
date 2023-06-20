@@ -4,13 +4,15 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 import sys
 from PyQt6 import QtCore
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy
 from src.widgets.query_widget import QueryWidget
-from src.widgets.plot_widget import PlotWidget
+from src.widgets.plot_widget import ScatterPlotWidget, SelectClusterWidget
 from src.widgets.filter_widget import FilterWidget
 from src.utils.preprocessing import Preprocessing
 from src.widgets.geo_map_model import QGeoMapModel
 from src.widgets.geo_map_widget import GeoMapWidget
+from src.widgets.hist_plot_model import HistogramPlotModel
+from src.widgets.hist_plot_widget import HistogramPlotWidget
 
 from src.widgets.table_listings_view import TableListingsView
 from src.widgets.table_llistings_model import TableListingsModel
@@ -37,9 +39,18 @@ class MainWindow(QMainWindow):
         self.query_widgets = [QueryWidget() for i in range(2)]
         for query_widget in self.query_widgets:
             query_widget.querySubmitted.connect(self.on_query_submitted)
-        # self.scatter_plot_widget = PlotWidget(self.points, self.config)
+
+        # Define scatter plot widget
+        self.select_scatter_plot = SelectClusterWidget()
+        self.scatter_plot_widget = ScatterPlotWidget(self.points, self.config)
+        
         self.filter_widget = FilterWidget()
         self.filter_widget.searchbutton.filtersApplied.connect(self.on_filters_applied)
+
+
+        self.filter_widget_tab2 = FilterWidget(config = '2')
+        self.filter_widget_tab2.searchbutton.filtersApplied.connect(self.on_filters_applied)
+
         # Define the Geo Map Widget
         geo_map_model = QGeoMapModel(self.df_show)
         self.geo_map_widget = GeoMapWidget(geo_map_model)
@@ -51,11 +62,17 @@ class MainWindow(QMainWindow):
         self.table_listings_widget = TableListingsView(table_listings_model)
         self.table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
 
+        # Define the Histogram widget
+        histmodel = HistogramPlotModel(self.df)
+        self.hist_plot_widget = HistogramPlotWidget(histmodel)
+
+
         # Clear All Button Widget
         self.clear_all_button_widget = QPushButton('Clear All', self)
         self.clear_all_button_widget.clicked.connect(self.clear_all_button_clicked)
 
         ## set up main window 
+        
         self.make_layout()
         
     def make_layout(self):   
@@ -85,11 +102,36 @@ class MainWindow(QMainWindow):
         
         tab1_widget.setLayout(tab1_layout)
         
+        
+        ## set the layout of tab 2
+        tab2_widget = QWidget()
+        tab2_layout = QHBoxLayout(self, spacing=10)
+        tab2_layout.addWidget(self.scatter_plot_widget)
+
+
+        V2_widget = QWidget()
+        V2_layout = QVBoxLayout(self, spacing=10)
+
+        H2_widget = QWidget()
+        H2_layout = QHBoxLayout(self, spacing=10)
+
+        H2_layout.addWidget(self.select_scatter_plot)
+        H2_layout.addWidget(self.hist_plot_widget)
+        H2_widget.setLayout(H2_layout)
+        V2_layout.addWidget(H2_widget)
+        V2_layout.addWidget(self.filter_widget_tab2)
+
+        V2_widget.setLayout(V2_layout)
+        
+        tab2_layout.addWidget(V2_widget)
+        tab2_widget.setLayout(tab2_layout)
+        
+        
         # Build tabs
         tabwidget.addTab(tab1_widget, "House Search")
-        label1 = QLabel("Sick Dashboard Visualizations.")
-        tabwidget.addTab(label1, "House Feature Exploration")
+        tabwidget.addTab(tab2_widget, "House Feature Exploration")
         self.setCentralWidget(tabwidget)
+        
     
     def update_table(self):
         geo_map_model = QGeoMapModel(self.df_show)

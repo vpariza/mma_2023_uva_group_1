@@ -2,7 +2,11 @@ import numpy as np
 import matplotlib
 matplotlib.use('QtAgg')
 
-from PyQt6.QtWidgets import QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QVBoxLayout, QWidget, QLabel, QComboBox, QSizePolicy
+)
+from PyQt6 import QtCore
+from src.widgets.filter_widget import SearchWidget
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -16,11 +20,11 @@ class MplCanvas(FigureCanvasQTAgg):
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
-        self.fig.suptitle("Plot")
+        self.fig.suptitle("Clustering of Dimensionally Reduced House Features")
         super(MplCanvas, self).__init__(self.fig)
 
 
-class PlotWidget(QWidget):
+class ScatterPlotWidget(QWidget):
     """Widget that displays a scatterplot"""
 
     def __init__(self,points, config):
@@ -63,3 +67,93 @@ class PlotWidget(QWidget):
         self.Figure.ax.cla() 
         self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
         self.Figure.canvas.draw()
+
+class SelectClusterWidget(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        # Histogram Widget
+        self.select_widget = QWidget(self)
+        select_layout = QVBoxLayout()
+        Label = QLabel(self)
+        Label.setText("Select Clustering\nConfigurations")
+        select_layout.addWidget(Label)
+
+        filter = {}
+
+        method = [0, 1]
+        method_tags = ['umap', 't-sne']
+        dim_reduct_method = ComboFilter('Dimensionality Reduction mehtod     ', method, method_tags)
+        select_layout.addWidget(dim_reduct_method)
+        filter['dimensionality_reduction_method'] = dim_reduct_method.Filter.currentText()
+
+        method = [0]
+        method_tags = ['k-means']
+        clustering_method = ComboFilter('Clustering method                   ', method, method_tags)
+        select_layout.addWidget(clustering_method)
+        filter['clustering_method'] = clustering_method.Filter.currentText()
+
+        method = [1, 2]
+        method_tags = ['1', '2']
+        n_clusters_method = ComboFilter('Numbers of clusters                 ', method, method_tags)
+        select_layout.addWidget(n_clusters_method)
+        filter['n_clusters_method'] = n_clusters_method.Filter.currentText()
+        
+
+        self.searchbutton = SearchWidget(filter)
+        select_layout.addWidget(self.searchbutton)
+        # Set size policies
+        #size_policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        #select_layout.setSizePolicy(size_policy)
+        # Combine widgets
+        self.setLayout(select_layout)
+        self.setStyleSheet("border: 0px ; background-color: #f5f5f5;")
+        self.adjustSize()
+
+
+class ComboFilter(QWidget):
+    """ Class for building singular drop-down menu style widgets
+    
+    """
+    def __init__(self, name, filter_list = [], filter_tags = []):
+        super().__init__()
+        self.name = name
+        self.filter_list = filter_list #[0, 100, 500, 1000]
+        self.filter_tages = filter_tags #
+        layout = QVBoxLayout(self)
+
+        self.Filter = QComboBox(self)
+        #self.Filter.setFixedSize(QtCore.QSize(100, 50))  
+        self.Filter.addItems(filter_tags)
+        self.Filter.setCurrentIndex(-1)
+        self.Filter.setPlaceholderText(self.name)
+        self.Filter.resize(self.Filter.sizeHint())
+        
+
+        # Connect signals to the methods.
+        self.Filter.activated.connect(self.check_index)
+        self.Filter.activated.connect(self.current_text)
+        self.Filter.activated.connect(self.current_text_via_index)
+        self.Filter.activated.connect(self.current_count)
+        
+        layout.addWidget(self.Filter)
+        
+        self.setLayout(layout)
+        #self.setMinimumSize(200, 200)
+        #self.setMaximumSize(100, 200)
+        self.adjustSize()
+        self.setStyleSheet("border: 0px solid darkgray; background-color: #f5f5f5;")
+        
+    
+    def check_index(self, index):
+        cindex = self.Filter.currentIndex()
+
+    def current_text(self, _): 
+        ctext = self.Filter.currentText()
+        print(self.label, ctext)
+
+    def current_text_via_index(self, index):
+        ctext = self.Filter.itemText(index) 
+
+    def current_count(self, index):
+        count = self.Filter.count()
