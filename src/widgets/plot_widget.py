@@ -99,12 +99,9 @@ class SelectClusterWidget(QWidget):
         select_layout.addWidget(n_clusters_method)
         filter['n_clusters_method'] = n_clusters_method.Filter.currentText()
         
-
         self.searchbutton = SearchWidget(filter)
         select_layout.addWidget(self.searchbutton)
-        # Set size policies
-        #size_policy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        #select_layout.setSizePolicy(size_policy)
+
         # Combine widgets
         self.setLayout(select_layout)
         self.setStyleSheet("border: 0px ; background-color: #f5f5f5;")
