@@ -2,39 +2,47 @@ from PyQt6.QtWidgets import QWidget, QLineEdit, QComboBox, QHBoxLayout, QVBoxLay
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QFont
 from PyQt6 import QtCore
+from PyQt6.QtCore import Qt
 import numpy as np
 
 class ButtonWidget(QWidget):
     """ Build custom title widget
 
     """
-    def __init__(self, button_title, size = False, w = 150, h = 25):
+    def __init__(self, button_title, size = None):
         super().__init__()
         self.button_title = button_title
         self.size = size
-        self.w, self.h = w, h
+        
 
         self.button = QPushButton(self.button_title)
         #button1.clicked.connect(self.clickMethod)
-        if self.size:
-            self.button.setFixedSize(QSize(w, h))  
+        if self.size is not None:
+            self.button.setFixedSize(QSize(self.size[0], self.size[1]))  
         self.button.setStyleSheet("border: 1px solid darkgray;")   
 
 class TitleWidget(QWidget):
     """ Build custom title widget
 
     """
-    def __init__(self, title_text, size = False):
+    def __init__(self, title_text, size = None):
         super().__init__()
+        self.size = size
 
         self.title = QLabel()
         self.title.setText(title_text)
         font = QFont()
+        
         font.setBold(True)
+        font.setPointSize(16)
         self.title.setFont(font)
+        self.title.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        
 
-        #if size:
-            #button.setFixedSize(QSize(150, 25))  
+
+        if self.size is not None:
+            self.title.setFixedSize(QSize(self.size[0], self.size[1])) 
+
          
 
 class CheckBoxWidget(QWidget):

@@ -36,7 +36,12 @@ class MainWindow(QMainWindow):
         #self.df.iloc[:100]
         # END TEST: For Testing Purposes only
         self.df_show = self.df.copy()
-        ## inialize widgets
+        
+
+        ####
+        # Define all widgets 
+        ####
+
         self.query_widgets = [QueryWidget() for i in range(2)]
         for query_widget in self.query_widgets:
             query_widget.querySubmitted.connect(self.on_query_submitted)
@@ -45,7 +50,7 @@ class MainWindow(QMainWindow):
         self.select_scatter_plot = SelectClusterWidget()
         self.scatter_plot_widget = ScatterPlotWidget(self.points, self.config)
 
-        self.checkbox = CheckBoxWidget(['MinMaxScaling', 'SQRT'],'Feature\nTransformations')
+        self.feature_transform_widget = CheckBoxWidget(['MinMaxScaling', 'SQRT'],'Feature\nTransformations')
 
         
         # Define filters 
@@ -79,10 +84,12 @@ class MainWindow(QMainWindow):
         # Define the Histogram widget
         histmodel = HistogramPlotModel(self.df)
         self.hist_plot_widget = HistogramPlotWidget(histmodel)
+        
 
         # Clear All Button Widget
-        self.clear_all_button_widget = QPushButton('Clear All', self)
-        self.clear_all_button_widget.clicked.connect(self.clear_all_button_clicked)
+        self.clear_all_button_widgets = [QPushButton('Clear All', self) for i in range(2)]
+        for widget in range(len(self.clear_all_button_widgets)):
+            self.clear_all_button_widgets[widget].clicked.connect(self.clear_all_button_clicked)
 
         # set up main window 
         self.make_main_layout()
@@ -92,7 +99,7 @@ class MainWindow(QMainWindow):
 
         # Configure main window apperance    
         self.setWindowTitle("READ: Real Estate Analytics Dashboard") # READ
-        self.setMinimumSize(QSize(1250, 500))
+        self.showMaximized()  
 
         # Tab Widget
         tabwidget = QTabWidget()
@@ -114,19 +121,11 @@ class MainWindow(QMainWindow):
     def make_layout_tab_1(self):
         widget = QWidget()
         layout = QHBoxLayout()
-        filterwidgets = QWidget()
-        filterwidgets_layout = QVBoxLayout()
 
-        ### Add layout
-        #filterwidgets_layout.addWidget(self.query_widgets[0])
-        #filterwidgets_layout.addWidget(self.filter_widget)
-        #filterwidgets_layout.addWidget(self.table_listings_widget)
-        #filterwidgets_layout.addWidget(self.clear_all_button_widget)
-        #filterwidgets.setLayout(filterwidgets_layout)
         filterwidgets = self.add_block([self.query_widgets[0], 
                                         self.filter_widget,
                                         self.table_listings_widget, 
-                                        self.clear_all_button_widget],  
+                                        self.clear_all_button_widgets[0]],  
                                         QVBoxLayout())
         
         layout.addWidget(self.geo_map_widget)
@@ -135,42 +134,46 @@ class MainWindow(QMainWindow):
         
 
         return widget
-
-    
+ 
     def make_layout_tab_2(self):
         widget = QWidget()
         layout = QVBoxLayout()
+        
+        h1 = self.add_block([self.feature_transform_widget, ButtonWidget('Store\nFeature').button], QVBoxLayout())
+        h1 = self.add_block([self.hist_plot_widget, h1], QHBoxLayout())
+        h1 = self.add_block([TitleWidget('Data driven features:', size = [600, 25]).title, self.filter_widget_tab2, h1], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        
+        
 
-        h1 = self.add_block([TitleWidget('Query driven features:').title, TitleWidget('Data driven features:').title], QHBoxLayout())
-        h2 = self.add_block([self.query_widgets[1], self.filter_widget_tab2], QHBoxLayout())
-        h3 = self.add_block([self.checkbox, ButtonWidget('Store\nFeature').button], QVBoxLayout())
-        h3 = self.add_block([self.hist_plot_widget, h3], QHBoxLayout())
-        h3_ = self.add_block([self.select_scatter_plot, ButtonWidget('Store\nFeature').button], QVBoxLayout())
-        h3_ = self.add_block([self.scatter_plot_widget, h3_], QHBoxLayout())
-        h3 = self.add_block([h3_, h3], QHBoxLayout())
+        h2 = self.add_block([self.select_scatter_plot, ButtonWidget('Store\nFeature').button], QVBoxLayout())
+        h2 = self.add_block([self.scatter_plot_widget, h2], QHBoxLayout(), size = [600])
+        h2 = self.add_block([TitleWidget('Query driven features:', size = [600, 25]).title, self.query_widgets[1], h2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        
 
-        v = self.add_block([h1, h2, h3], QVBoxLayout())
-        v = self.add_block([v, self.table_listings_widget_2], QVBoxLayout())
+        v = self.add_block([h1, h2], QHBoxLayout())
+        v = self.add_block([v, self.table_listings_widget_2], QVBoxLayout(), size = [1200])
 
         layout.addWidget(v)
         widget.setLayout(layout)
-
-        
         return widget
-
-    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_flag = QtCore.Qt.AlignmentFlag.AlignTop):
-        widget = QWidget()
-        layout = block_type
-        for wid in widgetlist:
-            layout.addWidget(wid, alignment=alignment_flag)
-        widget.setLayout(layout)
-        return widget
-        
+    
     def make_layout_tab_3(self):
         widget = QWidget()
         layout = QHBoxLayout()
         
         widget.setLayout(layout)
+
+    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_flag = QtCore.Qt.AlignmentFlag.AlignTop, size = None):
+        widget = QWidget()
+        layout = block_type
+        for wid in widgetlist:
+            layout.addWidget(wid, alignment=alignment_flag)
+        widget.setLayout(layout)
+        if size is not None:
+            widget.setFixedWidth(size[0])
+        return widget
+        
+
 
         return widget
     
