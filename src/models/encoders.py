@@ -13,6 +13,7 @@ class Model():
         pass
 
     def get_similarity_ranking(self, query, top_k=None):
+        pass
     
     def get_similarity_scores(self, query, normalize=False):
         raise NotImplementedError

@@ -20,7 +20,7 @@ from nltk.tokenize import sent_tokenize
 from sentence_transformers import SentenceTransformer
 
 
-BATCH_SIZE = 32
+BATCH_SIZE = 512
 
 
 def get_clip_embeddings(model_name, device, df, image_path):
@@ -28,6 +28,7 @@ def get_clip_embeddings(model_name, device, df, image_path):
     model, preprocess = clip.load(model_name, device=device)
     funda_ids = []
     image_ids = []
+    image_paths = []
     images = None
     image_features = None
     skipped_indices_loading = []
@@ -39,7 +40,10 @@ def get_clip_embeddings(model_name, device, df, image_path):
             for image_name in df.loc[funda_id]['images_paths']:
                 image_id = image_name.split('/')[-1].split('.')[0].replace("image", "")
                 ## load the image, preprocess them and load clip embeddings
-                try:
+                image_paths.append(os.path.join(image_path + image_name))
+                funda_ids.append(funda_id)
+                image_ids.append(image_id)
+                """try:
                     image = preprocess(Image.open(os.path.join(image_path + image_name))).unsqueeze(0).to("cpu")
                     if images is None:
                         images = image
@@ -52,15 +56,16 @@ def get_clip_embeddings(model_name, device, df, image_path):
                     image_ids.append(image_id)
                 except Exception as ex:
                     traceback.print_exc()
-                    skipped_indices_loading.append((funda_id, image_id))
-
-        
-        print(images.shape, image.shape)
+                    skipped_indices_loading.append((funda_id, image_id))"""
 
         print("Computing image features...")
-        for batch_idx in tqdm(range(np.ceil(len(images) / BATCH_SIZE).astype(int))):
+        #for batch_idx in tqdm(range(np.ceil(len(images) / BATCH_SIZE).astype(int))):
+        for batch_idx in tqdm(range(np.ceil(len(image_paths) / BATCH_SIZE).astype(int))):
+            image_paths_batch = image_paths[batch_idx*BATCH_SIZE : min(len(image_paths), (batch_idx+1)*BATCH_SIZE)]
             try:
-                batch_embeddings = model.encode_image(images[batch_idx*BATCH_SIZE : min(len(images), (batch_idx+1)*BATCH_SIZE)].to(device)).cpu().numpy()
+                images = torch.stack([preprocess(Image.open(image_path)) for image_path in image_paths_batch]).to(device)
+                batch_embeddings = model.encode_image(images).cpu().numpy()
+                # batch_embeddings = model.encode_image(images[batch_idx*BATCH_SIZE : min(len(images), (batch_idx+1)*BATCH_SIZE)].to(device)).cpu().numpy()
                 if image_features is None:
                     image_features = batch_embeddings
                 else:
@@ -168,7 +173,7 @@ def process_data(df, output_path, image_path, model_name, device, **kwargs):
     # save the dataframes
     image_feature_df.to_pickle(output_path.replace('.pkl', '_image_features.pkl'))
 
-    # return image_feature_df
+    return image_feature_df
 
     """
     pre-compute text-specific features
