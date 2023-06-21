@@ -23,6 +23,7 @@ class Preprocessing():
         data_path = config['main']['pkl_path']
         # 16.865 image folders 
         images_path = config['main']['images_path']
+        image_dir_path = config['main']['images_dir_path']
         
         # config - 1000
         num_samples = int(config['main']['num_samples'])
@@ -35,9 +36,19 @@ class Preprocessing():
         with h5py.File(images_path, "r") as hf:
             # Shape: (1000, 512)
             image_features = hf["image_features"][:]
-            
+        
                         
         ## select num_samples samples between
+        if sample_selection == 'new':
+            image_features = image_features[:num_samples]
+            points = self.compute_umap(image_features)
+            tags = []
+            image_features = image_features[:num_samples]
+            img_paths = []
+            df = df[:num_samples]
+            df['umap_x'] = points[:,0]
+            df['umap_y'] = points[:,1]
+
         if sample_selection == 'random':
             # Chooses 1000 random datapoints
             random_indices = np.random.choice(len(df), num_samples, replace=False)
@@ -58,4 +69,4 @@ class Preprocessing():
             elif str(config['main']['embedding'])=='tsne':
                 points = self.compute_tsne(image_features)
         
-        return config, tags, points, img_paths, df
+        return config, tags, points, img_paths, df, image_dir_path
