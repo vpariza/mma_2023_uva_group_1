@@ -4,7 +4,7 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 import sys
 from PyQt6 import QtCore
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy, QLabel
 from src.widgets.query_widget import QueryWidget
 from src.widgets.plot_widget import ScatterPlotWidget, SelectClusterWidget
 from src.widgets.filter_widget import FilterWidget
@@ -13,6 +13,7 @@ from src.widgets.geo_map_model import QGeoMapModel
 from src.widgets.geo_map_widget import GeoMapWidget
 from src.widgets.hist_plot_model import HistogramPlotModel
 from src.widgets.hist_plot_widget import HistogramPlotWidget
+from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
 import numpy as np 
 
 from src.widgets.table_listings_view import TableListingsView
@@ -43,6 +44,9 @@ class MainWindow(QMainWindow):
         # Define scatter plot widget
         self.select_scatter_plot = SelectClusterWidget()
         self.scatter_plot_widget = ScatterPlotWidget(self.points, self.config)
+
+        self.checkbox = CheckBoxWidget(['MinMaxScaling', 'SQRT'],'Feature\nTransformations')
+
         
         # Define filters 
         combofilters_ = {'status': ['Available', 'Under option'],                                                  
@@ -68,6 +72,10 @@ class MainWindow(QMainWindow):
         self.table_listings_widget = TableListingsView(table_listings_model)
         self.table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
 
+        # Define the Listings Table tab2
+        table_listings_model_2 = TableListingsModel(self.df_show, self.images_dir_path)
+        self.table_listings_widget_2 = TableListingsView(table_listings_model_2)
+
         # Define the Histogram widget
         histmodel = HistogramPlotModel(self.df)
         self.hist_plot_widget = HistogramPlotWidget(histmodel)
@@ -90,53 +98,81 @@ class MainWindow(QMainWindow):
         tabwidget = QTabWidget()
 
         ## Tab 1
-        ### Init Widgets
-        tab1_widget = QWidget()
-        tab1_layout = QHBoxLayout()
+        tab1_widget = self.make_layout_tab_1()
+        tabwidget.addTab(tab1_widget, "House Search")
+        
+        ## Tab 2
+        tab2_widget = self.make_layout_tab_2()
+        tabwidget.addTab(tab2_widget, "Feature Engineering")
+        
+        ## Tab 3
+        tab3_widget = self.make_layout_tab_3()
+        tabwidget.addTab(tab3_widget, "Compare Models")
+
+        self.setCentralWidget(tabwidget)
+
+    def make_layout_tab_1(self):
+        widget = QWidget()
+        layout = QHBoxLayout()
         filterwidgets = QWidget()
         filterwidgets_layout = QVBoxLayout()
 
         ### Add layout
-        filterwidgets_layout.addWidget(self.query_widgets[0])
-        filterwidgets_layout.addWidget(self.filter_widget)
-        filterwidgets_layout.addWidget(self.table_listings_widget)
-        filterwidgets_layout.addWidget(self.clear_all_button_widget)
-        filterwidgets.setLayout(filterwidgets_layout)
-   
-        tab1_layout.addWidget(self.geo_map_widget)
-        tab1_layout.addWidget(filterwidgets)
-        tab1_widget.setLayout(tab1_layout)
+        #filterwidgets_layout.addWidget(self.query_widgets[0])
+        #filterwidgets_layout.addWidget(self.filter_widget)
+        #filterwidgets_layout.addWidget(self.table_listings_widget)
+        #filterwidgets_layout.addWidget(self.clear_all_button_widget)
+        #filterwidgets.setLayout(filterwidgets_layout)
+        filterwidgets = self.add_block([self.query_widgets[0], 
+                                        self.filter_widget,
+                                        self.table_listings_widget, 
+                                        self.clear_all_button_widget],  
+                                        QVBoxLayout())
         
+        layout.addWidget(self.geo_map_widget)
+        layout.addWidget(filterwidgets)
+        widget.setLayout(layout)
         
-        ## Tab 2
-        ### Init Widgets
-        tab2_widget = QWidget()
-        tab2_layout = QHBoxLayout()
-        vblock = QWidget()
-        vblock_layout = QVBoxLayout()
-        hblock = QWidget()
-        hblock_layout = QHBoxLayout()
-        
-        ### Add layout
-        hblock_layout.addWidget(self.select_scatter_plot)
-        hblock_layout.addWidget(self.hist_plot_widget)
-        hblock.setLayout(hblock_layout)
-        vblock_layout.addWidget(hblock)
-        vblock_layout.addWidget(self.filter_widget_tab2)
-        vblock_layout.addWidget(self.clear_all_button_widget)
-        vblock.setLayout(vblock_layout)
 
-        tab2_layout.addWidget(self.scatter_plot_widget)
-        tab2_layout.addWidget(vblock)
-        tab2_widget.setLayout(tab2_layout)
-        
-        
-        ## Populate tabs
-        tabwidget.addTab(tab1_widget, "House Search")
-        tabwidget.addTab(tab2_widget, "House Feature Exploration")
+        return widget
 
-        self.setCentralWidget(tabwidget)
+    
+    def make_layout_tab_2(self):
+        widget = QWidget()
+        layout = QVBoxLayout()
+
+        h1 = self.add_block([TitleWidget('Query driven features:').title, TitleWidget('Data driven features:').title], QHBoxLayout())
+        h2 = self.add_block([self.query_widgets[1], self.filter_widget_tab2], QHBoxLayout())
+        h3 = self.add_block([self.checkbox, ButtonWidget('Store\nFeature').button], QVBoxLayout())
+        h3 = self.add_block([self.hist_plot_widget, h3], QHBoxLayout())
+        h3_ = self.add_block([self.select_scatter_plot, ButtonWidget('Store\nFeature').button], QVBoxLayout())
+        h3_ = self.add_block([self.scatter_plot_widget, h3_], QHBoxLayout())
+        h3 = self.add_block([h3_, h3], QHBoxLayout())
+
+        v = self.add_block([h1, h2, h3], QVBoxLayout())
+        v = self.add_block([v, self.table_listings_widget_2], QVBoxLayout())
+
+        layout.addWidget(v)
+        widget.setLayout(layout)
+
         
+        return widget
+
+    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_flag = QtCore.Qt.AlignmentFlag.AlignTop):
+        widget = QWidget()
+        layout = block_type
+        for wid in widgetlist:
+            layout.addWidget(wid, alignment=alignment_flag)
+        widget.setLayout(layout)
+        return widget
+        
+    def make_layout_tab_3(self):
+        widget = QWidget()
+        layout = QHBoxLayout()
+        
+        widget.setLayout(layout)
+
+        return widget
     
     def update_table(self):
         geo_map_model = QGeoMapModel(self.df_show)
