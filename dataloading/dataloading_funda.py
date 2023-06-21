@@ -20,7 +20,6 @@ from nltk.tokenize import sent_tokenize
 from sentence_transformers import SentenceTransformer
 
 
-NUM_DATAPOINTS = 1024
 BATCH_SIZE = 32
 
 
@@ -29,42 +28,59 @@ def get_clip_embeddings(model_name, device, df, image_path):
     model, preprocess = clip.load(model_name, device=device)
     funda_ids = []
     image_ids = []
-    images = []
-    image_features = []
-    skipped_indices = []
+    images = None
+    image_features = None
+    skipped_indices_loading = []
+    skipped_indices_encoding = []
 
     with torch.no_grad():
         print("Loading images...")
-        for i, funda_id in tqdm(enumerate(df.index)):
+        for funda_id in tqdm(df.index):
             for image_name in df.loc[funda_id]['images_paths']:
                 image_id = image_name.split('/')[-1].split('.')[0].replace("image", "")
                 ## load the image, preprocess them and load clip embeddings
                 try:
-                    image = preprocess(Image.open(os.path.join(image_path + image_name))).unsqueeze(0).to(device)
+                    image = preprocess(Image.open(os.path.join(image_path + image_name))).unsqueeze(0).to("cpu")
+                    if images is None:
+                        images = image
+                    else:
+                        images = torch.cat((images, image), dim=0)
+                    # image = Image.open(os.path.join(image_path + image_name))
                     #image_input = image.unsqueeze(0).to(device)
                     #image_features.append(model.encode_image(image_input).cpu().numpy())
                     funda_ids.append(funda_id)
                     image_ids.append(image_id)
                 except Exception as ex:
                     traceback.print_exc()
-                    skipped_indices.append(i)
+                    skipped_indices_loading.append((funda_id, image_id))
+
+        
+        print(images.shape, image.shape)
 
         print("Computing image features...")
-        for batch_idx in tqdm(range(NUM_DATAPOINTS // BATCH_SIZE)):
+        for batch_idx in tqdm(range(np.ceil(len(images) / BATCH_SIZE).astype(int))):
             try:
-                batch_embeddings = model.encode_image(image[batch_idx*BATCH_SIZE : (batch_idx+1)*BATCH_SIZE]).cpu().numpy()
-                image_features.append(batch_embeddings)
+                batch_embeddings = model.encode_image(images[batch_idx*BATCH_SIZE : min(len(images), (batch_idx+1)*BATCH_SIZE)].to(device)).cpu().numpy()
+                if image_features is None:
+                    image_features = batch_embeddings
+                else:
+                    image_features = np.concatenate((image_features, batch_embeddings), axis=0)
             except Exception as ex:
                 traceback.print_exc()
-                skipped_indices.append(batch_idx)
+                skipped_indices_encoding.append(batch_idx)
+    print(image_features.shape)
     # Print skipped indices
-    print("Skipped Indices:", skipped_indices)
+    print("Skipped Indices Loading:", skipped_indices_loading)
+    print("Skipped Indices Encoding:", skipped_indices_encoding)
 
-    df = pd.DataFrame({'funda_id': funda_ids, 'image_id': image_ids, 'image_features': image_features})
+    df = pd.DataFrame({'funda_id': funda_ids, 'image_id': image_ids, 'image_features': image_features.tolist()})
+    df['image_features'] = df['image_features'].apply(lambda x: np.array(x))
     # df.to_pickle(output_file)
 
     # # Save image features to an H5 file
     # image_features = np.concatenate(image_features, axis=0)
+    print(df.head())
+    print(df['image_features'].dtype, type(df['image_features'].iloc[0]))
 
     # with h5py.File(output_file, "w") as hf:
     #     hf.create_dataset("image_features", data=image_features)
@@ -80,7 +96,8 @@ def get_bert_embeddings(df, device, split_documents=False):
     text_ids = []
     texts = []
     text_features = []
-    for funda_id, doc in df[["funda_id", 'description']]:
+    for funda_id in tqdm(df.index):
+        doc = df.loc[funda_id]['description']
         if split_documents:
             text_id = 0
             for text in sent_tokenize(doc):
@@ -99,11 +116,10 @@ def get_bert_embeddings(df, device, split_documents=False):
     # load the model
     model = SentenceTransformer('krlng/sts-GBERT-bi-encoder').to(device)
 
-    total_batches = NUM_DATAPOINTS // BATCH_SIZE
     with torch.no_grad():
-        for batch_idx in tqdm(range(total_batches)):
+        for batch_idx in tqdm(range(np.ceil(len(texts) / BATCH_SIZE).astype(int))):
             try:
-                batch_embeddings = model.encode(texts[batch_idx*BATCH_SIZE : min(len(texts) - 1, (batch_idx+1)*BATCH_SIZE)])
+                batch_embeddings = model.encode(texts[batch_idx*BATCH_SIZE : min(len(texts), (batch_idx+1)*BATCH_SIZE)]).astype(np.float16)
                 text_features.append(batch_embeddings)
             except Exception as ex:
                 traceback.print_exc()
@@ -113,7 +129,8 @@ def get_bert_embeddings(df, device, split_documents=False):
 
     text_features = np.concatenate(text_features, axis=0)
 
-    df = pd.DataFrame({'funda_id': funda_ids, 'text_id': text_ids, 'text_features': text_features})
+    df = pd.DataFrame({'funda_id': funda_ids, 'text_id': text_ids, 'text_features': text_features.tolist()})
+    df['text_features'] = df['text_features'].apply(lambda x: np.array(x))
 
     return df
 
@@ -130,21 +147,28 @@ def process_data(df, output_path, image_path, model_name, device, **kwargs):
     """
     pre-compute image-specific features
     """
+
     image_feature_df = get_clip_embeddings(model_name, device, df, image_path=image_path)
 
     # add the UMAP coordinates to the dataframe
-    image_features = image_feature_df['image_features'].tolist()
+    print("Computing UMAP embeddings...")
+    image_features = np.array(image_feature_df['image_features'].tolist())
     umap_embeddings = make_umap(image_features)
     image_feature_df['umap_x'] = umap_embeddings[:, 0]
     image_feature_df['umap_y'] = umap_embeddings[:, 1]
 
     # add the TSNE coordinates to the dataframe
+    print("Computing TSNE embeddings...")
     tsne_embeddings = make_tsne(image_features)
     image_feature_df['tsne_x'] = tsne_embeddings[:, 0]
     image_feature_df['tsne_y'] = tsne_embeddings[:, 1]
 
+    print(image_feature_df.head(10))
+
     # save the dataframes
-    image_feature_df.to_pickle(output_path.replace('.', '_image_features.'))
+    image_feature_df.to_pickle(output_path.replace('.pkl', '_image_features.pkl'))
+
+    # return image_feature_df
 
     """
     pre-compute text-specific features
@@ -152,18 +176,22 @@ def process_data(df, output_path, image_path, model_name, device, **kwargs):
     text_features_df = get_bert_embeddings(df, device, split_documents=False)
 
     # add the UMAP coordinates to the dataframe
-    text_features = text_features_df['text_features'].tolist()
+    print("Computing UMAP embeddings...")
+    text_features = np.array(text_features_df['text_features'].tolist())
     umap_embeddings = make_umap(text_features)
     text_features_df['umap_x'] = umap_embeddings[:, 0]
     text_features_df['umap_y'] = umap_embeddings[:, 1]
 
     # add the TSNE coordinates to the dataframe
+    print("Computing TSNE embeddings...")
     tsne_embeddings = make_tsne(text_features)
     text_features_df['tsne_x'] = tsne_embeddings[:, 0]
     text_features_df['tsne_y'] = tsne_embeddings[:, 1]
 
     # save the dataframes
-    text_features_df.to_pickle(output_path.replace('.', '_text_features.'))
+    print(text_features_df.head(10))
+    print(text_features_df.shape)
+    text_features_df.to_pickle(output_path.replace('.pkl', '_text_features.pkl'))
 
     """
     pre-compute text-specific features with sentence splitting
@@ -171,7 +199,7 @@ def process_data(df, output_path, image_path, model_name, device, **kwargs):
     text_features_df = get_bert_embeddings(df, device, split_documents=True)
 
     # add the UMAP coordinates to the dataframe
-    text_features = text_features_df['text_features'].tolist()
+    text_features = np.array(text_features_df['text_features'].tolist())
     umap_embeddings = make_umap(text_features)
     text_features_df['umap_x'] = umap_embeddings[:, 0]
     text_features_df['umap_y'] = umap_embeddings[:, 1]
@@ -181,8 +209,11 @@ def process_data(df, output_path, image_path, model_name, device, **kwargs):
     text_features_df['tsne_x'] = tsne_embeddings[:, 0]
     text_features_df['tsne_y'] = tsne_embeddings[:, 1]
 
+    print(text_features_df.head(10))
+    print(text_features_df.shape)
+
     # save the dataframes
-    text_features_df.to_pickle(output_path.replace('.', '_sentence_features.'))
+    text_features_df.to_pickle(output_path.replace('.pkl', '_sentence_features.pkl'))
     
     return image_feature_df, text_features_df
 
