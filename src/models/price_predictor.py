@@ -3,6 +3,7 @@ from xgboost import XGBRegressor
 import xgboost as xgb
 import pandas as pd
 import numpy as np
+import json
 from src.utils.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -186,11 +187,24 @@ class Predictor():
         Save the model to a file.
         """
         self.model.save_model(path)
+        extra_information = {
+            "categorical_features": self.categorical_features,
+            "used_features": self.used_features,
+            "target": self.target,
+        }
+        with open(path.replace(".json", "_extra.json"), "w") as f:
+            json.dump(extra_information, f)
 
     def load_model(self, path: str):
         """
         Load the model from a file.
         """
+        with open(path.replace(".json", "_extra.json"), "r") as f:
+            extra_information = json.load(f)
+        self.categorical_features = extra_information.get("categorical_features", [])
+        self.used_features = extra_information.get("used_features", [])
+        self.target = extra_information.get("target", "price")
+        
         self.model.load_model(path)
         
     
