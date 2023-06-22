@@ -14,6 +14,7 @@ from src.widgets.geo_map_widget import GeoMapWidget
 from src.widgets.hist_plot_model import HistogramPlotModel
 from src.widgets.hist_plot_widget import HistogramPlotWidget
 from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
+from src.widgets.feature_widget import FeatureBoxWidget, ModelBoxWidget
 import numpy as np 
 
 from src.widgets.table_listings_view import TableListingsView
@@ -65,6 +66,15 @@ class MainWindow(QMainWindow):
         ## Filter widgets tab 2 with layoutoption 2
         self.filter_widget_tab2 = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '2')
         self.filter_widget_tab2.searchbutton.filtersApplied.connect(self.on_filters_applied)
+
+        ## Define feature widget
+        default_features = ['status', 'bedrooms', 'living_area']
+        self.feature_checkbox_widget = FeatureBoxWidget(default_features, 'Select Features')
+
+        models = ['model1', 'model2', 'new_model']
+        self.model_selectbox_widget = ModelBoxWidget(models, 'Select Model')
+
+        self.train_model_button = ButtonWidget('Train new\nModel', size = [400,100]).button
 
         # Define the Geo Map Widget
         geo_map_model = QGeoMapModel(self.df_show)
@@ -153,6 +163,8 @@ class MainWindow(QMainWindow):
         v = self.add_block([h1, h2], QHBoxLayout())
         v = self.add_block([v, self.table_listings_widget_2], QVBoxLayout(), size = [1200])
 
+        h3 = self.add_block([self.model_selectbox_widget, self.feature_checkbox_widget, self.train_model_button], QHBoxLayout(), size = [1200])
+        v = self.add_block([v, h3], QVBoxLayout())
         layout.addWidget(v)
         widget.setLayout(layout)
         return widget
