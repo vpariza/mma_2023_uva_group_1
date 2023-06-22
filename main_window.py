@@ -152,9 +152,11 @@ class MainWindow(QMainWindow):
         #h1 = self.add_block([h1, ButtonWidget('Store\nFeature').button], QVBoxLayout())
         v11 = self.add_block([TitleWidget('Data driven features:', size = [600, 25]).title, self.filter_widget_tab2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
         v12 = self.add_block([TitleWidget('Query driven features:', size = [600, 25]).title, self.query_widgets[1], self.select_scatter_plot], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
-        v13 = self.add_block([TitleWidget('Compose input features:', size = [600, 25]).title, self.model_selectbox_widget])
+        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [600, 25]).title, self.table_listings_widget_2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        
+        v32 = self.add_block([TitleWidget('Compose input features:', size = [600, 25]).title, self.model_selectbox_widget, self.feature_checkbox_widget])
+        
         v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
-        v32 = self.add_block([self.feature_checkbox_widget], QHBoxLayout(), size = [500])
                
         layout.addWidget(v11, 0, 0)
         layout.addWidget(v12, 0, 1)
