@@ -113,18 +113,15 @@ if __name__ == "__main__":
     df = df.set_index('funda_identifier', drop=True)
     df.index = df.index.astype(int)
 
-    # QUERY 1
-
+    # Embed query
     print("Embedding query and calculating similarity scores...")
-    query = "typical dutch house"
+    query = "a wide living room with a fireplace"
     text_max_scores, text_max_scores_ids = get_description_similarity(query)
     image_max_scores, image_max_scores_ids = get_image_similarity(query)
 
     # Merge to main df
     print("Merging to main df...")
-    df_merged = merge_to_main_df(
-        df, text_max_scores, image_max_scores, text_max_scores_ids, image_max_scores_ids
-        )
+    df_merged = merge_to_main_df(df, text_max_scores, image_max_scores, text_max_scores_ids, image_max_scores_ids)
     
     # Print column names
     print("Columns:", df_merged.columns)
@@ -134,34 +131,21 @@ if __name__ == "__main__":
     print(df_sorted[query + "-max_sentence"].head(5))
     print(df_sorted[query + "-max_sentence"].tail(5))
 
-    # Print results for image embedding
+    # Plot results for image embedding
     df_sorted = df_merged.sort_values(image_max_scores.name, ascending=False)
-    print(df_sorted[image_max_scores_ids.name].head(5))
-    print(df_sorted[image_max_scores_ids.name].tail(5))
-
-
-    # QUERY 2
-
-    print("Embedding query and calculating similarity scores...")
-    query = "a princess castle"
-    text_max_scores, text_max_scores_ids = get_description_similarity(query)
-    image_max_scores, image_max_scores_ids = get_image_similarity(query)
-
-    # Merge to main df
-    print("Merging to main df...")
-    df_merged = merge_to_main_df(
-        df_merged, text_max_scores, image_max_scores, text_max_scores_ids, image_max_scores_ids
-        )
-    
-    # Print column names
-    print("Columns:", df_merged.columns)
-    
-    # Print results for text embedding
-    df_sorted = df_merged.sort_values(text_max_scores.name, ascending=False)
-    print(df_sorted[query + "-max_sentence"].head(5))
-    print(df_sorted[query + "-max_sentence"].tail(5))
-
-    # Print results for image embedding
-    df_sorted = df_merged.sort_values(image_max_scores.name, ascending=False)
-    print(df_sorted[image_max_scores_ids.name].head(5))
-    print(df_sorted[image_max_scores_ids.name].tail(5))
+    fig, axes = plt.subplots(2, 5, figsize=(12, 6))
+    for i in range(5): # Top 5
+        funda_id = df_sorted.index[i]
+        image_id = df_sorted[query + "-image_embedding-max_id"].iloc[i]
+        image_path = "dataloading/Funda/images/" + str(funda_id) + "/image" + str(image_id) + ".jpeg"
+        image = plt.imread(image_path)
+        axes[0, i].imshow(image)
+        axes[0, i].axis("off")
+    for i in range(5): # Bottom 5
+        funda_id = df_sorted.index[-i]
+        image_id = df_sorted[query + "-image_embedding-max_id"].iloc[-(i+1)]
+        image_path = "dataloading/Funda/images/" + str(funda_id) + "/image" + str(image_id) + ".jpeg"
+        image = plt.imread(image_path)
+        axes[1, i].imshow(image)
+        axes[1, i].axis("off")
+    plt.show()
