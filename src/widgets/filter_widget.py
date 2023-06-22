@@ -146,7 +146,7 @@ class RangeFilter(QWidget):
         # Combine widgets
         self.setLayout(widget_layout )
         self.setStyleSheet("border: 0px;")
-        self.setFixedSize(QSize(250 , 50))
+        #self.setFixedSize(QSize(250 , 50))
         
 
 class ComboFilter(QWidget):

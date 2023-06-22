@@ -27,6 +27,7 @@ class QueryWidget(QWidget):
         
         # Set query input box
         self.QueryText = QLineEdit(self)
+        self.QueryText.setPlaceholderText("Ex: 'red brick house'")
         self.QueryText.setFixedSize(QSize(250, 25))
         self.QueryText.setStyleSheet("border: 1px solid darkgray;")   
         hbox_layout.addWidget(self.QueryText)
