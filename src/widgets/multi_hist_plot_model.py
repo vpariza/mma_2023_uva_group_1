@@ -1,14 +1,13 @@
 import matplotlib
 matplotlib.use('QtAgg')
 
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtCore
 
 import typing
 import pandas as pd
-import matplotlib.pyplot as plt
 from enum import Enum
 
-class HistogramPlotModel(QtCore.QObject):
+class MultiHistogramPlotModel(QtCore.QObject):
     class HouseInfoDistKeys(Enum):
         LONGITUDE = 'lon'
         LATITUDE = 'lat'
@@ -32,7 +31,7 @@ class HistogramPlotModel(QtCore.QObject):
             return list(map(lambda c: c.value, cls))
 
     def __init__(self, data:pd.DataFrame, parent: typing.Optional[QtCore.QObject] = None ) -> None:
-        super(HistogramPlotModel, self).__init__(parent)
+        super(MultiHistogramPlotModel, self).__init__(parent)
         self._data = data
     
     def get_headers(self):

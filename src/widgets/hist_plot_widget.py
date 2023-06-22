@@ -1,8 +1,7 @@
-import sys
 import matplotlib
 matplotlib.use('QtAgg')
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QComboBox
@@ -10,10 +9,8 @@ from PyQt6.QtWidgets import (
 import typing
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-import pandas as pd
-from enum import Enum
 
-from src.widgets.hist_plot_model import HistogramPlotModel
+from hist_plot_model import HistogramPlotModel
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -21,39 +18,6 @@ class MplCanvas(FigureCanvasQTAgg):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
-
-class HistogramPlotModel(QtCore.QObject):
-    class HouseInfoDistKeys(Enum):
-        LONGITUDE = 'lon'
-        LATITUDE = 'lat'
-        # LISTING_ID = 'funda_identifier'
-        PRICE = 'price'
-        LIVING_AREA = 'living_area'
-        BEDROOMS = 'bedrooms'
-        ASK_PRICE_PER_SQ_M = 'asking_price_per_m²'
-        STATUS = 'status'
-        ACCEPTANCE = 'acceptance'
-        BUILDING_TYPE = 'building_type'
-        NUM_BATH_ROOMS = 'number_of_bath_rooms'
-        LABEL = 'label'
-        # HEATING = 'heating'
-        GARDEN = 'garden'
-        FACILITIES_TYPE = 'type_of_facilities'
-        # NEIGHBERHOOD = 'in_the_neighborhood'
-
-        @classmethod
-        def list_values(cls):
-            return list(map(lambda c: c.value, cls))
-
-    def __init__(self, data:pd.DataFrame, parent: typing.Optional[QtCore.QObject] = None ) -> None:
-        super(HistogramPlotModel, self).__init__(parent)
-        self._data = data
-    
-    def get_headers(self):
-        return self.HouseInfoDistKeys.list_values()
-    
-    def get_column(self, column_name:str) -> pd.DataFrame:
-        return self._data[column_name]
 
 class HistogramPlotWidget(QWidget):
     """
