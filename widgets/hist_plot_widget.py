@@ -1,3 +1,4 @@
+import ini
 import sys
 import matplotlib
 matplotlib.use('QtAgg')
@@ -11,11 +12,16 @@ from PyQt6.QtWidgets import (
 import typing
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import pandas as pd
 import matplotlib.pyplot as plt
-
 from enum import Enum
 
-import pandas as pd
+class MplCanvas(FigureCanvasQTAgg):
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        super(MplCanvas, self).__init__(fig)
 
 class HistogramPlotModel(QtCore.QObject):
     class HouseInfoDistKeys(Enum):
@@ -54,9 +60,6 @@ class HistogramPlotWidget(QWidget):
     """
     Define a custom widget for Plotting Histograms.
     """
-    # Define the Signals that can be emitted
-    # entriesSelected = QtCore.pyqtSignal(list, QWidget)
-    # entryClicked = QtCore.pyqtSignal(object, QWidget)
 
     def __init__(self, hist_p_model:HistogramPlotModel, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(HistogramPlotWidget, self).__init__(parent=parent, *args, **kwargs)
@@ -65,13 +68,12 @@ class HistogramPlotWidget(QWidget):
         # The column to show initial data of
         self._selected_col = list(self._hist_p_model.get_headers())[0]
         # Histogram Widget
-        self._hist = None
         self._hist_widget = QtWidgets.QWidget(self)
         hist_layout = QtWidgets.QVBoxLayout()
-        self._create_hist(self._selected_col)
-        self._toolbar = NavigationToolbar(self._canvas, self._hist_widget)
+        self._create_hist(self._selected_col, self._hist_widget)
+        self._toolbar = NavigationToolbar(self._sc, self._hist_widget)
         hist_layout.addWidget(self._toolbar)
-        hist_layout.addWidget(self._canvas)
+        hist_layout.addWidget(self._sc)
         self._hist_widget.setLayout(hist_layout)
         layout = QVBoxLayout()
         self._dropdown_list_widget = QComboBox(self)
@@ -83,49 +85,34 @@ class HistogramPlotWidget(QWidget):
 
     @QtCore.pyqtSlot(str)
     def dropdown_label_changed(self, label):
-        print(label)
         self._selected_col = label
         self.update()
 
+    def update_model(self, hist_p_model: HistogramPlotModel):
+        self._hist_p_model = hist_p_model
+        self.update()
+
     def update(self):
-        self._create_hist( self._selected_col)
-        # self._create_hist(self._selected_col)
-        # self._toolbar = NavigationToolbar(self._sc, self)
-        # _hist_widget = QtWidgets.QWidget()
-        # plot_layout = QtWidgets.QVBoxLayout()
-        # plot_layout.addWidget(self._toolbar)
-        # plot_layout.addWidget(self._sc)
-        # _hist_widget.setLayout(plot_layout)
-        # layout = QVBoxLayout()
-        # _dropdown_list_widget = QComboBox()
-        # _dropdown_list_widget.addItems(self._hist_p_model.get_headers())
-        # _dropdown_list_widget.currentTextChanged.connect(self.dropdown_label_changed)
-        # layout.removeWidget(self._dropdown_list_widget)
-        # layout.removeWidget(self._hist_widget)
-        # self._dropdown_list_widget = _dropdown_list_widget
-        # self._hist_widget = _hist_widget
-        # layout.addWidget(self._dropdown_list_widget)
-        # layout.addWidget(self._hist_widget)
+        data = self._hist_p_model.get_column(self._selected_col)
+        num_u_labels = len(set(data.values.tolist()))
+        self._hist[-1].remove()
+        self._sc.axes.clear()
+        self._hist = self._sc.axes.hist(data, density=False, bins=min(30, num_u_labels))  # density=False would make counts
+        self._sc.axes.set_ylabel('Counts')
+        self._sc.axes.set_xlabel(self._selected_col)
+        self._sc.axes.tick_params(rotation=90)
+        self._sc.draw()
+        self._toolbar.update()
+        self._hist_widget.update()
 
-    def _create_hist(self, col_name):
-        self._canvas = FigureCanvasQTAgg(plt.Figure(figsize=(15, 6)))
+    def _create_hist(self, col_name, parent):
+        self._sc = MplCanvas(parent, width=5, height=4, dpi=100)
         data = self._hist_p_model.get_column(col_name)
         num_u_labels = len(set(data.values.tolist()))
-        self._ax = self._canvas.figure.subplots()
-        self._hist = self._ax.hist(data, density=False, bins=min(30, num_u_labels))  # density=False would make counts
-        self._ax.set_ylabel('Counts')
-        self._ax.set_xlabel(col_name)
-        self._ax.tick_params(rotation=90)
-        self._canvas.draw()
-
-    def _update_hist(self, col_name):
-        data = self._hist_p_model.get_column(col_name)
-        num_u_labels = len(set(data.values.tolist()))
-        if self._hist is not None:
-            self._hist[-1].remove()
-            # del self._hist
-        self._hist = self._ax.hist(data, density=False, bins=min(30, num_u_labels))  # density=False would make counts
-        self._canvas.draw()
+        self._hist = self._sc.axes.hist(data, density=False, bins=min(30, num_u_labels))  # density=False would make counts
+        self._sc.axes.set_ylabel('Counts')
+        self._sc.axes.set_xlabel(col_name)
+        self._sc.axes.tick_params(rotation=90)
 
 class MainWindow(QtWidgets.QMainWindow):
 
