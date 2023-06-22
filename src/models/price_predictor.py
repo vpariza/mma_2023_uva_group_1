@@ -4,6 +4,7 @@ import xgboost as xgb
 import pandas as pd
 import numpy as np
 import json
+import sklearn
 from src.utils.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -45,6 +46,9 @@ def median_percentage_error(y_true, y_pred):
 def median_error(y_true, y_pred):
     return np.median(y_true - y_pred)
 
+def r2_score(y_true, y_pred):
+    return sklearn.metrics.r2_score(y_true, y_pred)
+
 """
 Class for predicting the price of a listing.
 """
@@ -81,6 +85,8 @@ class Predictor():
                 df_processed[feature] = transforms[feature](df_processed[feature])
 
         self.target = target
+        if target in transforms:
+            df_processed[target] = transforms[target](df_processed[target])
         assert target not in self.used_features, "Target feature cannot be used as input feature"
 
         return df_processed
@@ -249,15 +255,15 @@ if __name__ == "__main__":
     predictor.fit(train_X, train_y, val_X, val_y)
 
     print("Predicting...")
-    pred_y, scores = predictor.predict(test_X, test_y, eval_metrics=[mean_absolute_error, mean_absolute_percentage_error])
-    # for p, t in zip(pred_y, test_y):
-    #     print(p, t)
+    pred_y, scores = predictor.predict(test_X, test_y, eval_metrics=[mean_absolute_error, mean_absolute_percentage_error, r2_score])
+    for p, t in zip(pred_y, test_y):
+        print(p, t)
     print(scores)
 
     print("Feature importances:")
     print(predictor.get_feature_importances())
 
-    print("Saving model...")
+    """print("Saving model...")
     predictor.save_model("test_model.json")
 
     print("Loading model...")
@@ -266,6 +272,6 @@ if __name__ == "__main__":
 
     print("Predicting with loaded model...")
     pred_y, scores = predictor2.predict(test_X, test_y, eval_metrics=[mean_absolute_error, mean_absolute_percentage_error])
-    print(scores)
+    print(scores)"""
 
     # predictor.plot_tree()
