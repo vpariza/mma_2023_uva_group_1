@@ -11,9 +11,6 @@ from PyQt6.QtWidgets import (
 import typing
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-import pandas as pd
-import matplotlib.pyplot as plt
-from enum import Enum
 
 from typing import List, Dict
 from multi_hist_plot_model import MultiHistogramPlotModel
