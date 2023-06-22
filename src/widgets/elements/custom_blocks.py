@@ -19,7 +19,9 @@ class ButtonWidget(QWidget):
         #button1.clicked.connect(self.clickMethod)
         if self.size is not None:
             self.button.setFixedSize(QSize(self.size[0], self.size[1]))  
-        self.button.setStyleSheet("border: 1px solid darkgray;")   
+        
+        self.button.setStyleSheet("border: 1px solid darkgray; QPushButton { qproperty-alignment: AlignCenter; }")   
+
 
 class TitleWidget(QWidget):
     """ Build custom title widget

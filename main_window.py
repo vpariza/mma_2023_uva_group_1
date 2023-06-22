@@ -4,7 +4,7 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 import sys
 from PyQt6 import QtCore
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy, QLabel
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy, QLabel, QGridLayout
 from src.widgets.query_widget import QueryWidget
 from src.widgets.plot_widget import ScatterPlotWidget, SelectClusterWidget
 from src.widgets.filter_widget import FilterWidget
@@ -147,25 +147,30 @@ class MainWindow(QMainWindow):
  
     def make_layout_tab_2(self):
         widget = QWidget()
-        layout = QVBoxLayout()
+        layout = QGridLayout()
         
-        h1 = self.add_block([self.feature_transform_widget, ButtonWidget('Store\nFeature').button], QVBoxLayout())
-        h1 = self.add_block([self.hist_plot_widget, h1], QHBoxLayout())
-        h1 = self.add_block([TitleWidget('Data driven features:', size = [600, 25]).title, self.filter_widget_tab2, h1], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
-        
-        
+        #h1 = self.add_block([h1, ButtonWidget('Store\nFeature').button], QVBoxLayout())
+        v11 = self.add_block([TitleWidget('Data driven features:', size = [600, 25]).title, self.filter_widget_tab2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [600, 25]).title, self.query_widgets[1], self.select_scatter_plot], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        v13 = self.add_block([TitleWidget('Compose input features:', size = [600, 25]).title, self.model_selectbox_widget])
+        v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
+        v32 = self.add_block([self.feature_checkbox_widget], QHBoxLayout(), size = [500])
+               
+        layout.addWidget(v11, 0, 0)
+        layout.addWidget(v12, 0, 1)
+        layout.addWidget(v13, 0, 2)
 
-        h2 = self.add_block([self.select_scatter_plot, ButtonWidget('Store\nFeature').button], QVBoxLayout())
-        h2 = self.add_block([self.scatter_plot_widget, h2], QHBoxLayout(), size = [600])
-        h2 = self.add_block([TitleWidget('Query driven features:', size = [600, 25]).title, self.query_widgets[1], h2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        layout.addWidget(v21, 1, 0)
+        layout.addWidget(self.scatter_plot_widget, 1, 1)
+
+        self.store_qfeat_button = ButtonWidget('Store\nFeature', size = [150, 50]).button
         
-
-        v = self.add_block([h1, h2], QHBoxLayout())
-        v = self.add_block([v, self.table_listings_widget_2], QVBoxLayout(), size = [1200])
-
-        h3 = self.add_block([self.model_selectbox_widget, self.feature_checkbox_widget, self.train_model_button], QHBoxLayout(), size = [1200])
-        v = self.add_block([v, h3], QVBoxLayout())
-        layout.addWidget(v)
+        self.store_datfeat_button = ButtonWidget('Store\nFeature', size = [150, 50]).button
+        layout.addWidget(self.store_qfeat_button, 2, 0, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.store_datfeat_button, 2, 1, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(v32, 1, 2)
+        layout.addWidget(self.train_model_button, 2, 2, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
+        
         widget.setLayout(layout)
         return widget
     
