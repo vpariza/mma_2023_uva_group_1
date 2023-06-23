@@ -67,6 +67,16 @@ class ModelTrainWidget(QWidget):
         layout.addLayout(buttons_layout)
         return layout
 
+    def add_features(self, feature_names:List[str]):
+        for feature_name in feature_names:
+            if feature_name not in self._training_features:
+                self._training_features.append(feature_name)
+                self._list_features_w.add_options([feature_name])
+
+    @property
+    def selected_features(self):
+        return self._list_features_w.selected_options
+
     @property
     def model_names(self):
         return self._list_models_w.options

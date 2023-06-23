@@ -69,7 +69,7 @@ class HouseSearchWidget(QWidget):
         if self._query_widget is None:      
             self._query_widget = QueryWidget()
             self._query_widget.resize(600, 200) 
-        # self._query_widget.querySubmitted.connect(self.on_query_submitted)
+        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
         right_layout.addWidget(self._query_widget)
         ####### Add the Filtering Widget
         # Define filters 

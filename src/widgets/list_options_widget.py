@@ -35,6 +35,7 @@ class ListOptionsWidget(QWidget):
         self.add_options(options)
 
     def add_options(self, options:List[str]):
+        print('Added New options', options, self._list_widget)
         self._options.extend(options)
         for option in options:
             self._list_widget.addItem(option)

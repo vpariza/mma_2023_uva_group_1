@@ -55,7 +55,6 @@ class FeatureEngineeringWidget(QWidget):
         self._data_show = data.copy()
         # These are the original data
         self._training_features = training_features
-        self._selected_training_features = list()
         self._data = data
         self._config = config
         self._images_dir_path = config['main']['images_dir_path']
@@ -89,7 +88,7 @@ class FeatureEngineeringWidget(QWidget):
         if self._query_widget is None:      
             self._query_widget = QueryWidget()
             self._query_widget.resize(600, 200) 
-        # self._query_widget.querySubmitted.connect(self.on_query_submitted)
+        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
         left_layout.addWidget(self._query_widget)
         ####### Add the Filtering Widget
         # Define filters 
@@ -160,7 +159,7 @@ class FeatureEngineeringWidget(QWidget):
         """
         Return the selected features we can train a model on.
         """
-        return self._data_show[self._selected_training_features]
+        return self._data_show[self._model_train_widget.selected_features]
 
     ###### Update Methods ######
     def update_data_show(self, data:pd.DataFrame):
@@ -181,6 +180,9 @@ class FeatureEngineeringWidget(QWidget):
         
         self._scatter_plot_widget.update_scatterplot(self._umap_points_x, self._umap_points_y)
 
+    def add_new_features(self, feature_names:list):
+        self._model_train_widget.add_features(feature_names)
+
     ###### Slot of Handling Signals ######
     @QtCore.pyqtSlot(object, QWidget)
     def _on_filters_applied(self, filters, source):
@@ -192,7 +194,7 @@ class FeatureEngineeringWidget(QWidget):
         else:
             BasicDialog(window_title='No Results found!', message='There are no entries matching your filtering!').exec()
     
-    @QtCore.pyqtSlot(object, QWidget)
+    @QtCore.pyqtSlot(str, QWidget)
     def _on_txt_query_submitted(self, txt_query, source):
         self.txtQuerySubmitted.emit(txt_query, self)
 
