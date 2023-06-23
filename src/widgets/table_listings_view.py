@@ -36,6 +36,7 @@ class ImageWindow(QWidget):
                 label.setScaledContents(True)
                 layout.addWidget(label, row, column)
                 i+=1
+        self.resize(600, self.height)
         self.setLayout(layout)
         self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
         self.setWindowTitle("Images for {}".format(entry_id))

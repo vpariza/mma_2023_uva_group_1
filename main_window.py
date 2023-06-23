@@ -26,6 +26,10 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.columnwidth = 600
+        self.buttonwidth = 400
+        self.buttonheight = 75
+        self.titlewidth = 25
 
         #load data using the config file 'config.ini'
         preprocessing = Preprocessing()
@@ -73,8 +77,8 @@ class MainWindow(QMainWindow):
 
         models = ['model1', 'model2', 'new_model']
         self.model_selectbox_widget = ModelBoxWidget(models, 'Select Model')
-
-        self.train_model_button = ButtonWidget('Train new\nModel', size = [400,100]).button
+        self.model_selectbox_widget.resize(600,200)
+        self.train_model_button = ButtonWidget('Train new\nModel', size = [self.buttonwidth, self.buttonheight]).button
 
         # Define the Geo Map Widget
         geo_map_model = QGeoMapModel(self.df_show)
@@ -90,10 +94,16 @@ class MainWindow(QMainWindow):
         # Define the Listings Table tab2
         table_listings_model_2 = TableListingsModel(self.df_show, self.images_dir_path)
         self.table_listings_widget_2 = TableListingsView(table_listings_model_2)
+        self.table_listings_widget_2.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
+        self.table_listings_widget_2.resize(600, 600) 
 
         # Define the Histogram widget
         histmodel = HistogramPlotModel(self.df)
         self.hist_plot_widget = HistogramPlotWidget(histmodel)
+
+        self.store_qfeat_button = ButtonWidget('Store\nFeature', size = [self.buttonwidth, self.buttonheight]).button
+        self.store_datfeat_button = ButtonWidget('Store\nFeature', size = [self.buttonwidth, self.buttonheight]).button
+        
         
 
         # Clear All Button Widget
@@ -109,7 +119,7 @@ class MainWindow(QMainWindow):
 
         # Configure main window apperance    
         self.setWindowTitle("READ: Real Estate Analytics Dashboard") # READ
-        self.showMaximized()  
+        self.showFullScreen()
 
         # Tab Widget
         tabwidget = QTabWidget()
@@ -150,11 +160,11 @@ class MainWindow(QMainWindow):
         layout = QGridLayout()
         
         #h1 = self.add_block([h1, ButtonWidget('Store\nFeature').button], QVBoxLayout())
-        v11 = self.add_block([TitleWidget('Data driven features:', size = [600, 25]).title, self.filter_widget_tab2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [600, 25]).title, self.query_widgets[1], self.select_scatter_plot], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
-        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [600, 25]).title, self.table_listings_widget_2], QVBoxLayout(), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = [600])
+        v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self.filter_widget_tab2], QVBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_widgets[1], self.select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
+        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self.table_listings_widget_2], QVBoxLayout(), size = [self.columnwidth])
         
-        v32 = self.add_block([TitleWidget('Compose input features:', size = [600, 25]).title, self.model_selectbox_widget, self.feature_checkbox_widget])
+        v32 = self.add_block([TitleWidget('Compose input features:', size = [self.columnwidth, self.titlewidth]).title, self.model_selectbox_widget, self.feature_checkbox_widget])
         
         v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
                
@@ -165,9 +175,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(v21, 1, 0)
         layout.addWidget(self.scatter_plot_widget, 1, 1)
 
-        self.store_qfeat_button = ButtonWidget('Store\nFeature', size = [150, 50]).button
-        
-        self.store_datfeat_button = ButtonWidget('Store\nFeature', size = [150, 50]).button
         layout.addWidget(self.store_qfeat_button, 2, 0, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.store_datfeat_button, 2, 1, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(v32, 1, 2)
@@ -182,11 +189,11 @@ class MainWindow(QMainWindow):
         
         widget.setLayout(layout)
 
-    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_flag = QtCore.Qt.AlignmentFlag.AlignTop, size = None):
+    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
         widget = QWidget()
         layout = block_type
         for wid in widgetlist:
-            layout.addWidget(wid, alignment=alignment_flag)
+            layout.addWidget(wid, alignment=alignment_)
         widget.setLayout(layout)
         if size is not None:
             widget.setFixedWidth(size[0])
