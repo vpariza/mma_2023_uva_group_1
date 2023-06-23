@@ -55,7 +55,7 @@ Class for predicting the price of a listing.
 
 class Predictor():
     def __init__(self) -> None:
-        self.model = XGBRegressor(n_estimators=1000, learning_rate=0.05, n_jobs=-1, early_stopping_rounds=5)
+        self.model = XGBRegressor(n_estimators=1000, learning_rate=0.05, n_jobs=-1, early_stopping_rounds=5, eval_metric="mae")
         self.used_features = []
         self.categorical_features = []
         self.target = None
@@ -127,6 +127,16 @@ class Predictor():
             self.model.fit(train_X, train_y)
         else:
             self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)], verbose=False)
+
+    def get_learning_curves(self) -> list:
+        """
+        Get the learning curves for the model.
+
+        Returns:
+            list: List of validation scores for each epoch.
+        """
+        val_scores = self.model.evals_result()["validation_0"]["mae"]
+        return val_scores
 
     def predict(self, test_X: pd.DataFrame, test_y: pd.Series = None, eval_metrics: list = []) -> tuple:
         """
@@ -262,6 +272,12 @@ if __name__ == "__main__":
 
     print("Feature importances:")
     print(predictor.get_feature_importances())
+
+    print("Loss curves:")
+    val_scores = predictor.get_learning_curves()
+    plt.plot(val_scores, label="val")
+    plt.legend()
+    plt.savefig("temp_1.pdf")
 
     """print("Saving model...")
     predictor.save_model("test_model.json")
