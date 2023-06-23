@@ -14,7 +14,7 @@ from src.widgets.geo_map_widget import GeoMapWidget
 from src.widgets.hist_plot_model import HistogramPlotModel
 from src.widgets.hist_plot_widget import HistogramPlotWidget
 from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
-from src.widgets.feature_widget import FeatureBoxWidget, ModelBoxWidget
+from src.widgets.feature_engineering_widget import FeatureEngineeringWidget #FeatureBoxWidget, ModelBoxWidget
 import numpy as np 
 
 from src.widgets.table_listings_view import TableListingsView
@@ -59,25 +59,26 @@ class MainWindow(QMainWindow):
 
         
         # Define filters 
-        combofilters_ = {'status': ['Available', 'Under option'],                                                  
-                        'bedrooms': [str(i) for i in np.arange(0, 5 + 1)]}           # combofilters -> {Element Title: [displayed textprompt]}
-        minmaxfilters_ = ['price', 'living_area']
+        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
+        minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
+        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
+        
 
         ## Filter widgets tab 1 with layoutoption 1
-        self.filter_widget = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '1')
+        self.filter_widget = FilterWidget(self.df.copy(), minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
         self.filter_widget.searchbutton.filtersApplied.connect(self.on_filters_applied)
-
+        
         ## Filter widgets tab 2 with layoutoption 2
-        self.filter_widget_tab2 = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '2')
+        self.filter_widget_tab2 = FilterWidget(self.df.copy(), minmaxfilters = minmaxfilters_, combofilters = combofilters_,  placeholdertext = placeholdertext_, config = '1')
         self.filter_widget_tab2.searchbutton.filtersApplied.connect(self.on_filters_applied)
 
         ## Define feature widget
-        default_features = ['status', 'bedrooms', 'living_area']
-        self.feature_checkbox_widget = FeatureBoxWidget(default_features, 'Select Features')
+        #default_features = ['status', 'bedrooms', 'living_area']
+        #self.feature_checkbox_widget = FeatureBoxWidget(default_features, 'Select Features')
 
         models = ['model1', 'model2', 'new_model']
-        self.model_selectbox_widget = ModelBoxWidget(models, 'Select Model')
-        self.model_selectbox_widget.resize(600,200)
+        #self.model_selectbox_widget = ModelBoxWidget(models, 'Select Model')
+        self.feature_engineering_widget = FeatureEngineeringWidget()
         self.train_model_button = ButtonWidget('Train new\nModel', size = [self.buttonwidth, self.buttonheight]).button
 
         # Define the Geo Map Widget
@@ -119,7 +120,7 @@ class MainWindow(QMainWindow):
 
         # Configure main window apperance    
         self.setWindowTitle("READ: Real Estate Analytics Dashboard") # READ
-        self.showFullScreen()
+        self.showMaximized()  
 
         # Tab Widget
         tabwidget = QTabWidget()
@@ -147,6 +148,7 @@ class MainWindow(QMainWindow):
                                         self.table_listings_widget, 
                                         self.clear_all_button_widgets[0]],  
                                         QVBoxLayout())
+        filterwidgets.setStyleSheet("background-color: #f5f5f5;")
         
         layout.addWidget(self.geo_map_widget)
         layout.addWidget(filterwidgets)
@@ -164,20 +166,21 @@ class MainWindow(QMainWindow):
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_widgets[1], self.select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
         v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self.table_listings_widget_2], QVBoxLayout(), size = [self.columnwidth])
         
-        v32 = self.add_block([TitleWidget('Compose input features:', size = [self.columnwidth, self.titlewidth]).title, self.model_selectbox_widget, self.feature_checkbox_widget])
+        #v32 = self.add_block([TitleWidget('Compose input features:', size = [self.columnwidth, self.titlewidth]).title, self.model_selectbox_widget, self.feature_checkbox_widget])
+        #v32 = self.add_block([TitleWidget('Compose input features:', size = [self.columnwidth, self.titlewidth]).title, self.feature_engineering_widget])
         
         v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
-               
         layout.addWidget(v11, 0, 0)
         layout.addWidget(v12, 0, 1)
         layout.addWidget(v13, 0, 2)
 
         layout.addWidget(v21, 1, 0)
-        layout.addWidget(self.scatter_plot_widget, 1, 1)
+        v22 = self.add_block([self.scatter_plot_widget], QHBoxLayout())
+        layout.addWidget(v22, 1, 1)
 
         layout.addWidget(self.store_qfeat_button, 2, 0, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.store_datfeat_button, 2, 1, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(v32, 1, 2)
+        #layout.addWidget(v32, 1, 2)
         layout.addWidget(self.train_model_button, 2, 2, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         
         widget.setLayout(layout)
@@ -197,11 +200,12 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         if size is not None:
             widget.setFixedWidth(size[0])
+        widget.setStyleSheet("background-color: #f5f5f5;")
+        widget.setFixedWidth(self.columnwidth)
         return widget
         
 
 
-        return widget
     
     def update_table(self):
         geo_map_model = QGeoMapModel(self.df_show)

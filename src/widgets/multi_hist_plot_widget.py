@@ -161,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
 
-app = QtWidgets.QApplication(sys.argv)
+#app = QtWidgets.QApplication(sys.argv)
 
-w = MainWindow()
-app.exec()
+#w = MainWindow()
+#app.exec()

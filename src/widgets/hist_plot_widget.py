@@ -14,7 +14,7 @@ from src.widgets.hist_plot_model import HistogramPlotModel
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
+        fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
 
@@ -24,7 +24,7 @@ class HistogramPlotWidget(QWidget):
     """
 
     def __init__(self, hist_p_model:HistogramPlotModel, parent: typing.Optional['QWidget']=None, *args, **kwargs):
-        super(HistogramPlotWidget, self).__init__(parent=parent, *args, **kwargs)
+        super(HistogramPlotWidget, self).__init__()
         # Save the model that holds the data
         self._hist_p_model = hist_p_model
         # The column to show initial data of
