@@ -3,7 +3,7 @@ import typing
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QAbstractItemView
 
-from table_model import TableModel
+from src.widgets.table_model import TableModel
 
 from typing import List
 

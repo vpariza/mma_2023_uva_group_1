@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton
 )
 import typing
-from list_options_widget import ListOptionsWidget
+from src.widgets.list_options_widget import ListOptionsWidget
 from typing import List
 
 from src.widgets.table_model import TableModel

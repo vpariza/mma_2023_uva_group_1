@@ -140,8 +140,9 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        import ini
-        from utils.file_utils import load_from_pickle
+        
+        from src.utils.file_utils import load_from_pickle
+        from src.widgets.hist_plot_widget import HistogramPlotWidget
         df = load_from_pickle('data.pkl')
         h_p_model = MultiHistogramPlotModel(df)
         from sklearn.preprocessing import minmax_scale
