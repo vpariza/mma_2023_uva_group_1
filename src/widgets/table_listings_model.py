@@ -41,11 +41,23 @@ class TableListingsModel(QtCore.QAbstractTableModel):
             if orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[section])
 
+    def _str_to_list(self, slist:str):
+        return [s.strip().replace("'",'').replace('"','') for s in slist.strip('][').split(',')]
+
+    def is_img_paths_str(self):
+        return type(self._data[self.ListingInfoKeys.IMGS_PATH.value].head(1).values[0]) == str
+
     def get_imgs_paths_column(self) -> List[str]:
-        return self._data[self.ListingInfoKeys.IMGS_PATH.value].values.tolist()
+        if self.is_img_paths_str():
+            return [self._str_to_list(s) for s in  self._data[self.ListingInfoKeys.IMGS_PATH.value].values.tolist()]
+        else:
+            return self._data[self.ListingInfoKeys.IMGS_PATH.value].values.tolist()
 
     def get_imgs_paths(self, row):
-        return self._data.iloc[row, self.get_imgs_column()]
+        if self.is_img_paths_str():
+            return self._str_to_list(self._data.iloc[row, self.get_imgs_column()])
+        else:
+            return self._data.iloc[row, self.get_imgs_column()]
 
     def get_entry_id(self, row):
         return self._data.iloc[row, self.get_entry_ids_column()]

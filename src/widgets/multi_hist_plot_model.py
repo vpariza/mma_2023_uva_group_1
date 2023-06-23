@@ -17,14 +17,15 @@ class MultiHistogramPlotModel(QtCore.QObject):
         BEDROOMS = 'bedrooms'
         ASK_PRICE_PER_SQ_M = 'asking_price_per_m²'
         STATUS = 'status'
-        ACCEPTANCE = 'acceptance'
+        # ACCEPTANCE = 'acceptance'
         BUILDING_TYPE = 'building_type'
         NUM_BATH_ROOMS = 'number_of_bath_rooms'
         LABEL = 'label'
         # HEATING = 'heating'
         GARDEN = 'garden'
         FACILITIES_TYPE = 'type_of_facilities'
-        # NEIGHBERHOOD = 'in_the_neighborhood'
+        PLOT_SIZE = 'plot_size'
+        YEAR_OF_CONSTRUCTION = 'year_of_construction'
 
         @classmethod
         def list_values(cls):

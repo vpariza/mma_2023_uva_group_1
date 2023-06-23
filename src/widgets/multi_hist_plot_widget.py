@@ -16,23 +16,10 @@ from typing import List, Dict
 from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.checkbox_list_widget import CheckBoxListWidget
 
-class BasicDialog(QDialog):
-    def __init__(self, window_title:str, message:str):
-        super().__init__()
+from src.widgets.dialog_widgets import BasicDialog
 
-        self.setWindowTitle(window_title)
-
-        QBtn = QDialogButtonBox.StandardButton.Ok # | QDialogButtonBox.StandardButton.Cancel
-
-        self.buttonBox = QDialogButtonBox(QBtn)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-        self.layout = QVBoxLayout()
-        message_widget = QLabel(message)
-        self.layout.addWidget(message_widget)
-        self.layout.addWidget(self.buttonBox)
-        self.setLayout(self.layout)
+import numbers
+import pandas as pd
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -101,19 +88,21 @@ class MultiHistogramPlotWidget(QWidget):
 
     def update(self):
         data = self._hist_p_model.get_column(self._selected_col)
+        numeric_data = True
         try:
             options_data, labels = self.apply_option_fns(data.values)
         except ValueError as e:
-            BasicDialog(window_title='Operation not allowed.', message='You cannot perform transformations on not numerical data!').exec()
+            numeric_data = False
+        numeric_data = numeric_data and pd.to_numeric(data, errors='coerce').notnull().all() == True
+        if numeric_data == False:
             options_data = labels = []
             self._checkbox.uncheck_all()
         num_u_labels = len(set(data.values.tolist()))
-        # self._hist[-1].remove()
         self._sc.axes.clear()
-        if len(options_data) > 0:
+        if len(options_data) > 0 and numeric_data:
             self._hist = self._sc.axes.hist(options_data, density=False, bins=min(30, num_u_labels), label=labels)  # density=False would make counts
         else:
-            self._hist = self._sc.axes.hist(data, density=False, bins=min(30, num_u_labels), label='Original')  # density=False would make counts
+            self._hist = self._sc.axes.hist( data if numeric_data else data.astype(str), density=False, bins=min(30, num_u_labels), label='Original')  # density=False would make counts
         self._sc.axes.legend()
         self._sc.axes.set_ylabel('Counts')
         self._sc.axes.set_xlabel(self._selected_col)
@@ -136,32 +125,24 @@ class MultiHistogramPlotWidget(QWidget):
         self._sc.axes.set_xlabel(col_name)
         self._sc.axes.tick_params(rotation=90)
 
-class MainWindow(QtWidgets.QMainWindow):
-    
-    def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
+
+if __name__ == '__main__':
+    class MainWindow(QtWidgets.QMainWindow):
         
-        from src.utils.file_utils import load_from_pickle
-        from src.widgets.hist_plot_widget import HistogramPlotWidget
-        df = load_from_pickle('data.pkl')
-        h_p_model = MultiHistogramPlotModel(df)
-        from sklearn.preprocessing import minmax_scale
-        from sklearn.preprocessing import scale
-        from sklearn.preprocessing import robust_scale
-        from sklearn.preprocessing import maxabs_scale
-        options_fn = {
-            'minmax_scale': minmax_scale,
-            'standard_scale': scale,
-            'robust_scale': robust_scale,
-            'maxabs_scale': maxabs_scale
+        def __init__(self, *args, **kwargs):
+            super(MainWindow, self).__init__(*args, **kwargs)
+            
+            from src.utils.file_utils import load_from_pickle
+            from src.widgets.hist_plot_widget import HistogramPlotWidget
+            df = load_from_pickle('data.pkl')
+            h_p_model = MultiHistogramPlotModel(df)
 
-        }
-        h_p_widget = HistogramPlotWidget(h_p_model, list(options_fn.keys()), options_fn)
-        self.setCentralWidget(h_p_widget)
-        self.show()
+            h_p_widget = HistogramPlotWidget(h_p_model, list(options_fn.keys()), options_fn)
+            self.setCentralWidget(h_p_widget)
+            self.show()
 
 
-#app = QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
-#w = MainWindow()
-#app.exec()
+    w = MainWindow()
+    app.exec()

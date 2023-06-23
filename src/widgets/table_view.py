@@ -16,11 +16,10 @@ class TableView(QtWidgets.QTableView):
         super().__init__(parent)
         self.setModel(model)
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        self.w = 600
+        self.w = None
         self.selectionModel().selectionChanged.connect(self.__cells_were_selected)
         self.clicked.connect(self.__cell_was_clicked)
         self._selected_entries = set()
-        self.setFixedWidth(600)
 
     def update_model(self, model: TableModel):
         self.setModel(model)

@@ -12,7 +12,6 @@ class ListOptionsWidget(QWidget):
     def __init__(self, options:List[str], title_text:str=None, selection_mode=QListWidget.SelectionMode.MultiSelection, parent:QWidget=None):
         super().__init__(parent)
         self._options = options
-        self._selected_options = set()
         layout = QVBoxLayout()
         if title_text is not None:
             # Add a Title only if it is defined
@@ -30,7 +29,6 @@ class ListOptionsWidget(QWidget):
         self.setLayout(layout)
 
     def update_options(self, options:List[str]):
-        self._selected_options = set()
         self._options = list()
         self._list_widget.clear()
         self.add_options(options)
@@ -42,28 +40,25 @@ class ListOptionsWidget(QWidget):
         self.update()        
 
     def set_selection(self, selected_options:List[str]):
-        self._selected_options = set(selected_options)
+        selected_options = set(selected_options).intersection(self._options)
         for i in range(len(self._options)):
-            if self._options[i] in self._selected_options:
+            if self._options[i] in selected_options:
                 self._list_widget.item(i).setSelected(True)
             else:
                 self._list_widget.item(i).setSelected(False)
 
+    @property
+    def selected_options(self):
+        return [item.text() for item in self._list_widget.selectedItems()]
+
     @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def __options_were_selected(self, selected, deselected):
-        # =====Selected=====
-        for ix in selected.indexes():
-            self._selected_options.add(self._options[ix.row()])
-        # =====Deselected=====
-        for ix in deselected.indexes():
-            self._selected_options.discard(self._options[ix.row()])
-        
-        self.optionsSelected.emit(list(self._selected_options), self)
+        self.optionsSelected.emit(self.selected_options, self)
 
 
                         
 if __name__ == '__main__':
-    from PyQt6.QtWidgets import QInputDialog, QApplication, QWidget,  QGridLayout, QListWidget,  QPushButton
+    from PyQt6.QtWidgets import QApplication, QWidget,  QGridLayout, QListWidget,  QPushButton
     from PyQt6.QtGui import QIcon
 
     class MainWindow(QWidget):
@@ -81,6 +76,7 @@ if __name__ == '__main__':
             if len(selected) == 4:
                 self.w.update_options(['O1', 'O2', 'O3', 'O4'])
                 # self.w._list_widget.setCurrentRow(0)
+                self.w._list_widget.item(0)
                 self.w._list_widget.item(0).setSelected(True)
                 self.w._list_widget.item(1).setSelected(True)
                 self.w._list_widget.item(2).setSelected(False)

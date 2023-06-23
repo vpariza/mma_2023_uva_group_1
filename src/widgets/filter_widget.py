@@ -7,7 +7,7 @@ class FilterWidget(QWidget):
     """ Build main filtering widget for dashboard
 
     """
-    def __init__(self, df, minmaxfilters = [], combofilters =  {}, placeholdertext = {}, config = '1'):
+    def __init__(self, minmaxfilters = [], combofilters =  {}, config = '1'):
         """ Init filtering widget for dashboard
 
         Args:
@@ -17,7 +17,7 @@ class FilterWidget(QWidget):
         TODO: Automate filtering for roll-down menues once these are implemented into the dataset    
         """
         super().__init__()
-        self.df = df
+
         self.minmaxfilters = minmaxfilters
         self.combofilters = combofilters
 
@@ -28,9 +28,9 @@ class FilterWidget(QWidget):
 
         # Block 2  - Range Filters (MinMax format)
         self.minmaxfilters_widgets = {}
-        for filter in range(len(self.minmaxfilters)):
-            minmaxfilter = MinMaxWidget(RangeFilter, self.minmaxfilters[filter], placeholdertext[filter])
-            self.minmaxfilters_widgets[self.minmaxfilters[filter]] = minmaxfilter
+        for filter in self.minmaxfilters:
+            minmaxfilter = MinMaxWidget(RangeFilter, filter)
+            self.minmaxfilters_widgets[filter] = minmaxfilter
         
         # Block 3  - Combo Filters Title
         self.querylabel = QLabel()
@@ -39,11 +39,7 @@ class FilterWidget(QWidget):
         # Block 4  - Combo Filters (Roll-down format)
         self.combofilters_widgets = {}
         for filter in self.combofilters:
-            try:
-                options = [str(item) for item in np.unique(self.df[filter].values)]
-            except TypeError:
-                options = [str(item) for item in set(self.df[filter].values)]
-            combofilter = ComboFilter(filter, options)
+            combofilter = ComboFilter(filter, self.combofilters[filter])
             self.combofilters_widgets[filter] = combofilter
         
         # Block 5  - Configure filtering button
@@ -51,8 +47,8 @@ class FilterWidget(QWidget):
 
         self.filters.update({'combo': self.combofilters_widgets})
         self.filters.update({'range': self.minmaxfilters_widgets})
+        
         self.searchbutton = SearchWidget(self.filters)
-
 
         # Configure widget style
         self.make_main_layout(config)
@@ -75,7 +71,6 @@ class FilterWidget(QWidget):
             # Add drop-down filters
             for filter in self.combofilters_widgets:
                 hblock_layout.addWidget(self.combofilters_widgets[filter])
-            
             hblock.setLayout(hblock_layout)
             
         if config == '2':
@@ -93,22 +88,21 @@ class FilterWidget(QWidget):
             hblock_layout.addWidget(vblock2)
             hblock.setLayout(hblock_layout)
             
-        self.setStyleSheet("background-color: #f5f5f5;")
         widget_layout.addWidget(hblock)
         widget_layout.addWidget(self.searchbutton, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.setLayout(widget_layout)
-        
+        self.setStyleSheet("background-color: #f5f5f5;")
 
 
 class MinMaxWidget(QWidget):
     """ Class for organizing layout of subwidgets
     
     """
-    def __init__(self, Filter, name, placeholdertext = 'select', method = 'MinMax'):
+    def __init__(self, Filter, name, method = 'MinMax'):
         super().__init__()
         self.Filter = Filter
         self.name = name 
-        self.placeholdertext = placeholdertext 
+
         if method == 'MinMax':
             self.minmax_layout()
         else:
@@ -118,10 +112,10 @@ class MinMaxWidget(QWidget):
         ## Initialize widgets
         minmax_layout = QHBoxLayout(self, spacing=2)
     
-        self.Max = RangeFilter('Max ' + self.name, self.placeholdertext)
+        self.Max = RangeFilter('Max ' + self.name)
         minmax_layout.addWidget(self.Max)
 
-        self.Min = RangeFilter('Min ' + self.name, self.placeholdertext)
+        self.Min = RangeFilter('Min ' + self.name)
         minmax_layout.addWidget(self.Min)
 
         # Configure widget style
@@ -132,30 +126,27 @@ class RangeFilter(QWidget):
     """ Class for building singular Query-input style widgets
     
     """
-    def __init__(self, name, placeholdertext):
+    def __init__(self, name):
         super().__init__()
         self.name = name
-        widget_layout = QVBoxLayout(self, spacing=5)
+        widget_layout = QHBoxLayout(self, spacing=5)
 
         # Set box lable
         self.QueryLabel = QLabel(self)
         self.QueryLabel.setText(self.name.replace("_", " "))
         self.QueryLabel.setStyleSheet("border: 0px;")
-        #self.QueryLabel.setFixedSize(QSize(250, 25))  
+        self.QueryLabel.setFixedSize(QSize(125, 25))  
         widget_layout.addWidget(self.QueryLabel)
         
         # Set query input box
         self.QueryText = QLineEdit(self)
-        self.QueryText.setPlaceholderText(placeholdertext)
-        self.QueryText.setStyleSheet("border: 1px solid darkgray; background-color: white;")  
-        
-        #self.QueryText.setFixedSize(QSize(250, 25))   
+        self.QueryText.setStyleSheet("border: 1px solid darkgray;")   
         widget_layout.addWidget(self.QueryText)
 
         # Combine widgets
         self.setLayout(widget_layout )
         self.setStyleSheet("border: 0px;")
-        self.setFixedSize(QSize(250 , 75))
+        #self.setFixedSize(QSize(250 , 50))
         
 
 class ComboFilter(QWidget):
@@ -169,14 +160,13 @@ class ComboFilter(QWidget):
         self.filter_list = np.arange(0, len(self.filter_tags))
         layout = QVBoxLayout(self)
 
-        self.label = QLabel(self.name.replace("_", " "))
+        self.label = QLabel(self.name)
         self.label.setStyleSheet("border: 0px;")
         self.Filter = QComboBox(self)
-        self.Filter.setStyleSheet("background-color: white;")  
         self.Filter.setFixedSize(QSize(75, 25))  
         self.Filter.addItems(filter_tags)
         self.Filter.setCurrentIndex(-1)
-        self.Filter.setPlaceholderText('Select')
+        self.Filter.setPlaceholderText(self.name)
 
         # Connect signals to the methods.
         self.Filter.activated.connect(self.check_index)

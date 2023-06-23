@@ -1,4 +1,6 @@
 
+import sys
+sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
 import matplotlib
 matplotlib.use('QtAgg')
 
@@ -8,9 +10,9 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton
 )
 import typing
-from list_options_widget import ListOptionsWidget
 from typing import List
 
+from src.widgets.list_options_widget import ListOptionsWidget
 from src.widgets.table_model import TableModel
 from src.widgets.table_view import TableView
 from src.widgets.multi_line_plot_model import MultiLinePlotModel
@@ -18,25 +20,30 @@ from src.widgets.multi_line_plot_widget import MultiLinePlotWidget
 
 import pandas as pd
 
+from typing import Dict
+
 class ModelComparisonWidget(QWidget):
  
     def __init__(self, model_names:List[str]=[], 
                  models_table_data:pd.DataFrame=None, 
                  p_data_x:pd.DataFrame=None, 
-                 p_data_y:pd.DataFrame=None, 
+                 p_data_y:pd.DataFrame=None,
+                 widgets:Dict[str, QWidget]={},
                  parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(ModelComparisonWidget, self).__init__(parent=parent, *args, **kwargs)
         main_layout = QHBoxLayout()
         # Left side layout
         # Add a Title for Selection of models list
         left_layout = QVBoxLayout()
-        self._list_options_w_title = QLabel()
-        self._list_options_w_title.setText('Select Model')
-        left_layout.addWidget(self._list_options_w_title)
+        self._list_models_w_title = QLabel()
+        self._list_models_w_title.setText('Select Model')
+        left_layout.addWidget(self._list_models_w_title)
         # Add the Selection of models list
-        self._list_options_w = ListOptionsWidget(model_names, parent=self)
-        self._list_options_w.optionsSelected.connect(self.models_selected)
-        left_layout.addWidget(self._list_options_w)
+        self._list_models_w = widgets.get('list_models_w')
+        if self._list_models_w is None:
+            self._list_models_w = ListOptionsWidget(model_names, parent=self)
+        self._list_models_w.optionsSelected.connect(self.models_selected)
+        left_layout.addWidget(self._list_models_w)
         self._m_line_p_m = MultiLinePlotModel(data_x = p_data_x if p_data_x is not None else pd.DataFrame([]), 
                                               data_y = p_data_y if p_data_y is not None else pd.DataFrame([]),
                                               parent=self)
@@ -70,7 +77,7 @@ class ModelComparisonWidget(QWidget):
         self._models_table_view.update_model(self._models_table_model)
 
     def update_model_names(self, model_names:List[str]):
-        self._list_options_w.update_options(model_names)
+        self._list_models_w.update_options(model_names)
 
     def update_model_table_data(self, models_table_data: pd.DataFrame):
         self._models_table_model = TableModel(models_table_data)

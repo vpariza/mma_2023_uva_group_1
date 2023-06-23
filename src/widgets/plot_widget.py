@@ -16,11 +16,11 @@ class MplCanvas(FigureCanvasQTAgg):
     """Setup canvas for plotting"""
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
-        self.fig.suptitle("Query Cosinesimilarity")
+        self.fig.suptitle("Clustering of Dimensionally\nReduced House Features")
         super(MplCanvas, self).__init__(self.fig)
 
 
@@ -35,8 +35,8 @@ class ScatterPlotWidget(QWidget):
         
         # Load points
         self.points = points
-        self.mean_x = np.mean(self.points[:,0])
-        self.mean_y = np.mean(self.points[:,1])
+        # self.mean_x = np.mean(self.points[:,0])
+        # self.mean_y = np.mean(self.points[:,1])
         
         # create a matplotlib figure and add a subplot
         self.Figure = MplCanvas()
@@ -116,12 +116,11 @@ class ComboFilter(QWidget):
         super().__init__()
         self.name = name
         self.filter_list = filter_list #[0, 100, 500, 1000]
-        self.filter_tages = filter_tags #
+        self.filter_tags = filter_tags #
         layout = QVBoxLayout(self)
 
         self.Filter = QComboBox(self)
         #self.Filter.setFixedSize(QtCore.QSize(100, 50))  
-        self.Filter.setStyleSheet("background-color: white;")
         self.Filter.addItems(filter_tags)
         self.Filter.setCurrentIndex(-1)
         self.Filter.setPlaceholderText(self.name)

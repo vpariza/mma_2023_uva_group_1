@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow,  QVBoxLayout, QWi
 from enum import Enum
 import os
 
-from src.widgets.table_llistings_model import TableListingsModel
+from src.widgets.table_listings_model import TableListingsModel
 
 from typing import List
 class ImageWindow(QWidget):
@@ -38,7 +38,6 @@ class ImageWindow(QWidget):
                 i+=1
         self.setLayout(layout)
         self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
-        
         self.setWindowTitle("Images for {}".format(entry_id))
 
 class ListingsImageDelegate(QStyledItemDelegate):
@@ -72,7 +71,7 @@ class TableListingsView(QtWidgets.QTableView):
     entryDoubleClicked = QtCore.pyqtSignal(object, QWidget)
     entriesSelected = QtCore.pyqtSignal(list, QWidget)
 
-    def __init__(self, model: TableListingsModel, parent: QWidget | None = None, size = None) -> None:
+    def __init__(self, model: TableListingsModel, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setItemDelegateForColumn(model.get_imgs_column(), ListingsImageDelegate(parent, model.get_imgs_column(), model._imgs_dir_path, model.get_imgs_paths_column()))
         self.setModel(model)
@@ -82,8 +81,6 @@ class TableListingsView(QtWidgets.QTableView):
         self.clicked.connect(self.__cell_was_clicked)
         self.doubleClicked.connect(self.__cell_was_double_clicked)
         self._selected_entries = set()
-        if size is not None:
-            self.setFixedSize(size[0], size[1])
 
     def update_model(self, model: TableListingsModel):
         self.setModel(model)
