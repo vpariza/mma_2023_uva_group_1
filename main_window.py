@@ -89,14 +89,14 @@ class MainWindow(QMainWindow):
 
         # Define the Listings Table
         table_listings_model = TableListingsModel(self.df_show, self.images_dir_path)
-        self.table_listings_widget = TableListingsView(table_listings_model)
+        self.table_listings_widget = TableListingsView(table_listings_model, size = [self.columnwidth - 50, self.buttonwidth - 100])
         self.table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
 
         # Define the Listings Table tab2
         table_listings_model_2 = TableListingsModel(self.df_show, self.images_dir_path)
-        self.table_listings_widget_2 = TableListingsView(table_listings_model_2)
+        self.table_listings_widget_2 = TableListingsView(table_listings_model_2, size = [self.columnwidth - 50, self.buttonwidth])
         self.table_listings_widget_2.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
-        self.table_listings_widget_2.resize(600, 600) 
+        
 
         # Define the Histogram widget
         histmodel = HistogramPlotModel(self.df)
@@ -164,7 +164,8 @@ class MainWindow(QMainWindow):
         #h1 = self.add_block([h1, ButtonWidget('Store\nFeature').button], QVBoxLayout())
         v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self.filter_widget_tab2], QVBoxLayout(), size = [self.columnwidth])
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_widgets[1], self.select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
-        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self.table_listings_widget_2], QVBoxLayout(), size = [self.columnwidth])
+        tab = self.add_block([self.table_listings_widget_2])
+        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, tab], QVBoxLayout(), size = [self.columnwidth])
         
         #v32 = self.add_block([TitleWidget('Compose input features:', size = [self.columnwidth, self.titlewidth]).title, self.model_selectbox_widget, self.feature_checkbox_widget])
         #v32 = self.add_block([TitleWidget('Compose input features:', size = [self.columnwidth, self.titlewidth]).title, self.feature_engineering_widget])

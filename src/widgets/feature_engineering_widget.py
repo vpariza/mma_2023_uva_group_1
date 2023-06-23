@@ -16,6 +16,8 @@ from src.widgets.table_model import TableModel
 from src.widgets.table_view import TableView
 from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.multi_hist_plot_widget import MultiHistogramPlotWidget
+from src.widgets.multi_line_plot_model import MultiLinePlotModel
+from src.widgets.multi_line_plot_widget import MultiLinePlotWidget 
 
 import pandas as pd
 
@@ -33,6 +35,13 @@ class FeatureEngineeringWidget(QWidget):
         self._list_options_w_title.setText('Free-text driven features')
         left_layout.addWidget(self._list_options_w_title)
         # Add the Selection of models list
+
+        ### TEMP
+        model_names = ['model1', 'model2', 'new model']
+        p_data_x = None
+        p_data_y = None
+        models_table_data = None
+
         self._list_options_w = ListOptionsWidget(model_names, parent=self)
         self._list_options_w.optionsSelected.connect(self.models_selected)
         left_layout.addWidget(self._list_options_w)
