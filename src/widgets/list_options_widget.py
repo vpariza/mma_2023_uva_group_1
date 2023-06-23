@@ -3,6 +3,7 @@ from PyQt6 import QtCore
 import sys
 from PyQt6.QtWidgets import QWidget, QListWidget, QVBoxLayout, QLabel, QGridLayout, QCheckBox
 from PyQt6 import QtCore
+import copy
 
 from typing import List
 
@@ -50,6 +51,10 @@ class ListOptionsWidget(QWidget):
     @property
     def selected_options(self):
         return [item.text() for item in self._list_widget.selectedItems()]
+    
+    @property
+    def options(self):
+        return copy.copy(self._options)
 
     @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def __options_were_selected(self, selected, deselected):

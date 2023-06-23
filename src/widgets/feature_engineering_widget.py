@@ -40,6 +40,7 @@ class FeatureEngineeringWidget(QWidget):
     txtQuerySubmitted = QtCore.pyqtSignal(str, QWidget)
     modelToTrain = QtCore.pyqtSignal(str, pd.DataFrame, QWidget)
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
+    updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
 
     def __init__(self, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
@@ -108,6 +109,10 @@ class FeatureEngineeringWidget(QWidget):
         left_layout.addWidget(self._table_listings_widget)
         return left_layout
 
+    @property
+    def model_names(self):
+        return self._model_train_widget.model_names
+
     def _right_layout(self):
         right_layout = QVBoxLayout()      
         ####### Add the Multi Histogram Widget   
@@ -174,7 +179,6 @@ class FeatureEngineeringWidget(QWidget):
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
         
-        umap_points = self._umap_points
         self._scatter_plot_widget.update_scatterplot(self._umap_points_x, self._umap_points_y)
 
     ###### Slot of Handling Signals ######
@@ -183,6 +187,7 @@ class FeatureEngineeringWidget(QWidget):
         filtered_df = apply_filters(self._data, filters) 
         if len(filtered_df.index) > 0:
             self._data_show = filtered_df
+            self.updatedShowedData.emit(self._data_show, self)
             self.update()
         else:
             BasicDialog(window_title='No Results found!', message='There are no entries matching your filtering!').exec()

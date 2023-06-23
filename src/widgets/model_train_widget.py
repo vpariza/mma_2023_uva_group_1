@@ -67,6 +67,10 @@ class ModelTrainWidget(QWidget):
         layout.addLayout(buttons_layout)
         return layout
 
+    @property
+    def model_names(self):
+        return self._list_models_w.options
+
     @QtCore.pyqtSlot(list, QWidget) 
     def _on_model_selected(self, model_names:List[str]):
         if len(model_names) > 0:

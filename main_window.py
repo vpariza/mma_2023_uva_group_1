@@ -52,10 +52,16 @@ class MainWindow(QMainWindow):
     def create_central_widget(self):
         ####### Defining Tab 2
         # Define the Second Tab
-        self._tab2_w = FeatureEngineeringWidget(data=self._data, training_features=list(self._training_features.keys()), config=self._config, widgets={}, parent=self)
+        self._tab2_w = FeatureEngineeringWidget(data=self._data, 
+                                                training_features=list(self._training_features.keys()), 
+                                                config=self._config, widgets={}, parent=self)
+        self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
+        self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
+        self._tab2_w.modelToTrain.connect(self.on_query_submitted)
         ####### Defining Tab 1
         self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
+        self._tab1_w.txtQuerySubmitted.connect(self.on_query_submitted)
         # ####### Defining Tab 3
         self._tab3_w = ModelComparisonWidget([],
                                               pd.DataFrame([]),
@@ -73,7 +79,6 @@ class MainWindow(QMainWindow):
         tabwidget.addTab(self._tab3_w, "Compare Models")
         return tabwidget
 
-
     ###### HANDLING SINGALS FROM CHILD WIDGETS - SLOTS #######
     @QtCore.pyqtSlot(str, QWidget)
     def on_query_submitted(self, query, source):
@@ -85,20 +90,39 @@ class MainWindow(QMainWindow):
         self._data
         print('Submitted Query',query)
         # (2) put your results in the self._show_data
-        show_data = None
-        self._tab1_w.update_data_show(show_data)
-        self._tab2_w.update_data_show(show_data)
+        data = None
         # END: 
+        self._tab1_w.update_original_data(data)
+        self._tab2_w.update_original_data(data)
         
-
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
     def on_updated_showed_data_tab_1(self, show_data, source):
         self._tab2_w.update_data_show(show_data)
 
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
     def on_updated_showed_data_tab_2(self, show_data, source):
-        pass
+        self._tab1_w.update_data_show(show_data)
 
+    @QtCore.pyqtSlot(str, pd.DataFrame, QWidget)
+    def on_train_model(self, model_name, selected_data:pd.DataFrame, source):
+        # BEGIN: TODO: Insert your code for training a model
+        # (1) the self._data contains the dataset
+        self._data
+        # (2) put your results in the self._show_data
+        data = None
+        # Look the test in the model_comparison_widget.py widegt file
+        models_table_data = None # pd.DataFrame
+        p_data_x = None # pd.DataFrame
+        p_data_y = None # pd.DataFrame
+        # END: 
+        # Update the model names in the third tab
+        self._tab3_w.update_model_names(self._tab2_w.model_names)
+        # Update the table data in the third tab
+        self._tab3_w.update_model_table_data(models_table_data)
+        # Update the plot data in the third tab
+        self._tab3_w.update_plot_data(p_data_x, p_data_y)
+
+       
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

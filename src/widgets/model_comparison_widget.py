@@ -48,7 +48,7 @@ class ModelComparisonWidget(QWidget):
                                               data_y = p_data_y if p_data_y is not None else pd.DataFrame([]),
                                               parent=self)
         self._m_line_p_w = MultiLinePlotWidget(self._m_line_p_m, 
-                                               plot_configs={'title': 'Model Performance Visualization', 'xlabel': 'Epochs', 'ylabel': 'Accuracy'},
+                                               plot_configs={'title': 'Model Performance Visualization', 'xlabel': 'Epochs', 'ylabel': 'Mean Absolute Error'},
                                                parent=self)
         left_layout.addWidget(self._m_line_p_w)
         # Right side layout
@@ -66,6 +66,10 @@ class ModelComparisonWidget(QWidget):
         main_layout.addLayout(left_layout)
         main_layout.addLayout(right_layout)
         self.setLayout(main_layout)
+
+    @property
+    def model_names(self):
+        return self._list_models_w.options
 
     @QtCore.pyqtSlot(list, QWidget)
     def models_selected(self, model_names, source):
