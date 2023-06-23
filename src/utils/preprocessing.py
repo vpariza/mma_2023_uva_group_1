@@ -21,6 +21,7 @@ class Preprocessing():
         config.read('config.ini')
         
         data_path = config['main']['pkl_path']
+        data_csv_path = config['main']['csv_path']
         # 16.865 image folders 
         images_path = config['main']['images_path']
         image_dir_path = config['main']['images_dir_path']
@@ -30,7 +31,11 @@ class Preprocessing():
         
         sample_selection = str(config['main']['sample_selection'])
         ## dataloading 1000, 7
-        df = pd.read_pickle(data_path)
+        #df = pd.read_pickle(data_path)
+        
+        #print('--------------------- Dataset ---------------------')
+        df = pd.read_csv(data_csv_path)
+        #print(df.head())
         
 
         with h5py.File(images_path, "r") as hf:
