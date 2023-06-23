@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         """Congifure layout for main window"""  
 
         # Configure main window apperance    
-        self.setWindowTitle("READ: Real Estate Analytics Dashboard") # READ
+        self.setWindowTitle("HOME: Heuristic Optimization for Model Engineers") # READ
         # Get the screen geometry
         cp = QGuiApplication.primaryScreen().availableGeometry().center()
         #self.showMaximized()  
