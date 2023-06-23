@@ -40,3 +40,6 @@ class TableModel(QtCore.QAbstractTableModel):
 
             if orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[section])
+    
+    def to_dataframe(self):
+        return self._data.copy()

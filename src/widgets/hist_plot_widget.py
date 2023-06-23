@@ -10,7 +10,7 @@ import typing
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-from hist_plot_model import HistogramPlotModel
+from src.widgets.hist_plot_model import HistogramPlotModel
 
 class MplCanvas(FigureCanvasQTAgg):
 

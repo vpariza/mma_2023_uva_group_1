@@ -13,8 +13,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 
 from typing import List, Dict
-from multi_hist_plot_model import MultiHistogramPlotModel
-from checkbox_list_widget import CheckBoxListWidget
+from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
+from src.widgets.checkbox_list_widget import CheckBoxListWidget
 
 class BasicDialog(QDialog):
     def __init__(self, window_title:str, message:str):
@@ -41,13 +41,13 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
 
-class HistogramPlotWidget(QWidget):
+class MultiHistogramPlotWidget(QWidget):
     """
     Define a custom widget for Plotting Histograms.
     """
 
     def __init__(self, hist_p_model:MultiHistogramPlotModel, options:Dict[str,bool]|List[str], options_fn:Dict[str,object], parent: typing.Optional['QWidget']=None, *args, **kwargs):
-        super(HistogramPlotWidget, self).__init__(parent=parent, *args, **kwargs)
+        super(MultiHistogramPlotWidget, self).__init__(parent=parent, *args, **kwargs)
         # Save the model that holds the data
         self._hist_p_model = hist_p_model
         self._options_fn = options_fn
