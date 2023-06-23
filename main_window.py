@@ -122,7 +122,6 @@ class MainWindow(QMainWindow):
         # Update the plot data in the third tab
         self._tab3_w.update_plot_data(p_data_x, p_data_y)
 
-       
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
