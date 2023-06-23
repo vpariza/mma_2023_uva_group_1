@@ -3,6 +3,7 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 
 import sys
 from PyQt6 import QtCore
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, QSizePolicy, QLabel, QGridLayout
 from src.widgets.query_widget import QueryWidget
@@ -120,7 +121,9 @@ class MainWindow(QMainWindow):
 
         # Configure main window apperance    
         self.setWindowTitle("READ: Real Estate Analytics Dashboard") # READ
-        self.showMaximized()  
+        # Get the screen geometry
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
+        #self.showMaximized()  
 
         # Tab Widget
         tabwidget = QTabWidget()
