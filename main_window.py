@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
                                                 config=self._config, widgets={}, parent=self)
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
         self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
-        self._tab2_w.modelToTrain.connect(self.on_query_submitted)
+        self._tab2_w.modelToTrain.connect(self.on_train_model)
         ####### Defining Tab 1
         self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
