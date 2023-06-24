@@ -14,6 +14,7 @@ from src.widgets.house_search_widget import HouseSearchWidget
 from src.widgets.model_comparison_widget import ModelComparisonWidget
 
 from src.models.price_predictor import PricePredictor
+from src.models.free_text_models import VisionModel, LanguageModel
 
 import pandas as pd
 
@@ -28,7 +29,8 @@ class MainWindow(QMainWindow):
         self.p_data_x = {}
         self.p_data_y = {}
         # TODO: Return sirectory of Listings Images
-        self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path = preprocessing.load_data()
+        self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path = preprocessing.load_data()        
+        self.df = self.df.set_index("funda_identifier", drop=False)
 
         ####### Load Data
         # Define the training features to use for the
@@ -50,7 +52,12 @@ class MainWindow(QMainWindow):
         # TODO: Preprocessing should include exactly the following columns for
         # accessing the umap features
         df['umap_x'] = points[:,0]
-        df['umap_y'] = points[:,1] 
+        df['umap_y'] = points[:,1]
+        print(self.df.shape) 
+
+        ####### Load Models
+        self.image_model = VisionModel(precomputed_features_path=config['main']['image_features_path'])
+        self.text_model = LanguageModel(precomputed_features_path=config['main']['text_features_path'])
 
         self._data = self.df
         self._config = config
@@ -93,15 +100,20 @@ class MainWindow(QMainWindow):
         """
         query is a string and you must filter the 
         """
-        # BEGIN: TODO: Insert your code for finding the similarity between the entries
-        # (1) the self._data contains the dataset
-        self._data
         print('Submitted Query',query)
-        # (2) put your results in the self._show_data
-        data = None
-        # END: 
+        
+        query_type = "text" #TODO implement such that user can choose between image and text
+
+        if query_type == "image":
+            data = self.image_model.calculate_similarity(query, self._data)
+        else:
+            data = self.text_model.calculate_similarity(query, self._data)
+
+        self._data = data
         self._tab1_w.update_original_data(data)
         self._tab2_w.update_original_data(data)
+
+        #TODO update training_features values to include columns that end with "_similarity-max_score" to also consider new features during training
         
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
     def on_updated_showed_data_tab_1(self, show_data, source):
