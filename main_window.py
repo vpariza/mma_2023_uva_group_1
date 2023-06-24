@@ -56,8 +56,8 @@ class MainWindow(QMainWindow):
         print(self.df.shape) 
 
         ####### Load Models
-        self.image_model = VisionModel(precomputed_features_path=config['main']['image_features_path'])
-        self.text_model = LanguageModel(precomputed_features_path=config['main']['text_features_path'])
+        #self.image_model = VisionModel(precomputed_features_path=config['main']['image_features_path'])
+        #self.text_model = LanguageModel(precomputed_features_path=config['main']['text_features_path'])
 
         self._data = self.df
         self._config = config

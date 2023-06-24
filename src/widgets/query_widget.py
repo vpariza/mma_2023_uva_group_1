@@ -29,7 +29,7 @@ class QueryWidget(QWidget):
         self.QueryText = QLineEdit(self)
         self.QueryText.setPlaceholderText("Ex: 'red brick house'")
         self.QueryText.setFixedSize(QSize(250, 25))
-        self.QueryText.setStyleSheet("border: 1px solid darkgray;")   
+        self.QueryText.setStyleSheet("border: 1px solid darkgray; background-color: white;")  
         hbox_layout.addWidget(self.QueryText)
         
         # Set search button 

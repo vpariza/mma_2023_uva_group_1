@@ -117,10 +117,10 @@ class MinMaxWidget(QWidget):
         ## Initialize widgets
         minmax_layout = QHBoxLayout(self, spacing=2)
     
-        self.Max = RangeFilter('Max ' + self.name)
+        self.Max = RangeFilter('Max ' + self.name, self.placeholdertext)
         minmax_layout.addWidget(self.Max)
 
-        self.Min = RangeFilter('Min ' + self.name)
+        self.Min = RangeFilter('Min ' + self.name, self.placeholdertext)
         minmax_layout.addWidget(self.Min)
 
         # Configure widget style
@@ -131,10 +131,10 @@ class RangeFilter(QWidget):
     """ Class for building singular Query-input style widgets
     
     """
-    def __init__(self, name):
+    def __init__(self, name, placeholdertext):
         super().__init__()
         self.name = name
-        widget_layout = QHBoxLayout(self, spacing=5)
+        widget_layout = QVBoxLayout(self, spacing=5)
 
         # Set box lable
         self.QueryLabel = QLabel(self)
@@ -145,14 +145,15 @@ class RangeFilter(QWidget):
         
         # Set query input box
         self.QueryText = QLineEdit(self)
-        self.QueryText.setStyleSheet("border: 1px solid darkgray;")   
+        self.QueryText.setStyleSheet("border: 1px solid darkgray;  background-color: white;")   
         widget_layout.addWidget(self.QueryText)
+        self.QueryText.setPlaceholderText(placeholdertext)
 
         # Combine widgets
         self.setLayout(widget_layout )
         self.setStyleSheet("border: 0px;")
         #self.setFixedSize(QSize(250 , 50))
-        
+
 
 class ComboFilter(QWidget):
     """ Class for building singular drop-down menu style widgets
@@ -165,13 +166,14 @@ class ComboFilter(QWidget):
         self.filter_list = np.arange(0, len(self.filter_tags))
         layout = QVBoxLayout(self)
 
-        self.label = QLabel(self.name)
+        self.label = QLabel(self.name.replace("_", " "))
         self.label.setStyleSheet("border: 0px;")
         self.Filter = QComboBox(self)
         self.Filter.setFixedSize(QSize(75, 25))  
         self.Filter.addItems(filter_tags)
         self.Filter.setCurrentIndex(-1)
-        self.Filter.setPlaceholderText(self.name)
+        self.Filter.setPlaceholderText('Select')
+        self.Filter.setStyleSheet('background-color: white;')
 
         # Connect signals to the methods.
         self.Filter.activated.connect(self.check_index)
@@ -198,6 +200,7 @@ class ComboFilter(QWidget):
 
     def current_count(self, index):
         count = self.Filter.count()
+
 
 class SearchWidget(QWidget):
     """ Class for building main filtering button and update plots

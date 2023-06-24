@@ -24,7 +24,7 @@ import pandas as pd
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         self.axes = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)
 
@@ -45,8 +45,11 @@ class MultiHistogramPlotWidget(QWidget):
         self._hist_widget = QtWidgets.QWidget(self)
         hist_layout = QtWidgets.QVBoxLayout()
         # Define the checkbox widget
+        vbox =  QVBoxLayout()
+        vbox.addWidget(QLabel('Feature\nTransformations'))
         self._checkbox = CheckBoxListWidget(options,self)
         self._checkbox.stateChanged.connect(self.options_state_changed)
+        vbox.addWidget(self._checkbox)
         # Create the histogram
         self._create_hist(self._selected_col, self._hist_widget)
         self._toolbar = NavigationToolbar(self._sc, self._hist_widget)
@@ -60,7 +63,7 @@ class MultiHistogramPlotWidget(QWidget):
         layout.addWidget(self._dropdown_list_widget)
         layout.addWidget(self._hist_widget)
         main_layout.addLayout(layout)
-        main_layout.addWidget(self._checkbox)
+        main_layout.addLayout(vbox)
         self.setLayout(main_layout)
 
     @QtCore.pyqtSlot(str)

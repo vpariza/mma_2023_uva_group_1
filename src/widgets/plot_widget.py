@@ -16,11 +16,11 @@ class MplCanvas(FigureCanvasQTAgg):
     """Setup canvas for plotting"""
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
-        self.fig.suptitle("Clustering of Dimensionally\nReduced House Features")
+        self.fig.suptitle("Query Cosinesimilarity")
         super(MplCanvas, self).__init__(self.fig)
 
 

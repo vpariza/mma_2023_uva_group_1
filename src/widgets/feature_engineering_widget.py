@@ -78,11 +78,12 @@ class FeatureEngineeringWidget(QWidget):
         self.buttonheight = 75
         self.titlewidth = 25
         self.main_layout = QGridLayout()
-        v11 = self._col1_layout()
+        v11, v21 = self._col1_layout()
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
         tab = self.add_block([self._table_listings_widget])
         v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
         self.main_layout.addWidget(v11, 0, 0)
+        self.main_layout.addWidget(v21, 1, 0)
         self.main_layout.addWidget(v12, 0, 1)
         self.main_layout.addWidget(v13, 0, 2)
         return self.main_layout
@@ -101,9 +102,23 @@ class FeatureEngineeringWidget(QWidget):
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         
         v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._filter_widget], QVBoxLayout(), size = [self.columnwidth])
+        
+        ####### Add the Multi Histogram Widget   
+        self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
+        options_fn = {
+            'minmax_scale': minmax_scale,
+            'standard_scale': scale,
+            'robust_scale': robust_scale,
+            'maxabs_scale': maxabs_scale
+        }
+        self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
+        
+        
+        v21 = self.add_block([self._multi_hist_p_widget], QHBoxLayout())
+
         #v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
         
-        return v11
+        return v11, v21
     
 
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
