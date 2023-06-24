@@ -76,7 +76,7 @@ class SelectClusterWidget(QWidget):
         self.select_widget = QWidget(self)
         select_layout = QVBoxLayout()
         Label = QLabel(self)
-        Label.setText("Select Clustering\nConfigurations")
+        Label.setText("Select Clustering Configurations")
         select_layout.addWidget(Label)
 
         filter = {}
@@ -122,6 +122,7 @@ class ComboFilter(QWidget):
         self.Filter = QComboBox(self)
         #self.Filter.setFixedSize(QtCore.QSize(100, 50))  
         self.Filter.addItems(filter_tags)
+        self.Filter.setStyleSheet("background-color: white;")
         self.Filter.setCurrentIndex(-1)
         self.Filter.setPlaceholderText(self.name)
         self.Filter.resize(self.Filter.sizeHint())

@@ -20,6 +20,7 @@ class TableView(QtWidgets.QTableView):
         self.selectionModel().selectionChanged.connect(self.__cells_were_selected)
         self.clicked.connect(self.__cell_was_clicked)
         self._selected_entries = set()
+        
 
     def update_model(self, model: TableModel):
         self.setModel(model)

@@ -99,8 +99,11 @@ class FeatureEngineeringWidget(QWidget):
         if self._table_listings_widget is None:
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
-        
-        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth])
+            self._table_listings_widget.setFixedWidth(575)
+            self._table_listings_widget.setFixedHeight(400)
+            
+        v13 = self.add_block([self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth], alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
+        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, v13], QVBoxLayout(), size = [self.columnwidth])
         
         self._model_train_widget = ModelTrainWidget(self._training_features, base_model_name='model_{}', widgets=self.widgets, parent=self)
         self._model_train_widget.modelToTrain.connect(self._on_model_to_train)
