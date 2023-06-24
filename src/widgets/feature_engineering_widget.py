@@ -29,6 +29,8 @@ from PyQt6.QtWidgets import QWidget, QListWidget
 from src.widgets.dialog_widgets import BasicDialog
 from src.utils.filtering_utils import apply_filters
 from src.widgets.model_train_widget import ModelTrainWidget
+from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
+
 
 from sklearn.preprocessing import minmax_scale
 from sklearn.preprocessing import scale
@@ -71,15 +73,55 @@ class FeatureEngineeringWidget(QWidget):
 
     ###### Creating the general Layout ######
     def create_layout(self):
-        main_layout = QVBoxLayout()
-        main_layout.addLayout(self._top_layout())
-        main_layout.addLayout(self._bottom_layout())
-        return main_layout
+        self.columnwidth = 600
+        self.buttonwidth = 400
+        self.buttonheight = 75
+        self.titlewidth = 25
+        self.main_layout = QGridLayout()
+        v11 = self._col1_layout()
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
+        tab = self.add_block([self._table_listings_widget])
+        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
+        self.main_layout.addWidget(v11, 0, 0)
+        self.main_layout.addWidget(v12, 0, 1)
+        self.main_layout.addWidget(v13, 0, 2)
+        return self.main_layout
+    
+
+
+    def _col1_layout(self):
+        # Filter widgets tab 1 with layout option 1
+        # Define filters 
+        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
+        minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
+        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
+
+        if self._filter_widget is None:
+            self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
+        self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
+        
+        v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._filter_widget], QVBoxLayout(), size = [self.columnwidth])
+        #v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
+        
+        return v11
+    
+
+    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
+        widget = QWidget()
+        layout = block_type
+        for wid in widgetlist:
+            layout.addWidget(wid, alignment=alignment_)
+        widget.setLayout(layout)
+        if size is not None:
+            widget.setFixedWidth(size[0])
+        widget.setStyleSheet("background-color: #f5f5f5;")
+        widget.setFixedWidth(self.columnwidth)
+        return widget
 
     def _top_layout(self):
         top_layout = QHBoxLayout()
-        top_layout.addLayout(self._left_layout())
-        top_layout.addLayout(self._right_layout())
+        #top_layout.addLayout(self._left_layout())
+        #top_layout.addLayout(self._right_layout())
         return top_layout
 
     def _left_layout(self):
@@ -92,14 +134,10 @@ class FeatureEngineeringWidget(QWidget):
         left_layout.addWidget(self._query_widget)
         ####### Add the Filtering Widget
         # Define filters 
-        combofilters_ = {'status': ['Available', 'Under option'],                                                  
-                        'bedrooms': [str(i) for i in np.arange(0, 5 + 1)]}
-        minmaxfilters_ = ['price', 'living_area']
-        # Filter widgets tab 1 with layout option 1
-        if self._filter_widget is None:
-            self._filter_widget = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '1')
-        self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
-        left_layout.addWidget(self._filter_widget)
+        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
+        minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
+        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
+        
         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)

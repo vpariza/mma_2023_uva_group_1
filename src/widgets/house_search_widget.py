@@ -73,12 +73,12 @@ class HouseSearchWidget(QWidget):
         right_layout.addWidget(self._query_widget)
         ####### Add the Filtering Widget
         # Define filters 
-        combofilters_ = {'status': ['Available', 'Under option'],                                                  
-                        'bedrooms': [str(i) for i in np.arange(0, 5 + 1)]}
-        minmaxfilters_ = ['price', 'living_area']
-        # Filter widgets tab 1 with layout option 1
+        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
+        minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
+        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
+
         if self._filter_widget is None:
-            self._filter_widget = FilterWidget(minmaxfilters = minmaxfilters_, combofilters = combofilters_, config = '1')
+            self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         right_layout.addWidget(self._filter_widget)
         ####### Add the Table Listings Widget

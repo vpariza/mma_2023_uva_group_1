@@ -7,7 +7,7 @@ class FilterWidget(QWidget):
     """ Build main filtering widget for dashboard
 
     """
-    def __init__(self, minmaxfilters = [], combofilters =  {}, config = '1'):
+    def __init__(self, df, minmaxfilters = [], combofilters =  {}, placeholdertext = {}, config = '1'):    
         """ Init filtering widget for dashboard
 
         Args:
@@ -17,7 +17,7 @@ class FilterWidget(QWidget):
         TODO: Automate filtering for roll-down menues once these are implemented into the dataset    
         """
         super().__init__()
-
+        self.df = df
         self.minmaxfilters = minmaxfilters
         self.combofilters = combofilters
 
@@ -28,10 +28,10 @@ class FilterWidget(QWidget):
 
         # Block 2  - Range Filters (MinMax format)
         self.minmaxfilters_widgets = {}
-        for filter in self.minmaxfilters:
-            minmaxfilter = MinMaxWidget(RangeFilter, filter)
-            self.minmaxfilters_widgets[filter] = minmaxfilter
-        
+        for filter in range(len(self.minmaxfilters)):
+            minmaxfilter = MinMaxWidget(RangeFilter, self.minmaxfilters[filter], placeholdertext[filter])
+            self.minmaxfilters_widgets[self.minmaxfilters[filter]] = minmaxfilter
+
         # Block 3  - Combo Filters Title
         self.querylabel = QLabel()
         self.querylabel.setText('Other filtering options:')
@@ -39,7 +39,11 @@ class FilterWidget(QWidget):
         # Block 4  - Combo Filters (Roll-down format)
         self.combofilters_widgets = {}
         for filter in self.combofilters:
-            combofilter = ComboFilter(filter, self.combofilters[filter])
+            try:
+                options = [str(item) for item in np.unique(self.df[filter].values)]
+            except TypeError:
+                options = [str(item) for item in set(self.df[filter].values)]
+            combofilter = ComboFilter(filter, options)
             self.combofilters_widgets[filter] = combofilter
         
         # Block 5  - Configure filtering button
@@ -52,7 +56,7 @@ class FilterWidget(QWidget):
 
         # Configure widget style
         self.make_main_layout(config)
-        
+
     def make_main_layout(self, config = '1'):
         hblock = QWidget()
         hblock_layout = QHBoxLayout()
@@ -98,10 +102,11 @@ class MinMaxWidget(QWidget):
     """ Class for organizing layout of subwidgets
     
     """
-    def __init__(self, Filter, name, method = 'MinMax'):
+    def __init__(self, Filter, name, placeholdertext = 'select', method = 'MinMax'):
         super().__init__()
         self.Filter = Filter
         self.name = name 
+        self.placeholdertext = placeholdertext 
 
         if method == 'MinMax':
             self.minmax_layout()
