@@ -53,7 +53,7 @@ def r2_score(y_true, y_pred):
 Class for predicting the price of a listing.
 """
 
-class Predictor():
+class PricePredictor():
     def __init__(self) -> None:
         self.model = XGBRegressor(n_estimators=1000, learning_rate=0.05, n_jobs=-1, early_stopping_rounds=5, eval_metric="mae")
         self.used_features = []
@@ -77,7 +77,7 @@ class Predictor():
         for feature in features:
             if df[feature].dtype == "category":
                 df_processed = convert_categorical_to_one_hot(df_processed, [feature])
-                self.used_features.extend([c for c in df_processed.columns if c.startswith(feature + "_")])
+                self.used_features.extend([c for c in df_processed.columns if c.startswith(feature + "@")])
                 self.categorical_features.append(feature)
             else:
                 self.used_features.append(feature)
@@ -138,14 +138,14 @@ class Predictor():
         val_scores = self.model.evals_result()["validation_0"]["mae"]
         return val_scores
 
-    def predict(self, test_X: pd.DataFrame, test_y: pd.Series = None, eval_metrics: list = []) -> tuple:
+    def predict(self, test_X: pd.DataFrame, test_y: pd.Series = None, eval_metrics: list = [mean_absolute_error, mean_absolute_percentage_error, r2_score]) -> tuple:
         """
         Predict the target feature for the test data.
         
         Args:
             test_X (pd.DataFrame): Test data.
             test_y (pd.Series, optional): Test labels. Defaults to None.
-            eval_metrics (list, optional): List of evaluation metric function to use. Defaults to [].
+            eval_metrics (list, optional): List of evaluation metric function to use. Defaults to [mean_absolute_error, mean_absolute_percentage_error, r2_score].
 
         Returns:
             tuple: (pred_y, metric_scores) (Predicted labels and evaluation metric scores as np.array)
@@ -171,7 +171,7 @@ class Predictor():
         for feature in self.categorical_features:
             feature_importance = 0
             for key in importances.copy():
-                if key.startswith(feature + "_"):
+                if key.startswith(feature + "@"):
                     feature_importance += importances[key]
                     del importances[key]
             importances[feature] = feature_importance
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     #TODO remove again after proper implementation
     """
 
-    df = pd.read_csv('dataloading/Funda/dataset.csv', dtype=str)
+    df = pd.read_csv('dataloading/data.nosync/Funda/dataset.csv', dtype=str)
 
     features = {
         'bedrooms': int,
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         df[feature] = df[feature].astype(dtype)
     df["price"] = df["price"].astype(float)
 
-    predictor = Predictor()
+    predictor = PricePredictor()
 
     print("Preprocessing data...")
     transofrmations = {
@@ -269,6 +269,11 @@ if __name__ == "__main__":
     for p, t in zip(pred_y, test_y):
         print(p, t)
     print(scores)
+    score_df = pd.DataFrame(scores, index=["xgboost"])
+    score_df.loc["model_2"] = scores
+    print(score_df)
+
+    print(test_X)
 
     print("Feature importances:")
     print(predictor.get_feature_importances())
@@ -283,7 +288,7 @@ if __name__ == "__main__":
     predictor.save_model("test_model.json")
 
     print("Loading model...")
-    predictor2 = Predictor()
+    predictor2 = PricePredictor()
     predictor2.load_model("test_model.json")
 
     print("Predicting with loaded model...")
