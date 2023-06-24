@@ -48,14 +48,14 @@ class ModelComparisonWidget(QWidget):
                                               data_y = p_data_y if p_data_y is not None else pd.DataFrame([]),
                                               parent=self)
         self._m_line_p_w = MultiLinePlotWidget(self._m_line_p_m, 
-                                               plot_configs={'title': 'Model Performance Visualization', 'xlabel': 'Epochs', 'ylabel': 'Mean Absolute Error'},
+                                               plot_configs={'title': 'Model Performance Visualization', 'xlabel': 'Epochs', 'ylabel': 'Mean Absolute Validation Error'},
                                                parent=self)
         left_layout.addWidget(self._m_line_p_w)
         # Right side layout
         right_layout = QVBoxLayout()
         # Add a Title for the Performance of Models Table
         self._models_table_model_title = QLabel()
-        self._models_table_model_title.setText('Model Performance Measures')
+        self._models_table_model_title.setText('Model Performance Measures on Test Set')
         right_layout.addWidget(self._models_table_model_title)
         # Add the Table
         self._models_table_model = TableModel(models_table_data if models_table_data is not None else pd.DataFrame([]))
