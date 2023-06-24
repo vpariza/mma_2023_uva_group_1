@@ -24,9 +24,9 @@ import pandas as pd
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        super(MplCanvas, self).__init__(self.fig)
 
 class MultiHistogramPlotWidget(QWidget):
     """
@@ -107,6 +107,7 @@ class MultiHistogramPlotWidget(QWidget):
         self._sc.axes.set_ylabel('Counts')
         self._sc.axes.set_xlabel(self._selected_col)
         self._sc.axes.tick_params(rotation=90)
+        self._sc.fig.tight_layout()
         self._sc.draw()
         self._toolbar.update()
         self._hist_widget.update()
@@ -124,6 +125,8 @@ class MultiHistogramPlotWidget(QWidget):
         self._sc.axes.set_ylabel('Counts')
         self._sc.axes.set_xlabel(col_name)
         self._sc.axes.tick_params(rotation=90)
+        self._sc.fig.tight_layout()
+        self._sc.draw()
 
 
 if __name__ == '__main__':
