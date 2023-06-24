@@ -70,6 +70,7 @@ class HouseSearchWidget(QWidget):
             self._query_widget = QueryWidget()
             self._query_widget.resize(600, 200) 
         self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
+        self._query_widget = self.add_block([self._query_widget], QHBoxLayout())
         right_layout.addWidget(self._query_widget)
         ####### Add the Filtering Widget
         # Define filters 
@@ -80,6 +81,8 @@ class HouseSearchWidget(QWidget):
         if self._filter_widget is None:
             self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
+        self._filter_widget = self.add_block([self._filter_widget], QHBoxLayout())
+        self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
         right_layout.addWidget(self._filter_widget)
         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
@@ -91,6 +94,17 @@ class HouseSearchWidget(QWidget):
         self._clear_all_button.clicked.connect(self.clear_all_button_clicked)
         right_layout.addWidget(self._clear_all_button)
         return right_layout
+    
+
+    def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
+        widget = QWidget()
+        layout = block_type
+        for wid in widgetlist:
+            layout.addWidget(wid, alignment=alignment_)
+        widget.setLayout(layout)
+        widget.setStyleSheet("background-color: #f5f5f5;")
+        
+        return widget
 
     def _left_layout(self):
         right_layout = QVBoxLayout()      
