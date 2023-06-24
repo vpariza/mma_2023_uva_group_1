@@ -78,16 +78,56 @@ class FeatureEngineeringWidget(QWidget):
         self.buttonheight = 75
         self.titlewidth = 25
         self.main_layout = QGridLayout()
-        v11, v21 = self._col1_layout()
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
-        tab = self.add_block([self._table_listings_widget])
-        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
+        v11, v21, v31 = self._col1_layout()
+        v12, v22, v32 = self._col2_layout()
+        v13, v23, v33 = self._col3_layout()
+
         self.main_layout.addWidget(v11, 0, 0)
         self.main_layout.addWidget(v21, 1, 0)
+        self.main_layout.addWidget(v31, 2, 0, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
+        
         self.main_layout.addWidget(v12, 0, 1)
+        self.main_layout.addWidget(v22, 1, 1)
+        self.main_layout.addWidget(v32, 2, 1, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         self.main_layout.addWidget(v13, 0, 2)
+        self.main_layout.addWidget(v23, 1, 2)
+        
         return self.main_layout
     
+    def _col3_layout(self):
+        ####### Add the Table Listings Widget
+        if self._table_listings_widget is None:
+            self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
+            self._table_listings_widget = TableListingsView(self._table_listings_model)
+        
+        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth])
+        
+        self._model_train_widget = ModelTrainWidget(self._training_features, base_model_name='model_{}', widgets=self.widgets, parent=self)
+        self._model_train_widget.modelToTrain.connect(self._on_model_to_train)
+        self._model_train_widget.modelDeleted.connect(self._on_deleted_model)
+        v23 = self.add_block([self._model_train_widget], QVBoxLayout(), size = [self.columnwidth])
+        
+        
+        return v13, v23, 0
+
+    def _col2_layout(self):
+        ####### Add the Query Widget
+        if self._query_widget is None:      
+            self._query_widget = QueryWidget()
+            self._query_widget.resize(600, 200) 
+        
+        self._select_scatter_plot = SelectClusterWidget()
+        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
+        
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
+        ####### Add the Clustering Widget 
+        self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
+        v22 = self.add_block([self._scatter_plot_widget], QHBoxLayout())
+        
+        self._store_qfeat_button = ButtonWidget('Store\nFeature', size = [self.buttonwidth, self.buttonheight]).button
+        v32 = self._store_qfeat_button
+
+        return v12, v22, v32
 
 
     def _col1_layout(self):
@@ -112,13 +152,13 @@ class FeatureEngineeringWidget(QWidget):
             'maxabs_scale': maxabs_scale
         }
         self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
-        
-        
+
         v21 = self.add_block([self._multi_hist_p_widget], QHBoxLayout())
 
-        #v21 = self.add_block([self.hist_plot_widget, self.feature_transform_widget], QHBoxLayout())
+        self.store_datfeat_button = ButtonWidget('Store\nFeature', size = [self.buttonwidth, self.buttonheight]).button
+        v31 = self.store_datfeat_button
         
-        return v11, v21
+        return v11, v21, v31
     
 
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
@@ -133,58 +173,12 @@ class FeatureEngineeringWidget(QWidget):
         widget.setFixedWidth(self.columnwidth)
         return widget
 
-    def _top_layout(self):
-        top_layout = QHBoxLayout()
-        #top_layout.addLayout(self._left_layout())
-        #top_layout.addLayout(self._right_layout())
-        return top_layout
 
-    def _left_layout(self):
-        left_layout = QVBoxLayout()
-        ####### Add the Query Widget
-        if self._query_widget is None:      
-            self._query_widget = QueryWidget()
-            self._query_widget.resize(600, 200) 
-        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
-        left_layout.addWidget(self._query_widget)
-        ####### Add the Filtering Widget
-        # Define filters 
-        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
-        minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
-        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
-        
-        ####### Add the Table Listings Widget
-        if self._table_listings_widget is None:
-            self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
-            self._table_listings_widget = TableListingsView(self._table_listings_model)
-        # self.table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
-        left_layout.addWidget(self._table_listings_widget)
-        return left_layout
 
     @property
     def model_names(self):
         return self._model_train_widget.model_names
 
-    def _right_layout(self):
-        right_layout = QVBoxLayout()      
-        ####### Add the Multi Histogram Widget   
-        self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
-        options_fn = {
-            'minmax_scale': minmax_scale,
-            'standard_scale': scale,
-            'robust_scale': robust_scale,
-            'maxabs_scale': maxabs_scale
-        }
-        self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
-        right_layout.addWidget(self._multi_hist_p_widget)
-        ####### Add the Clustering Widget 
-        clustering_layout = QHBoxLayout()  
-        self._select_scatter_plot = SelectClusterWidget()
-        clustering_layout.addWidget(self._select_scatter_plot)
-        self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
-        clustering_layout.addWidget(self._scatter_plot_widget)
-        right_layout.addLayout(clustering_layout)
-        return right_layout
 
     def _bottom_layout(self):
         bottom_layout = QHBoxLayout()      
