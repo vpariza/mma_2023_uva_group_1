@@ -11,6 +11,8 @@ from src.widgets.filter_widget import SearchWidget
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 class MplCanvas(FigureCanvasQTAgg):
     """Setup canvas for plotting"""
@@ -62,11 +64,27 @@ class ScatterPlotWidget(QWidget):
         self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color)
         self.Figure.canvas.draw()
         
-    def update_scatterplot(self, x, y):
+    def update_scatterplot(self, x, y, kmeans = False, k = 2):
         """Update scatterplot with new dataframe"""
-        self.Figure.ax.cla() 
-        self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
-        self.Figure.canvas.draw()
+        if not kmeans:
+            self.Figure.ax.cla() 
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
+            self.Figure.canvas.draw()
+        if kmeans:
+            #scaler = StandardScaler()
+            #scaler.fit()
+            kmeans = KMeans(n_clusters=k)
+            # Fit the data to the k-means model
+            data = np.array(list(zip(x, y)))
+            kmeans.fit(data)
+            labels = kmeans.labels_
+            # Get the coordinates of the cluster centers
+            cluster_centers = kmeans.cluster_centers_
+            self.Figure.ax.cla() 
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels)
+            self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
+            self.Figure.canvas.draw()
+            print('complete')
 
 class SelectClusterWidget(QWidget):
 
@@ -89,15 +107,15 @@ class SelectClusterWidget(QWidget):
 
         method = [0]
         method_tags = ['k-means']
-        clustering_method = ComboFilter('Clustering method                   ', method, method_tags)
-        select_layout.addWidget(clustering_method)
-        filter['clustering_method'] = clustering_method.Filter.currentText()
+        self.clustering_method = ComboFilter('Clustering method                   ', method, method_tags)
+        select_layout.addWidget(self.clustering_method)
+        filter['clustering_method'] = self.clustering_method.Filter.currentText()
 
         method = [1, 2]
         method_tags = ['1', '2']
-        n_clusters_method = ComboFilter('Numbers of clusters                 ', method, method_tags)
-        select_layout.addWidget(n_clusters_method)
-        filter['n_clusters_method'] = n_clusters_method.Filter.currentText()
+        self.n_clusters_method = ComboFilter('Numbers of clusters                 ', method, method_tags)
+        select_layout.addWidget(self.n_clusters_method)
+        filter['n_clusters_method'] = self.n_clusters_method.Filter.currentText()
         
         self.searchbutton = SearchWidget(filter)
         select_layout.addWidget(self.searchbutton)

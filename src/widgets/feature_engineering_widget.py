@@ -64,6 +64,7 @@ class FeatureEngineeringWidget(QWidget):
         self.setLayout(self.create_layout())
         self._scatter_x = self._data_show['umap_x']
         self._scatter_y = self._data_show['umap_y']
+        self.kmeans = False
 
 
     def get_dict_widgets(self):
@@ -248,7 +249,7 @@ class FeatureEngineeringWidget(QWidget):
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
         
-        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y)
+        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans)
 
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
@@ -274,6 +275,11 @@ class FeatureEngineeringWidget(QWidget):
         elif self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 't-sne':
             self._scatter_x = self._tsne_points_x
             self._scatter_y = self._tsne_points_y
+        
+        if self._select_scatter_plot.clustering_method.Filter.currentText() == 'k-means':
+            print('set kmeans to true')
+            self.kmeans = True
+
         self.update()
         
         
