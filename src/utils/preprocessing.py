@@ -46,13 +46,20 @@ class Preprocessing():
         ## select num_samples samples between
         if sample_selection == 'new':
             image_features = image_features[:num_samples]
-            points = self.compute_umap(image_features)
-            tags = []
-            image_features = image_features[:num_samples]
-            img_paths = []
             df = df[:num_samples]
+            points = self.compute_umap(image_features)
+            
             df['umap_x'] = points[:,0]
             df['umap_y'] = points[:,1]
+            tsne_points = self.compute_tsne(image_features)
+            df['tsne_x'] = tsne_points[:,0]
+            df['tsne_y'] = tsne_points[:,1]
+            tags = []
+            image_features = image_features[:num_samples]
+            
+            img_paths = []
+            
+            
 
         if sample_selection == 'random':
             # Chooses 1000 random datapoints
@@ -74,4 +81,4 @@ class Preprocessing():
             elif str(config['main']['embedding'])=='tsne':
                 points = self.compute_tsne(image_features)
         
-        return config, tags, points, img_paths, df, image_dir_path
+        return config, tags, points, img_paths, df, image_dir_path, image_features

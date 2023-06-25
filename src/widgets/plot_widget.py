@@ -83,9 +83,9 @@ class SelectClusterWidget(QWidget):
 
         method = [0, 1]
         method_tags = ['umap', 't-sne']
-        dim_reduct_method = ComboFilter('Dimensionality Reduction mehtod     ', method, method_tags)
-        select_layout.addWidget(dim_reduct_method)
-        filter['dimensionality_reduction_method'] = dim_reduct_method.Filter.currentText()
+        self.dim_reduct_method = ComboFilter('Dimensionality Reduction mehtod     ', method, method_tags)
+        select_layout.addWidget(self.dim_reduct_method)
+        filter['dimensionality_reduction_method'] = self.dim_reduct_method.Filter.currentText()
 
         method = [0]
         method_tags = ['k-means']
@@ -148,7 +148,7 @@ class ComboFilter(QWidget):
 
     def current_text(self, _): 
         ctext = self.Filter.currentText()
-        print(self.label, ctext)
+        print(  ctext)
 
     def current_text_via_index(self, index):
         ctext = self.Filter.itemText(index) 

@@ -44,9 +44,10 @@ class FeatureEngineeringWidget(QWidget):
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
     updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
 
-    def __init__(self, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
+    def __init__(self, data:pd.DataFrame, img_features, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
+        self.img_features = img_features
         # Use pre-existing widgets if given
         self._query_widget = widgets.get('query_widget ')
         self._filter_widget = widgets.get('filter_widget')
@@ -61,6 +62,9 @@ class FeatureEngineeringWidget(QWidget):
         self._config = config
         self._images_dir_path = config['main']['images_dir_path']
         self.setLayout(self.create_layout())
+        self._scatter_x = self._data_show['umap_x']
+        self._scatter_y = self._data_show['umap_y']
+
 
     def get_dict_widgets(self):
         return {
@@ -118,9 +122,11 @@ class FeatureEngineeringWidget(QWidget):
         if self._query_widget is None:      
             self._query_widget = QueryWidget()
             self._query_widget.resize(600, 200) 
-        
-        self._select_scatter_plot = SelectClusterWidget()
         self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
+
+        self._select_scatter_plot = SelectClusterWidget()
+        self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
+        
         
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
@@ -195,15 +201,27 @@ class FeatureEngineeringWidget(QWidget):
     @property
     def _umap_points(self):
         return self._data_show[['umap_x','umap_y']].values
-
+    
     @property
     def _umap_points_x(self):
         return self._data_show['umap_x'].values
-
+    
     @property
     def _umap_points_y(self):
         return self._data_show['umap_y'].values
     
+    @property
+    def _tsne_points(self):
+        return self._data_show[['tsne_x','tsne_y']].values
+    
+    @property
+    def _tsne_points_x(self):
+        return self._data_show['tsne_x'].values
+    
+    @property
+    def _tsne_points_y(self):
+        return self._data_show['tsne_y'].values
+
     @property
     def _training_data(self):
         """
@@ -221,6 +239,8 @@ class FeatureEngineeringWidget(QWidget):
         self._data_show = data.copy()
         self.update()
 
+
+
     def update(self):
         self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
         self._table_listings_widget.update_model(self._table_listings_model)
@@ -228,7 +248,7 @@ class FeatureEngineeringWidget(QWidget):
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
         
-        self._scatter_plot_widget.update_scatterplot(self._umap_points_x, self._umap_points_y)
+        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y)
 
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
@@ -244,6 +264,21 @@ class FeatureEngineeringWidget(QWidget):
         else:
             BasicDialog(window_title='No Results found!', message='There are no entries matching your filtering!').exec()
     
+    @QtCore.pyqtSlot(object, QWidget)
+    def _on_scatterconfig_applied(self, filters, source):      
+        """  Update according to tsne or umap select
+        """  
+        if self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 'umap':
+            self._scatter_x = self._umap_points_x
+            self._scatter_y = self._umap_points_y
+        elif self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 't-sne':
+            self._scatter_x = self._tsne_points_x
+            self._scatter_y = self._tsne_points_y
+        self.update()
+        
+        
+
+
     @QtCore.pyqtSlot(str, QWidget)
     def _on_txt_query_submitted(self, txt_query, source):
         self.txtQuerySubmitted.emit(txt_query, self)

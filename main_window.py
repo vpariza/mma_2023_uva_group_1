@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.p_data_x = {}
         self.p_data_y = {}
         # TODO: Return sirectory of Listings Images
-        self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path = preprocessing.load_data()        
+        self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path, self.img_features = preprocessing.load_data()        
         self.df = self.df.set_index("funda_identifier", drop=False)
 
         ####### Load Data
@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         for feature, dtype in self._training_features.items():
             self.df[feature] = self.df[feature].astype(dtype)
         self._preprocessing = Preprocessing()
-        config, tags, points, img_paths, df, images_dir_path = self._preprocessing.load_data()
+        config, tags, points, img_paths, df, images_dir_path, self.img_features = self._preprocessing.load_data()
         # TODO: Preprocessing should include exactly the following columns for
         # accessing the umap features
         df['umap_x'] = points[:,0]
@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
     def create_central_widget(self):
         ####### Defining Tab 2
         # Define the Second Tab
-        self._tab2_w = FeatureEngineeringWidget(data=self._data, 
+        self._tab2_w = FeatureEngineeringWidget(data=self._data, img_features = self.img_features,
                                                 training_features=list(self._training_features.keys()), 
                                                 config=self._config, widgets={}, parent=self)
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
