@@ -84,7 +84,7 @@ class ScatterPlotWidget(QWidget):
             self.Figure.ax.scatter(x, y, s=self.points_size, c=labels)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
             self.Figure.canvas.draw()
-            print('complete')
+            
 
 class SelectClusterWidget(QWidget):
 
@@ -105,14 +105,14 @@ class SelectClusterWidget(QWidget):
         select_layout.addWidget(self.dim_reduct_method)
         filter['dimensionality_reduction_method'] = self.dim_reduct_method.Filter.currentText()
 
-        method = [0]
-        method_tags = ['k-means']
+        method = [0, 1]
+        method_tags = ['k-means', 'None']
         self.clustering_method = ComboFilter('Clustering method                   ', method, method_tags)
         select_layout.addWidget(self.clustering_method)
         filter['clustering_method'] = self.clustering_method.Filter.currentText()
 
-        method = [1, 2]
-        method_tags = ['1', '2']
+        method = np.arange(1,10 )
+        method_tags = [str(i) for i in method]
         self.n_clusters_method = ComboFilter('Numbers of clusters                 ', method, method_tags)
         select_layout.addWidget(self.n_clusters_method)
         filter['n_clusters_method'] = self.n_clusters_method.Filter.currentText()
@@ -145,13 +145,6 @@ class ComboFilter(QWidget):
         self.Filter.setPlaceholderText(self.name)
         self.Filter.resize(self.Filter.sizeHint())
         
-
-        # Connect signals to the methods.
-        self.Filter.activated.connect(self.check_index)
-        self.Filter.activated.connect(self.current_text)
-        self.Filter.activated.connect(self.current_text_via_index)
-        self.Filter.activated.connect(self.current_count)
-        
         layout.addWidget(self.Filter)
         
         self.setLayout(layout)
@@ -161,15 +154,4 @@ class ComboFilter(QWidget):
         self.setStyleSheet("border: 0px solid darkgray; background-color: #f5f5f5;")
         
     
-    def check_index(self, index):
-        cindex = self.Filter.currentIndex()
 
-    def current_text(self, _): 
-        ctext = self.Filter.currentText()
-        print(  ctext)
-
-    def current_text_via_index(self, index):
-        ctext = self.Filter.itemText(index) 
-
-    def current_count(self, index):
-        count = self.Filter.count()
