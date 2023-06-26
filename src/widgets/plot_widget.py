@@ -19,7 +19,7 @@ from sklearn.preprocessing import StandardScaler
 class MplCanvas(FigureCanvasQTAgg):
     """Setup canvas for plotting"""
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None, width=4, height=3, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
@@ -42,6 +42,7 @@ class ScatterPlotWidget(QWidget):
         # Setup plot configurations
         self.setMouseTracking(True)
         self.config = config
+        self.points = points
         self.load_configurations()
 
         # create a matplotlib figure and add a subplot
@@ -49,14 +50,11 @@ class ScatterPlotWidget(QWidget):
         
         """"""
         # Load points
-        self.points = points
-        self.mean_x = np.mean(self.points[:,0])
-        self.mean_y = np.mean(self.points[:,1])
         self.start_point = None
         self.end_point = None
         # create a button under the scatterplot that removes the rectangle and the selected points
-        self.clear_button = QPushButton("Clear Selection")
-        self.clear_button.clicked.connect(self.clear_selection)
+        #self.clear_button = QPushButton("Clear Selection")
+        #self.clear_button.clicked.connect(self.clear_selection)
         self.zp = ZoomPan()
         self.figZoom = self.zp.zoom_factory(self.Figure.ax, base_scale = 1.5)
         self.figPan = self.zp.pan_factory(self.Figure.ax)

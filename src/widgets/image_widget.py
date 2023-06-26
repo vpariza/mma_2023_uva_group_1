@@ -12,7 +12,7 @@ class ImageWidget(QWidget):
         super().__init__()
         self.base_path = config['main']['base_dataset_path']
         self.img_paths = img_paths
-        self.images_per_row = 1
+        self.images_per_row = 2
         self.rows = 3
         #self.setGeometry(100,100,1000,200)
         
@@ -33,11 +33,10 @@ class ImageWidget(QWidget):
             self.layout.itemAt(i).widget().setParent(None)
         self.imgs = []
         # Add new images
-        row = 0
         for i, img_path in enumerate(self.selected_images):
-            col = 0 #i % self.images_per_row
+            col = i % self.images_per_row
+            row = i // self.images_per_row
             self.create_image_labels(img_path, col, row)
-            row += 1
 
     def create_image_labels(self,image_path, col, row):
         pixmap = QPixmap(os.path.join(self.base_path,image_path))
