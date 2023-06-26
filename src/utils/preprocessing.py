@@ -53,7 +53,9 @@ class Preprocessing():
             df['tsne_y'] = tsne_points[:,1]
             tags = []
             image_features = image_features[:num_samples]
-            img_paths = [id_ + '/image3.jpeg' for id_ in df['funda_identifier'].values]
+            id_vals = df['funda_identifier'].values
+            img_paths = [str(id_) + '/image3.jpeg' for id_ in id_vals]
+            print(img_paths)
             
             
             
