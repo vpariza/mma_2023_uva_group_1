@@ -148,12 +148,11 @@ class MainWindow(QMainWindow):
         self.p_data_y[model_name] = val_scores
         # make all values for all keys in dict the same length
         max_len = max([len(v) for v in self.p_data_y.values()])
-        print(self.p_data_y)
+        
         for k, v in self.p_data_y.items():
             self.p_data_x[k] = np.pad(self.p_data_x[k], (0, max_len-len(v)), mode='constant', constant_values=np.nan)
             self.p_data_y[k] = np.pad(v, (0, max_len-len(v)), mode='constant', constant_values=np.nan)
-        print(self.p_data_y)
-
+        
         #TODO update respective widget with feature importances
         feature_importances = model.get_feature_importances()
 

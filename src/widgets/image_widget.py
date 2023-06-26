@@ -40,7 +40,6 @@ class ImageWidget(QWidget):
 
     def create_image_labels(self,image_path, col, row):
         pixmap = QPixmap(os.path.join(self.base_path,image_path))
-        print('pathways is', os.path.join(self.base_path,image_path))
         pixmap = pixmap.scaled(100, 100)  # Adjust the size of the images as needed
         label = QLabel(self)
         label.setPixmap(pixmap)
@@ -50,12 +49,13 @@ class ImageWidget(QWidget):
         """Method that sets the selected points and updates the wordcloud"""
         ## only update the wordcloud if the selected points in the scatterplot have changed
         if selected_points==[]:
-            self.selected_images = random.sample(self.img_paths,min(len(self.img_paths),self.images_per_row*self.rows))
+            self.selected_images = random.sample(self.img_paths.tolist(),min(len(self.img_paths),self.images_per_row*self.rows))
             self.update()
         else:
             self.selected_points = selected_points
             self.selected_images = random.sample(self.img_paths[self.selected_points].tolist(),min(len(self.img_paths[self.selected_points]),self.images_per_row*self.rows))
             self.update()
+
     def set_selected_points_button(self, selected_points):
         """Method that sets the selected points and updates the wordcloud"""
         if selected_points==[]:

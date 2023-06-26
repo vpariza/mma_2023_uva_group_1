@@ -31,12 +31,8 @@ class Preprocessing():
         num_samples = int(config['main']['num_samples'])
         
         sample_selection = str(config['main']['sample_selection'])
-        ## dataloading 1000, 7
-        #df = pd.read_pickle(data_path)
         
-        #print('--------------------- Dataset ---------------------')
         df = pd.read_csv(data_csv_path)
-        #print(df.head())
         
 
         with h5py.File(images_path, "r") as hf:
