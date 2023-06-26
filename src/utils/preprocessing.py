@@ -55,7 +55,7 @@ class Preprocessing():
             image_features = image_features[:num_samples]
             id_vals = df['funda_identifier'].values
             img_paths = [str(id_) + '/image3.jpeg' for id_ in id_vals]
-            print(img_paths)
+            
             
             
             
