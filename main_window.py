@@ -49,15 +49,11 @@ class MainWindow(QMainWindow):
             self.df[feature] = self.df[feature].astype(dtype)
         self._preprocessing = Preprocessing()
         config, tags, points, img_paths, df, images_dir_path, self.img_features = self._preprocessing.load_data()
-        # TODO: Preprocessing should include exactly the following columns for
-        # accessing the umap features
-        df['umap_x'] = points[:,0]
-        df['umap_y'] = points[:,1]
-        print(self.df.shape) 
+        
 
         ####### Load Models
-        #self.image_model = VisionModel(precomputed_features_path=config['main']['image_features_path'])
-        #self.text_model = LanguageModel(precomputed_features_path=config['main']['text_features_path'])
+        self.image_model = VisionModel(precomputed_features_path=config['main']['image_features_path'])
+        self.text_model = LanguageModel(precomputed_features_path=config['main']['text_features_path'])
 
         self._data = self.df
         self._config = config
@@ -103,7 +99,8 @@ class MainWindow(QMainWindow):
         print('Submitted Query',query)
         
         query_type = "text" #TODO implement such that user can choose between image and text
-
+        if self._tab2_w.query_options_widget.Filter.currentText() != '':
+            query_type = self._tab2_w.query_options_widget.Filter.currentText()
         if query_type == "image":
             data = self.image_model.calculate_similarity(query, self._data)
         else:

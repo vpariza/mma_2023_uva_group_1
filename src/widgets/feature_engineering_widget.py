@@ -30,7 +30,7 @@ from src.widgets.dialog_widgets import BasicDialog
 from src.utils.filtering_utils import apply_filters
 from src.widgets.model_train_widget import ModelTrainWidget
 from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
-
+from src.widgets.filter_widget import ComboFilter
 
 from sklearn.preprocessing import minmax_scale
 from sklearn.preprocessing import scale
@@ -125,12 +125,16 @@ class FeatureEngineeringWidget(QWidget):
             self._query_widget = QueryWidget()
             self._query_widget.resize(600, 200) 
         self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
+        options_query = ['text', 'images']
+        self.query_options_widget = ComboFilter('Select query type', options_query)
+        print('options ', self.query_options_widget)
+
 
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
         
         
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         v22 = self.add_block([self._scatter_plot_widget], QHBoxLayout())
