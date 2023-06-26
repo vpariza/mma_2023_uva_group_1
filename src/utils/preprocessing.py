@@ -57,8 +57,10 @@ class Preprocessing():
             df['tsne_y'] = tsne_points[:,1]
             tags = []
             image_features = image_features[:num_samples]
+            df_img_paths = self.get_folder_names(image_dir_path)
+            df = pd.merge(df, df_img_paths, on='funda_identifier')
+            img_paths = df['img_path'].values
             
-            img_paths = self.get_folder_names(image_dir_path)
             
             
             
@@ -87,9 +89,17 @@ class Preprocessing():
 
 
     def get_folder_names(self, directory):
-        folder_names = []
+        funda_id = []
+        image_path = []
+
+        
         for entry in os.listdir(directory):
             entry_path = os.path.join(directory, entry)
             if os.path.isdir(entry_path):
-                folder_names.append(entry + '/image3.jpeg')
-        return folder_names
+                funda_id.append(int(eval(entry)))
+                image_path.append(entry + '/image3.jpeg')
+        
+        d = {'funda_identifier': funda_id, 'img_path': image_path}
+        df = pd.DataFrame(data=d)
+        
+        return df
