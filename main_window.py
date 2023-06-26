@@ -92,15 +92,16 @@ class MainWindow(QMainWindow):
 
     ###### HANDLING SINGALS FROM CHILD WIDGETS - SLOTS #######
     @QtCore.pyqtSlot(str, QWidget)
-    def on_query_submitted(self, query, source):
+    def on_query_submitted(self, query):
         """
         query is a string and you must filter the 
         """
-        print('Submitted Query',query)
         
-        query_type = "text" #TODO implement such that user can choose between image and text
+        query_type = "text" 
+
         if self._tab2_w.query_options_widget.Filter.currentText() != '':
             query_type = self._tab2_w.query_options_widget.Filter.currentText()
+            
         if query_type == "image":
             data = self.image_model.calculate_similarity(query, self._data)
         else:
@@ -108,6 +109,8 @@ class MainWindow(QMainWindow):
 
         self._data = data
         self._tab1_w.update_original_data(data)
+
+        self._tab2_w.update_data_show(data, query)
         self._tab2_w.update_original_data(data)
 
         #TODO update training_features values to include columns that end with "_similarity-max_score" to also consider new features during training
