@@ -89,6 +89,7 @@ class HouseSearchWidget(QWidget):
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
         self._table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
+        self._table_listings_widget.setFixedWidth(600)
         right_layout.addWidget(self._table_listings_widget)
         self._clear_all_button = QPushButton('Clear All', self)
         self._clear_all_button.clicked.connect(self.clear_all_button_clicked)

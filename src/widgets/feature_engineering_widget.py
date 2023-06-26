@@ -3,6 +3,7 @@ sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repos
 
 import matplotlib
 matplotlib.use('QtAgg')
+import numpy as np
 
 from PyQt6 import QtCore, QtWidgets
 
@@ -66,6 +67,9 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_y = self._data_show['umap_y']
         self.kmeans = False
         self.k = 1
+        self.alpha_ = 1
+       
+
 
 
     def get_dict_widgets(self):
@@ -236,14 +240,25 @@ class FeatureEngineeringWidget(QWidget):
         return self._data_show[self._model_train_widget.selected_features]
 
     ###### Update Methods ######
-    def update_data_show(self, data:pd.DataFrame):
+    def update_data_show(self, data:pd.DataFrame, query = None):
         self._data_show = data
+        print('update original data')
+        if query != None:
+            num = data[query.replace(" ", "_") + '_' + 'text_similarity-max_score'].values
+            # Visualization purposes
+            self.alpha_ = self.minmaxnorm(num)
+        
         self.update()
 
     def update_original_data(self, data:pd.DataFrame):
         self._data = data.copy()
         self._data_show = data.copy()
         self.update()
+
+    def minmaxnorm(self, v):
+        """ Apply min max norm to array
+        """
+        return (v - v.min()) / (v.max() - v.min())
 
 
 
@@ -253,8 +268,8 @@ class FeatureEngineeringWidget(QWidget):
 
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
-    
-        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k)
+
+        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k, alpha_ = self.alpha_)
 
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
@@ -291,9 +306,6 @@ class FeatureEngineeringWidget(QWidget):
                 pass
         elif self._select_scatter_plot.clustering_method.Filter.currentText() == 'None':
             self.kmeans = False
-
-
-            
 
         self.update()
         

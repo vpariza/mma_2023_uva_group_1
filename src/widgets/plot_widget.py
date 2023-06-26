@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6 import QtCore
 from src.widgets.filter_widget import SearchWidget
+from src.widgets.checkbox_list_widget import CheckBoxListWidget
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -64,11 +65,11 @@ class ScatterPlotWidget(QWidget):
         self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color)
         self.Figure.canvas.draw()
         
-    def update_scatterplot(self, x, y, kmeans = False, k = 2):
+    def update_scatterplot(self, x, y, kmeans = False, k = 2, alpha_ = 1):
         """Update scatterplot with new dataframe"""
         if not kmeans:
             self.Figure.ax.cla() 
-            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color, alpha=alpha_)
             self.Figure.canvas.draw()
         if kmeans:
             #scaler = StandardScaler()
@@ -81,7 +82,7 @@ class ScatterPlotWidget(QWidget):
             # Get the coordinates of the cluster centers
             cluster_centers = kmeans.cluster_centers_
             self.Figure.ax.cla() 
-            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels)
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels, alpha=alpha_)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
             self.Figure.canvas.draw()
             

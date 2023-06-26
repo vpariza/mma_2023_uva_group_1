@@ -18,5 +18,10 @@ def apply_filters(df, filters):
                 print('invalid input for ', bound, tag)
     for tag, filter in filters['combo'].items():
         if filter.Filter.currentText() != '':
-            new_df = new_df[new_df[tag] == filter.Filter.currentText()]
+            print(tag)
+            if (tag == 'bedrooms') or (tag == 'number_of_rooms'):
+                print('filter edited to min')
+                new_df = new_df[new_df[tag] >= eval(filter.Filter.currentText())] 
+            else:
+                new_df = new_df[new_df[tag] == filter.Filter.currentText()]
     return new_df

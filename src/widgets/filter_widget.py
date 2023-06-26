@@ -116,12 +116,12 @@ class MinMaxWidget(QWidget):
     def minmax_layout(self):
         ## Initialize widgets
         minmax_layout = QHBoxLayout(self, spacing=2)
-    
-        self.Max = RangeFilter('Max ' + self.name, self.placeholdertext)
-        minmax_layout.addWidget(self.Max)
 
         self.Min = RangeFilter('Min ' + self.name, self.placeholdertext)
         minmax_layout.addWidget(self.Min)
+
+        self.Max = RangeFilter('Max ' + self.name, self.placeholdertext)
+        minmax_layout.addWidget(self.Max)
 
         # Configure widget style
         self.setLayout(minmax_layout)
@@ -166,7 +166,13 @@ class ComboFilter(QWidget):
         self.filter_list = np.arange(0, len(self.filter_tags))
         layout = QVBoxLayout(self)
 
-        self.label = QLabel(self.name.replace("_", " "))
+        if self.name == 'bedrooms':
+            self.label = QLabel('min # bedrooms')
+        elif self.name == 'number_of_rooms':
+            self.label = QLabel('min # rooms')
+        else:
+            self.label = QLabel(self.name.replace("_", " "))
+
         self.label.setStyleSheet("border: 0px;")
         self.Filter = QComboBox(self)
         self.Filter.setFixedSize(QSize(75, 25))  
