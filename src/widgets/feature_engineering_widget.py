@@ -21,7 +21,7 @@ import pandas as pd
 from src.widgets.filter_widget import FilterWidget
 from src.widgets.query_widget import QueryWidget
 from src.widgets.plot_widget import ScatterPlotWidget, SelectClusterWidget
-
+from src.widgets.image_widget import ImageWidget
 from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.multi_hist_plot_widget import MultiHistogramPlotWidget
 from src.widgets.table_listings_model import TableListingsModel
@@ -32,7 +32,7 @@ from src.utils.filtering_utils import apply_filters
 from src.widgets.model_train_widget import ModelTrainWidget
 from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
 from src.widgets.filter_widget import ComboFilter
-
+from src.widgets.image_widget import ImageWidget
 from sklearn.preprocessing import minmax_scale
 from sklearn.preprocessing import scale
 from sklearn.preprocessing import robust_scale
@@ -45,7 +45,7 @@ class FeatureEngineeringWidget(QWidget):
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
     updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
 
-    def __init__(self, data:pd.DataFrame, img_features, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
+    def __init__(self, data:pd.DataFrame, img_features, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, img_paths = None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
         self.img_features = img_features
@@ -54,6 +54,8 @@ class FeatureEngineeringWidget(QWidget):
         self._filter_widget = widgets.get('filter_widget')
         self._table_listings_model = widgets.get('table_listings_model')
         self._table_listings_widget = widgets.get('table_listings_widget')
+        self._image_widget = ImageWidget(img_paths, config)
+        
         # Save the given data
         # These are the data showed at each moment
         self._data_show = data.copy()
@@ -141,9 +143,11 @@ class FeatureEngineeringWidget(QWidget):
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
-        v22 = self.add_block([self._scatter_plot_widget], QHBoxLayout())
+        self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         
-        self._store_qfeat_button = ButtonWidget('Store\nFeature', size = [self.buttonwidth, self.buttonheight]).button
+        v22 = self.add_block([self._scatter_plot_widget, self._image_widget], QHBoxLayout())
+        print('image widget - ', self._image_widget)
+        self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight]).button
         v32 = self._store_qfeat_button
 
         return v12, v22, v32
@@ -174,7 +178,7 @@ class FeatureEngineeringWidget(QWidget):
 
         v21 = self.add_block([self._multi_hist_p_widget], QHBoxLayout())
 
-        self.store_datfeat_button = ButtonWidget('Store\nFeature', size = [self.buttonwidth, self.buttonheight]).button
+        self.store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight]).button
         v31 = self.store_datfeat_button
         
         return v11, v21, v31

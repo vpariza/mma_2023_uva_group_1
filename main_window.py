@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         # Define the Second Tab
         self._tab2_w = FeatureEngineeringWidget(data=self._data, img_features = self.img_features,
                                                 training_features=list(self._training_features.keys()), 
-                                                config=self._config, widgets={}, parent=self)
+                                                config=self._config, widgets={}, parent=self, img_paths = self.img_paths)
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
         self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
         self._tab2_w.modelToTrain.connect(self.on_train_model)
