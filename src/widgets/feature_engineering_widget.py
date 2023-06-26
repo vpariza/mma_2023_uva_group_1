@@ -253,7 +253,7 @@ class FeatureEngineeringWidget(QWidget):
 
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
-        
+    
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k)
 
     def add_new_features(self, feature_names:list):
@@ -266,15 +266,16 @@ class FeatureEngineeringWidget(QWidget):
         if len(filtered_df.index) > 0:
             self._data_show = filtered_df
             self.updatedShowedData.emit(self._data_show, self)
+            self._on_scatterconfig_applied()
             self.update()
         else:
             BasicDialog(window_title='No Results found!', message='There are no entries matching your filtering!').exec()
     
     @QtCore.pyqtSlot(object, QWidget)
-    def _on_scatterconfig_applied(self, filters, source):      
+    def _on_scatterconfig_applied(self):      
         """  Update according to tsne or umap select
-        """  
-        if self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 'umap':
+        """
+        if (self._select_scatter_plot.dim_reduct_method.Filter.currentText()) == 'umap' or (self._select_scatter_plot.dim_reduct_method.Filter.currentText() == ''):
             self._scatter_x = self._umap_points_x
             self._scatter_y = self._umap_points_y
         elif self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 't-sne':
