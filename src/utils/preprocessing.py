@@ -1,5 +1,6 @@
 import configparser
 import h5py, umap
+import os
 
 import pandas as pd
 from sklearn.manifold import TSNE
@@ -57,7 +58,8 @@ class Preprocessing():
             tags = []
             image_features = image_features[:num_samples]
             
-            img_paths = []
+            img_paths = self.get_folder_names(image_dir_path)
+            
             
             
 
@@ -82,3 +84,12 @@ class Preprocessing():
                 points = self.compute_tsne(image_features)
         
         return config, tags, points, img_paths, df, image_dir_path, image_features
+
+
+    def get_folder_names(self, directory):
+        folder_names = []
+        for entry in os.listdir(directory):
+            entry_path = os.path.join(directory, entry)
+            if os.path.isdir(entry_path):
+                folder_names.append(entry + '/image3.jpeg')
+        return folder_names
