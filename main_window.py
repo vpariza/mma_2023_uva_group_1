@@ -70,6 +70,7 @@ class MainWindow(QMainWindow):
         self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
         self._tab2_w.modelToTrain.connect(self.on_train_model)
         self._tab2_w.cosineFeature.connect(self.on_save_feature)
+        self._tab2_w.dataFeature.connect(self.on_save_feature)
         ####### Defining Tab 1
         self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
@@ -126,6 +127,7 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(list, QWidget)
     def on_save_feature(self):
+        
         self._data = self._tab2_w.update_database_features()
         
 
@@ -136,6 +138,7 @@ class MainWindow(QMainWindow):
 
         # preprocess data
         model_df = self._data.loc[selected_data.index].copy()
+        
         model_df = model.preprocess(model_df, selected_data.columns)
         train_X, test_X, val_X, train_y, test_y, val_y = model.split_data(model_df)
         # label which rows where in which split

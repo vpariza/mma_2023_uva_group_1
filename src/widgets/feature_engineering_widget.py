@@ -45,6 +45,7 @@ class FeatureEngineeringWidget(QWidget):
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
     updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
     cosineFeature = QtCore.pyqtSignal(list, QWidget)
+    dataFeature = QtCore.pyqtSignal(list, QWidget)
 
     def __init__(self, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
@@ -148,9 +149,9 @@ class FeatureEngineeringWidget(QWidget):
         v22 = self.add_block([self._scatter_plot_widget, self._image_widget], QHBoxLayout())
         
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
-        print(self._store_qfeat_button.buttonClicked)
+        
 
-        self._store_qfeat_button.buttonClicked.connect(self._on_store_feature)
+        self._store_qfeat_button.buttonClicked.connect(self._on_store_cosine_feature)
 
         v32 = self._store_qfeat_button.button
 
@@ -182,8 +183,9 @@ class FeatureEngineeringWidget(QWidget):
 
         v21 = self.add_block([self._multi_hist_p_widget], QHBoxLayout())
 
-        self.store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight]).button
-        v31 = self.store_datfeat_button
+        self._store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight])
+        self._store_datfeat_button.buttonClicked.connect(self._on_store_data_feature)
+        v31 = self._store_datfeat_button.button
         
         return v11, v21, v31
     
@@ -270,13 +272,17 @@ class FeatureEngineeringWidget(QWidget):
         return (v - v.min()) / (v.max() - v.min())
     
     def update_database_features(self):
-        new_feature_name = 'query_' + self.query_text
-        self._data[new_feature_name] = self.cosinesimilarity
-        self._data_show[new_feature_name] = self.cosinesimilarity
+        if self.featuretype == 'query':
+            new_feature_name = 'query_' + self.query_text
+            self._data[new_feature_name] = self.cosinesimilarity
+            self._data_show[new_feature_name] = self.cosinesimilarity
+        if self.featuretype == 'data':
+            new_feature_name = 'data_' + 'not yet available'
+            self._data[new_feature_name] = np.zeros(len(self._data))
+            self._data_show[new_feature_name] = np.zeros(len(self._data_show))
         self._model_train_widget.add_features([new_feature_name])
         self.update()   
         return self._data_show
-
 
 
     def update(self):
@@ -341,11 +347,25 @@ class FeatureEngineeringWidget(QWidget):
         self.modelDeleted.emit(model_name,self)
 
     @QtCore.pyqtSlot(list, QWidget)
-    def _on_store_feature(self):
+    def _on_store_cosine_feature(self):
+        self.featuretype = 'query'
         try:
             self.cosineFeature.emit(self.cosinesimilarity.values, self)
         except AttributeError:
             BasicDialog(window_title='No Results found!', message='Pleas enter a query to store feature!').exec()
+    
+    @QtCore.pyqtSlot(list, QWidget)
+    def _on_store_data_feature(self):
+        self.featuretype = 'data'
+        try:
+            # TODO: Connect to the right datafeature signal
+            BasicDialog(window_title='No Results found!', message='Hello! This feature is still in the making!').exec()
+            self._datafeature = np.zeros(len(self._data))
+            self.dataFeature.emit(self._datafeature, self)
+        except AttributeError:
+            BasicDialog(window_title='No Results found!', message='Pleas select data and transformation to store feature!').exec()
+
+
 
 import sys
 import numpy as np
