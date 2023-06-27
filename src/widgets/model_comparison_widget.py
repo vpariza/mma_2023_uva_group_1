@@ -74,7 +74,7 @@ class ModelComparisonWidget(QWidget):
         self._m_bar_p_m = MultiBarPlotModel(feature_importances = p_data_features if p_data_features is not None else pd.DataFrame([]), 
                                             parent=self)
         self._m_bar_p_w = MultiBarPlotWidget(self._m_bar_p_m, 
-                                               plot_configs={'title': 'Model Feature Importance', 'xlabel': 'Percent [%]', 'ylabel': 'Feature'},
+                                               plot_configs={'title': 'Model Feature Importance', 'ylabel': 'Percent [%]', 'xlabel': 'Feature'},
                                                parent=self)
         main_layout.addWidget(self._m_bar_p_w, 1, 1)
 
@@ -103,7 +103,6 @@ class ModelComparisonWidget(QWidget):
         self._models_table_view.update_model(self._models_table_model)
     
     def update_plot_data(self, p_data_x: pd.DataFrame, p_data_y: pd.DataFrame, feature_importances_: pd.DataFrame):
-        
         self._m_line_p_m = MultiLinePlotModel(data_x = p_data_x, data_y = p_data_y, parent=self)
         self._m_line_p_w.update_model(self._m_line_p_m)
         self._m_bar_p_m = MultiBarPlotModel(feature_importances = feature_importances_, parent=self)
@@ -121,6 +120,7 @@ class ModelComparisonWidget(QWidget):
 
         models_table_data = pd.DataFrame(models_table_data, columns=['model', *[f'Conf {i}' for i in range(1, models_table_data.shape[1])]])
         # self.update_model_table_data(models_table_data)
+
         self.update_plot_data(p_data_x, p_data_y)
         # self.update_model_names(model_names)
 

@@ -61,8 +61,19 @@ class MultiBarPlotWidget(QWidget):
         labels, features = self._bar_p_model.get_data(self._show_bars)
         self._sc.axes.clear()
         self._bar_plots = list()
-        for col in features:
-            self._bar_plots.append(self._sc.axes.bar(features.index.values, features[col], label=col))
+        # For plotting
+        categories = features.index.values
+        values = features.values.T
+        x_tick = np.arange(len(categories))
+        num_values = len(values)
+        width = 1.0 / (num_values + 1)
+
+        for i, vals in enumerate(values):
+            offset = (i - num_values / 2) * width
+            self._bar_plots.append(self._sc.axes.bar(x_tick + offset, vals, width, label=features.keys().values[i]))
+            
+        self._sc.axes.set_xticks(x_tick)
+        self._sc.axes.set_xticklabels(categories)
         self._sc.axes.legend()
         if self._plot_configs.get('ylabel') is not None:
             self._sc.axes.set_ylabel(self._plot_configs['ylabel'])
