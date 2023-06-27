@@ -128,6 +128,4 @@ class ModelTrainWidget(QWidget):
         self._models_confs[mname] = list()
         self._list_models_w.update_options(list(self._models_confs.keys()))
 
-    def add_new_feature_to_list(self, feature_name, df):
-        self._list_features_w.add_options([feature_name])
         

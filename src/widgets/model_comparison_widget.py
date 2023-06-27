@@ -17,12 +17,15 @@ from src.widgets.table_model import TableModel
 from src.widgets.table_view import TableView
 from src.widgets.multi_line_plot_model import MultiLinePlotModel
 from src.widgets.multi_line_plot_widget import MultiLinePlotWidget
+from src.widgets.multi_bar_plot_model import MultiBarPlotModel
+from src.widgets.multi_bar_plot_widget import MultiBarPlotWidget
 
 import pandas as pd
 
 from typing import Dict
 
 class ModelComparisonWidget(QWidget):
+    # TODO: Fix the barplot
  
     def __init__(self, model_names:List[str]=[], 
                  models_table_data:pd.DataFrame=None, 
@@ -31,7 +34,7 @@ class ModelComparisonWidget(QWidget):
                  widgets:Dict[str, QWidget]={},
                  parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(ModelComparisonWidget, self).__init__(parent=parent, *args, **kwargs)
-        main_layout = QHBoxLayout()
+        main_layout = QGridLayout()
         # Left side layout
         # Add a Title for Selection of models list
         left_layout = QVBoxLayout()
@@ -44,13 +47,14 @@ class ModelComparisonWidget(QWidget):
             self._list_models_w = ListOptionsWidget(model_names, parent=self)
         self._list_models_w.optionsSelected.connect(self.models_selected)
         left_layout.addWidget(self._list_models_w)
+        main_layout.addLayout(left_layout, 0, 0)
         self._m_line_p_m = MultiLinePlotModel(data_x = p_data_x if p_data_x is not None else pd.DataFrame([]), 
                                               data_y = p_data_y if p_data_y is not None else pd.DataFrame([]),
                                               parent=self)
         self._m_line_p_w = MultiLinePlotWidget(self._m_line_p_m, 
                                                plot_configs={'title': 'Model Performance Visualization', 'xlabel': 'Epochs', 'ylabel': 'Mean Absolute Validation Error'},
                                                parent=self)
-        left_layout.addWidget(self._m_line_p_w)
+        main_layout.addWidget(self._m_line_p_w, 1, 0)
         # Right side layout
         right_layout = QVBoxLayout()
         # Add a Title for the Performance of Models Table
@@ -63,8 +67,17 @@ class ModelComparisonWidget(QWidget):
         self._models_table_view = TableView(self._models_table_model, parent=self)
         right_layout.addWidget(self._models_table_view)
         # Merge all the Layouts
-        main_layout.addLayout(left_layout)
-        main_layout.addLayout(right_layout)
+        main_layout.addLayout(right_layout, 0, 1)
+
+        # Add feature importance bar plot
+        self._m_bar_p_m = MultiBarPlotModel(data_x = p_data_x if p_data_x is not None else pd.DataFrame([]), 
+                                              data_y = p_data_y if p_data_y is not None else pd.DataFrame([]),
+                                              parent=self)
+        self._m_bar_p_w = MultiBarPlotWidget(self._m_bar_p_m, 
+                                               plot_configs={'title': 'Model Feature Importance', 'xlabel': 'Percent [%]', 'ylabel': 'Feature'},
+                                               parent=self)
+        main_layout.addWidget(self._m_bar_p_w, 1, 1)
+
         self.setLayout(main_layout)
 
     @property
@@ -75,6 +88,7 @@ class ModelComparisonWidget(QWidget):
     def models_selected(self, model_names, source):
         # Show plots only for the models selected
         self._m_line_p_w.show_lines(show_lines=model_names)
+        self._m_bar_p_w.show_bars(show_bars=model_names)
         # Show table rows for the models selected
         data = self._models_table_model_full.to_dataframe()
         self._models_table_model = TableModel(data[data['model'].isin(model_names)])
@@ -88,9 +102,12 @@ class ModelComparisonWidget(QWidget):
         self._models_table_model_full = self._models_table_model
         self._models_table_view.update_model(self._models_table_model)
     
-    def update_plot_data(self, p_data_x: pd.DataFrame, p_data_y: pd.DataFrame):
+    def update_plot_data(self, p_data_x: pd.DataFrame, p_data_y: pd.DataFrame, feature_importances_: pd.DataFrame):
+        
         self._m_line_p_m = MultiLinePlotModel(data_x = p_data_x, data_y = p_data_y, parent=self)
         self._m_line_p_w.update_model(self._m_line_p_m)
+        self._m_bar_p_m = MultiBarPlotModel(data_x = p_data_x, data_y = p_data_y, feature_importances = feature_importances_, parent=self)
+        self._m_bar_p_w.update_model(self._m_bar_p_m)
 
     ######## TEST ########
     def test(self):

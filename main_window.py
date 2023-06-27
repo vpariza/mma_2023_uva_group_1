@@ -28,6 +28,8 @@ class MainWindow(QMainWindow):
         self.models_table_data = None
         self.p_data_x = {}
         self.p_data_y = {}
+        self.p_data_feature = {}
+        self.p_data_feature_importance = {}
         # TODO: Return sirectory of Listings Images
         self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
 
@@ -163,8 +165,11 @@ class MainWindow(QMainWindow):
             self.p_data_y[k] = np.pad(v, (0, max_len-len(v)), mode='constant', constant_values=np.nan)
         
         #TODO update respective widget with feature importances
-        feature_importances = model.get_feature_importances()
+        self.feature_importances = model.get_feature_importances()
 
+        self.p_data_feature[model_name] = self.feature_importances
+        self.p_data_feature_df = self.build_superset(self.p_data_feature)
+        
         # save model to disk
         model.save_model(model_name)
 
@@ -185,8 +190,27 @@ class MainWindow(QMainWindow):
         # Update the table data in the third tab
         self._tab3_w.update_model_table_data(self.models_table_data)
         # Update the plot data in the third tab
-        self._tab3_w.update_plot_data(self.p_data_x, self.p_data_y)
+        self._tab3_w.update_plot_data(self.p_data_x, self.p_data_y, self.p_data_feature_df)
         #TODO update tabs because columns have changed
+
+    def build_superset(self, subdictionaries):
+        # Build superset of keys 
+        all_keys = set()
+        models = []
+        for subdict in subdictionaries:
+            all_keys.update(subdictionaries[subdict].keys())
+            models.append(subdict)
+
+        rows = []
+        for subdict in subdictionaries:
+            row = {key: subdictionaries[subdict].get(key, 0) for key in all_keys}
+            rows.append(row)
+
+        df = pd.DataFrame(rows).T
+        models = dict(zip(df.columns, models))
+        df = df.rename(columns = models)
+        return df
+
 
 
 if __name__ == '__main__':
