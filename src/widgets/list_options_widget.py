@@ -39,7 +39,7 @@ class ListOptionsWidget(QWidget):
         self._options.extend(options)
         for option in options:
             self._list_widget.addItem(option)
-        self.update()        
+        self.update()
 
     def set_selection(self, selected_options:List[str]):
         selected_options = set(selected_options).intersection(self._options)
