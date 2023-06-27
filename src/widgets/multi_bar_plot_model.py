@@ -11,21 +11,16 @@ from typing import List, Dict, Set
 import numpy as np
 
 class MultiBarPlotModel(QtCore.QObject):
-    def __init__(self, data_x:pd.DataFrame|Dict[str, np.array], data_y:pd.DataFrame|Dict[str, np.array], feature_importances: dict = None, parent: typing.Optional[QtCore.QObject] = None ) -> None:
+    def __init__(self, feature_importances:pd.DataFrame|Dict[str, np.array], parent: typing.Optional[QtCore.QObject] = None ) -> None:
         super(MultiBarPlotModel, self).__init__(parent)
-        self._data_x = data_x if type(data_x) is pd.DataFrame else pd.DataFrame(data_x)
-        self._data_y = data_x if type(data_y) is pd.DataFrame else pd.DataFrame(data_y)
         self._data_feature_importances = feature_importances if type(feature_importances) is pd.DataFrame else pd.DataFrame(feature_importances)
         
-        
-
     def get_headers(self):        
         return list(self._data_feature_importances)
     
     
     def get_column_features(self, column_name:str) -> pd.DataFrame:
         return self._data_feature_importances[column_name]
-
 
     def get_data(self, cols_names:List[str] | Set[str]=None):
         """
