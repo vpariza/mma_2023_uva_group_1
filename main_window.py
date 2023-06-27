@@ -25,14 +25,12 @@ class MainWindow(QMainWindow):
 
         #load data using the config file 'config.ini'
         self._preprocessing = Preprocessing()
-        self._preprocessing = Preprocessing()
         self.models_table_data = None
         self.p_data_x = {}
         self.p_data_y = {}
         self.p_data_feature = {}
         self.p_data_feature_importance = {}
         # TODO: Return sirectory of Listings Images
-        self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
         self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
 
         ####### Load Data
@@ -55,11 +53,8 @@ class MainWindow(QMainWindow):
         ####### Load Models
         self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
         self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
-        self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
-        self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
 
         self._data = self.df
-        self._config = self.config
         self._config = self.config
         self.setCentralWidget(self.create_central_widget())
         self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
