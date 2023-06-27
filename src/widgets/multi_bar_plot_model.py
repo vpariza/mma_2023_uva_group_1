@@ -16,7 +16,7 @@ class MultiBarPlotModel(QtCore.QObject):
         self._data_feature_importances = feature_importances if type(feature_importances) is pd.DataFrame else pd.DataFrame(feature_importances)
         
     def get_headers(self):        
-        return list(self._data_feature_importances)
+        return list(self._data_feature_importances.keys())
     
     
     def get_column_features(self, column_name:str) -> pd.DataFrame:
@@ -29,6 +29,7 @@ class MultiBarPlotModel(QtCore.QObject):
         """
         data_labels = list()
         data_list_features = list()
+        current_df = self._data_feature_importances.copy()
         if cols_names is None:
             cols_names = set(self.get_headers())
         else:
@@ -36,5 +37,8 @@ class MultiBarPlotModel(QtCore.QObject):
         for column_name in cols_names:
             data_labels.append(column_name)
             data_list_features.append(self.get_column_features(column_name).values)
-            
-        return data_labels, self._data_feature_importances
+        for column_name in current_df.keys().values:
+            if column_name not in cols_names:
+                current_df.drop(column_name, axis=1, inplace=True)
+        
+        return data_labels, current_df 

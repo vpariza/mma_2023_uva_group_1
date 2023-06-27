@@ -59,7 +59,7 @@ class MultiBarPlotWidget(QWidget):
 
     def update(self):
         labels, features = self._bar_p_model.get_data(self._show_bars)
-        self._sc.axes.clear()
+        self._sc.axes.cla()
         self._bar_plots = list()
         # For plotting
         categories = features.index.values
@@ -70,7 +70,7 @@ class MultiBarPlotWidget(QWidget):
 
         for i, vals in enumerate(values):
             offset = (i - num_values / 2) * width
-            self._bar_plots.append(self._sc.axes.bar(x_tick + offset, vals, width, label=features.keys().values[i]))
+            self._bar_plots.append(self._sc.axes.bar(x_tick + offset, vals, width, label=features.keys().values[i].replace('_','\n')))
             
         self._sc.axes.set_xticks(x_tick)
         self._sc.axes.set_xticklabels(categories)
