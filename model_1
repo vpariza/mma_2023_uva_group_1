@@ -1,0 +1,1 @@
+{"categorical_features": [], "used_features": ["bedrooms", "living_area", "year_of_construction", "plot_size"], "target": "price"}
