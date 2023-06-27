@@ -52,6 +52,7 @@ class ScatterPlotWidget(QWidget):
         # Load points
         self.start_point = None
         self.end_point = None
+        self._alpha = 1.0
         # create a button under the scatterplot that removes the rectangle and the selected points
         #self.clear_button = QPushButton("Clear Selection")
         #self.clear_button.clicked.connect(self.clear_selection)
@@ -99,24 +100,25 @@ class ScatterPlotWidget(QWidget):
             point.remove()
         
         if self.points is not None:
-            self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color)
+            self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color, alpha=self._alpha)
             for i in self.selected_points:
                 point = self.points[i]
                 if self.is_point_in_rectangle(point) or self.outside_points_visible:
-                    self.Figure.ax.scatter(point[0], point[1], s=self.selection_points_size, c=self.selection_color)
+                    self.Figure.ax.scatter(point[0], point[1], s=self.selection_points_size, c=self.selection_color, alpha=self._alpha)
         
         
         self.Figure.canvas.draw()
         
     def update_scatterplot(self, x, y, kmeans = False, k = 2, alpha_ = 1):
         """Update scatterplot with new dataframe"""
+        self._alpha = alpha_
         if x is None or y is None:
             self.Figure.ax.cla()
             self.Figure.canvas.draw()
             return
         if not kmeans:
             self.Figure.ax.cla() 
-            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color, alpha=alpha_)
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color, alpha=self._alpha)
             self.Figure.canvas.draw()
         if kmeans:
             #scaler = StandardScaler()
@@ -129,7 +131,7 @@ class ScatterPlotWidget(QWidget):
             # Get the coordinates of the cluster centers
             cluster_centers = kmeans.cluster_centers_
             self.Figure.ax.cla() 
-            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels, alpha=alpha_)
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels, alpha=self._alpha)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
             self.Figure.canvas.draw()
 
