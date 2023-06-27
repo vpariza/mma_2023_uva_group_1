@@ -10,7 +10,7 @@ class ImageWidget(QWidget):
     """pyqt widget that has as input a list of image path. It takes an input signal of indices. Based on that a random number of images is displayed (max n) in two rows"""
     def __init__(self,img_paths, config):
         super().__init__()
-        self.base_path = config['main']['base_dataset_path']
+        self.base_path = config['main']['images_dir_path']
         self.img_paths = img_paths
         self.images_per_row = 2
         self.rows = 3
