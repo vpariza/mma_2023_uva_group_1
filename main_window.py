@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         query is a string and you must filter the 
         """
         
-        if self._tab2_w.query_options_widget.Filter.currentText() != '': #TODO use image by default and remove empty string as standard option
+        if self._tab2_w.query_options_widget.Filter.currentText() == 'text': #TODO use image by default and remove empty string as standard option
             query_type = self._tab2_w.query_options_widget.Filter.currentText()
         else:
             query_type = "image"
