@@ -11,7 +11,6 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton
 )
 import typing
-from src.widgets.list_options_widget import ListOptionsWidget
 from typing import List, Dict
 
 from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
@@ -27,11 +26,11 @@ from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.multi_hist_plot_widget import MultiHistogramPlotWidget
 from src.widgets.table_listings_model import TableListingsModel
 from src.widgets.table_listings_view import TableListingsView
-from PyQt6.QtWidgets import QWidget, QListWidget
+from PyQt6.QtWidgets import QWidget
 from src.widgets.dialog_widgets import BasicDialog
 from src.utils.filtering_utils import apply_filters
 from src.widgets.model_train_widget import ModelTrainWidget
-from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
+from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget
 from src.widgets.filter_widget import ComboFilter
 from sklearn.preprocessing import minmax_scale
 from sklearn.preprocessing import scale
@@ -137,11 +136,8 @@ class FeatureEngineeringWidget(QWidget):
         options_query = ['text', 'images']
         self.query_options_widget = ComboFilter('Select query type', options_query)
         
-
-
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
-        
         
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
