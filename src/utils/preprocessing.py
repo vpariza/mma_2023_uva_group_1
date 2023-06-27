@@ -1,5 +1,6 @@
 import configparser
-import h5py, umap
+import umap
+import pickle
 import os
 
 import pandas as pd
@@ -21,66 +22,24 @@ class Preprocessing():
         config = configparser.ConfigParser()
         config.read('config.ini')
         
-        data_path = config['main']['pkl_path']
         data_csv_path = config['main']['csv_path']
-        # 16.865 image folders 
-        images_path = config['main']['images_path']
         image_dir_path = config['main']['images_dir_path']
         
-        # config - 1000
-        num_samples = int(config['main']['num_samples'])
-        
-        sample_selection = str(config['main']['sample_selection'])
-        
+        # load data
         df = pd.read_csv(data_csv_path)
-        
+        df = df.set_index("funda_identifier", drop=False)
 
-        with h5py.File(images_path, "r") as hf:
-            # Shape: (1000, 512)
-            image_features = hf["image_features"][:]
-        
-                        
-        ## select num_samples samples between
-        if sample_selection == 'new':
-            image_features = image_features[:num_samples]
+        # restrict number of considered samples
+        num_samples = int(config['main']['num_samples'])
+        if num_samples > 0:
             df = df[:num_samples]
-            points = self.compute_umap(image_features)
-            
-            df['umap_x'] = points[:,0]
-            df['umap_y'] = points[:,1]
-            tsne_points = self.compute_tsne(image_features)
-            df['tsne_x'] = tsne_points[:,0]
-            df['tsne_y'] = tsne_points[:,1]
-            tags = []
-            image_features = image_features[:num_samples]
-            id_vals = df['funda_identifier'].values
-            img_paths = [str(id_) + '/image3.jpeg' for id_ in id_vals]
-            
-            
-            
-            
-            
-
-        if sample_selection == 'random':
-            # Chooses 1000 random datapoints
-            random_indices = np.random.choice(len(df), num_samples, replace=False)
-            tags = df['tags'].iloc[random_indices].values
-            points = df[['umap_x','umap_y']].iloc[random_indices].values
-            image_features = image_features[random_indices]
-            img_paths = df['filepaths'].iloc[random_indices].values
-
-        if sample_selection == 'first':
-            tags = df['tags'].iloc[:num_samples].values
-            points = df[['umap_x','umap_y']].iloc[:num_samples].values
-            image_features = image_features[:num_samples]
-            img_paths = df['filepaths'].iloc[:num_samples].values
-        ## recompute the embedding coordinates
-        if bool(config['main']['recompute_embedding']):
-            if str(config['main']['embedding'])=='umap':
-                points = self.compute_umap(image_features)
-            elif str(config['main']['embedding'])=='tsne':
-                points = self.compute_tsne(image_features)
         
-        return config, tags, points, img_paths, df, image_dir_path, image_features
+        # load image features and append to dataframe
+        with open(config['main']['image_features_path'], "rb") as f:
+            image_df = pickle.load(f)
+        image_df = image_df.set_index(["funda_id"])
+        image_df = image_df[image_df["image_id"] == "1"]
+        image_df["image_path"] = image_df.index.astype(str) + f"/image1.jpeg"
+        df = df.merge(image_df, left_index=True, right_index=True, how="left")
 
-
+        return config, df, image_dir_path
