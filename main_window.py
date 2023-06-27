@@ -24,13 +24,12 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         #load data using the config file 'config.ini'
-        preprocessing = Preprocessing()
+        self._preprocessing = Preprocessing()
         self.models_table_data = None
         self.p_data_x = {}
         self.p_data_y = {}
         # TODO: Return sirectory of Listings Images
-        self.config, self.tags, self.points, self.img_paths, self.df, self.images_dir_path, self.img_features = preprocessing.load_data()        
-        self.df = self.df.set_index("funda_identifier", drop=False)
+        self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
 
         ####### Load Data
         # Define the training features to use for the
@@ -45,30 +44,32 @@ class MainWindow(QMainWindow):
             'lon': float,
             'label': "category",
         }
+        
         for feature, dtype in self._training_features.items():
             self.df[feature] = self.df[feature].astype(dtype)
-        self._preprocessing = Preprocessing()
-        config, tags, points, img_paths, df, images_dir_path, self.img_features = self._preprocessing.load_data()
         
-
         ####### Load Models
-        self.image_model = VisionModel(precomputed_features_path=config['main']['image_features_path'])
-        self.text_model = LanguageModel(precomputed_features_path=config['main']['text_features_path'])
+        self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
+        self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
 
         self._data = self.df
-        self._config = config
+        self._config = self.config
         self.setCentralWidget(self.create_central_widget())
         self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
-        
+
     def create_central_widget(self):
         ####### Defining Tab 2
         # Define the Second Tab
-        self._tab2_w = FeatureEngineeringWidget(data=self._data, img_features = self.img_features,
+        self.img_features = self._data['image_features'].values
+        self.img_paths = self._data['image_path'].values
+
+        self._tab2_w = FeatureEngineeringWidget(data=self._data,
                                                 training_features=list(self._training_features.keys()), 
-                                                config=self._config, widgets={}, parent=self, img_paths = self.img_paths)
+                                                config=self._config, widgets={}, parent=self)
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
         self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
         self._tab2_w.modelToTrain.connect(self.on_train_model)
+        self._tab2_w.cosineFeature.connect(self.on_save_feature)
         ####### Defining Tab 1
         self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
@@ -122,6 +123,11 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
     def on_updated_showed_data_tab_2(self, show_data, source):
         self._tab1_w.update_data_show(show_data)
+
+    @QtCore.pyqtSlot(list, QWidget)
+    def on_save_feature(self):
+        self._data = self._tab2_w.update_database_features()
+        
 
     @QtCore.pyqtSlot(str, pd.DataFrame, QWidget)
     def on_train_model(self, model_name, selected_data:pd.DataFrame, source):

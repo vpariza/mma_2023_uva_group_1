@@ -275,8 +275,7 @@ class FeatureEngineeringWidget(QWidget):
         self._data_show[new_feature_name] = self.cosinesimilarity
         self._model_train_widget.add_features([new_feature_name])
         self.update()   
-        #self_data['query_' +update_feature_list self.query_text]
-        #print('Made it here', self.cosinesimilarity)
+        return self._data_show
 
 
 
