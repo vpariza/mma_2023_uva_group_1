@@ -268,7 +268,7 @@ class FeatureEngineeringWidget(QWidget):
     ###### Update Methods ######
     def update_data_show(self, data:pd.DataFrame, query = None, query_type=None):
         self._data_show = data
-        print('update original data')
+
         if query != None:
             self.query_text = query.lower().replace(" ", "_")
             feature_name = self.query_text + f"_{query_type}_similarity"
@@ -411,7 +411,6 @@ if __name__ == '__main__':
             config, tags, points, img_paths, df, images_dir_path = preprocessing.load_data()
             df['umap_x'] = points[:,0]
             df['umap_y'] = points[:,1] 
-            # print(df[['umap_x','umap_y']])
             w = FeatureEngineeringWidget(data=df, training_features=list(training_features.keys()), config=config, parent=self)
             self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
             

@@ -57,6 +57,10 @@ class FilterWidget(QWidget):
         # Configure widget style
         self.make_main_layout(config)
 
+    def get_filters(self):
+        return self.filters
+    
+
     def make_main_layout(self, config = '1'):
         hblock = QWidget()
         hblock_layout = QHBoxLayout()
@@ -134,25 +138,30 @@ class RangeFilter(QWidget):
     def __init__(self, name, placeholdertext):
         super().__init__()
         self.name = name
-        widget_layout = QVBoxLayout(self, spacing=5)
+        self.placeholdertext = placeholdertext
+        self.layout = QVBoxLayout(self, spacing=5)
 
         # Set box lable
         self.QueryLabel = QLabel(self)
         self.QueryLabel.setText(self.name.replace("_", " "))
         self.QueryLabel.setStyleSheet("border: 0px;")
         self.QueryLabel.setFixedSize(QSize(125, 25))  
-        widget_layout.addWidget(self.QueryLabel)
+        self.layout.addWidget(self.QueryLabel)
         
         # Set query input box
         self.QueryText = QLineEdit(self)
         self.QueryText.setStyleSheet("border: 1px solid darkgray;  background-color: white;")   
-        widget_layout.addWidget(self.QueryText)
+        self.layout.addWidget(self.QueryText)
         self.QueryText.setPlaceholderText(placeholdertext)
 
         # Combine widgets
-        self.setLayout(widget_layout )
+        self.setLayout(self.layout)
         self.setStyleSheet("border: 0px;")
         #self.setFixedSize(QSize(250 , 50))
+    
+    def resetRangeFilter(self):
+        self.QueryText.clear()
+        self.QueryText.setPlaceholderText(self.placeholdertext)
 
 
 class ComboFilter(QWidget):
@@ -192,6 +201,13 @@ class ComboFilter(QWidget):
         
         self.setLayout(layout)
         self.setStyleSheet("border: 0px;")
+
+    def resetComboBoxes(self):
+        for index in range(self.layout().count()):
+            widget = self.layout().itemAt(index).widget()
+            if isinstance(widget, QComboBox):
+                widget.setCurrentIndex(-1)
+                widget.setPlaceholderText('Select')
         
     
     def check_index(self, index):
@@ -199,7 +215,7 @@ class ComboFilter(QWidget):
 
     def current_text(self, _): 
         ctext = self.Filter.currentText()
-        print(self.label, ctext)
+        
 
     def current_text_via_index(self, index):
         ctext = self.Filter.itemText(index) 

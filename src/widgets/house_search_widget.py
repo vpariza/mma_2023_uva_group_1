@@ -58,20 +58,20 @@ class HouseSearchWidget(QWidget):
 
     ###### Creating the general Layout ######
     def create_layout(self):
-        main_layout = QHBoxLayout()
-        main_layout.addLayout(self._left_layout())
-        main_layout.addLayout(self._right_layout())
-        return main_layout
+        self.main_layout = QHBoxLayout()
+        self.main_layout.addLayout(self._left_layout())
+        self.main_layout.addLayout(self._right_layout())
+        return self.main_layout
 
     def _right_layout(self):
-        right_layout = QVBoxLayout()
+        self.right_layout = QVBoxLayout()
         ####### Add the Query Widget
         if self._query_widget is None:      
             self._query_widget = QueryWidget()
             self._query_widget.resize(600, 200) 
         self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
         self._query_widget = self.add_block([self._query_widget], QHBoxLayout())
-        right_layout.addWidget(self._query_widget)
+        self.right_layout.addWidget(self._query_widget)
         ####### Add the Filtering Widget
         # Define filters 
         combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
@@ -80,21 +80,23 @@ class HouseSearchWidget(QWidget):
 
         if self._filter_widget is None:
             self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
+        
+        self.filters = self._filter_widget.filters
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         self._filter_widget = self.add_block([self._filter_widget], QHBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
-        right_layout.addWidget(self._filter_widget)
+        self.right_layout.addWidget(self._filter_widget)
         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
         self._table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
         self._table_listings_widget.setFixedWidth(600)
-        right_layout.addWidget(self._table_listings_widget)
+        self.right_layout.addWidget(self._table_listings_widget)
         self._clear_all_button = QPushButton('Clear All', self)
         self._clear_all_button.clicked.connect(self.clear_all_button_clicked)
-        right_layout.addWidget(self._clear_all_button)
-        return right_layout
+        self.right_layout.addWidget(self._clear_all_button)
+        return self.right_layout
     
 
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
@@ -127,6 +129,14 @@ class HouseSearchWidget(QWidget):
         self._data = data.copy()
         self._data_show = data.copy()
         self.update()
+
+    def update_placeholder_values(self):
+        for filter in self.filters['combo']:
+            self.filters['combo'][filter].resetComboBoxes()
+        for filter in self.filters['range']:
+            self.filters['range'][filter].Min.resetRangeFilter()
+            self.filters['range'][filter].Max.resetRangeFilter()
+            
 
     def update(self):
         self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
@@ -173,6 +183,7 @@ class HouseSearchWidget(QWidget):
         self._data_show = self._data.copy()
         self._geo_map_widget.focus_on_coord(None)
         self.updatedShowedData.emit(self._data_show, self)
+        self.update_placeholder_values()
         self.update()
 
 
