@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
-
 import matplotlib
 matplotlib.use('QtAgg')
 import numpy as np
@@ -148,8 +145,6 @@ class FeatureEngineeringWidget(QWidget):
         v22 = self.add_block([self._scatter_plot_widget, self._image_widget, self._sentence_widget], QHBoxLayout())
         
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
-        
-
         self._store_qfeat_button.buttonClicked.connect(self._on_store_cosine_feature)
 
         v32 = self._store_qfeat_button.button
@@ -300,15 +295,22 @@ class FeatureEngineeringWidget(QWidget):
         return (v - v.min()) / (v.max() - v.min())
     
     def update_database_features(self):
+        new_feature_names = list()
         if self.featuretype == 'query':
             new_feature_name = 'query_' + self.query_text
             self._data[new_feature_name] = self.cosinesimilarity
-            self._data_show[new_feature_name] = self.cosinesimilarity
+            # self._data_show[new_feature_name] = self.cosinesimilarity
+            self._data_show = self._data[self._data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
+            new_feature_names.append(new_feature_name)
         if self.featuretype == 'data':
-            new_feature_name = 'data_' + 'not yet available'
-            self._data[new_feature_name] = np.zeros(len(self._data))
-            self._data_show[new_feature_name] = np.zeros(len(self._data_show))
-        self._model_train_widget.add_features([new_feature_name])
+            new_feature_names = list()
+            for column in self._datafeature:
+                new_feature_name = 'data_{}'.format(column)
+                self._data[new_feature_name] = self._datafeature[column].values
+                self._data_show = self._data[self._data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
+                # self._data_show[new_feature_name] = np.zeros(len(self._data_show))
+                new_feature_names.append(new_feature_name)
+        self._model_train_widget.add_features(new_feature_names)
         self.update()   
         return self._data_show
 
@@ -353,9 +355,6 @@ class FeatureEngineeringWidget(QWidget):
             self.kmeans = False
         self.update()
         
-        
-
-
     @QtCore.pyqtSlot(str, QWidget)
     def _on_txt_query_submitted(self, txt_query):
         self.txtQuerySubmitted.emit(txt_query, self)
@@ -380,9 +379,7 @@ class FeatureEngineeringWidget(QWidget):
     def _on_store_data_feature(self):
         self.featuretype = 'data'
         try:
-            # TODO: Connect to the right datafeature signal
-            BasicDialog(window_title='No Results found!', message='Hello! This feature is still in the making!').exec()
-            self._datafeature = np.zeros(len(self._data))
+            self._datafeature  = self._multi_hist_p_widget.get_transformed_column_data(self._data)
             self.dataFeature.emit(self._datafeature, self)
         except AttributeError:
             BasicDialog(window_title='No Results found!', message='Pleas select data and transformation to store feature!').exec()

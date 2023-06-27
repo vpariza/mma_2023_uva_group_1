@@ -106,7 +106,7 @@ class GeoMapWidget(QWidget):
         Marker._template = Template(self.__click_marker_template)
         # Define the folium map
         m = folium.Map(
-            location=self._geo_map_model.get_centroid_point() if centroid is None else centroid, tiles="OpenStreetMap", zoom_start=13
+            location=self._geo_map_model.get_centroid_point() if centroid is None else centroid, tiles="OpenStreetMap", zoom_start=9
         )
         
         e = folium.Element(self.__click_marker_js)

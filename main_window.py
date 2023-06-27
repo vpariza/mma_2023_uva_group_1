@@ -126,7 +126,6 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(list, QWidget)
     def on_save_feature(self):
-        
         self._data = self._tab2_w.update_database_features()
         
 

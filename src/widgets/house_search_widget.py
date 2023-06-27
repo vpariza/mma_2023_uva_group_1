@@ -170,7 +170,7 @@ class HouseSearchWidget(QWidget):
     @QtCore.pyqtSlot(object, QWidget)
     def on_map_entry_clicked(self, entry, source):
         # TODO
-        print('Map Entry Clicked', entry)
+        # print('Map Entry Clicked', entry)
         pass
 
     @QtCore.pyqtSlot(object, QWidget)
