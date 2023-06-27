@@ -25,10 +25,12 @@ class MainWindow(QMainWindow):
 
         #load data using the config file 'config.ini'
         self._preprocessing = Preprocessing()
+        self._preprocessing = Preprocessing()
         self.models_table_data = None
         self.p_data_x = {}
         self.p_data_y = {}
         # TODO: Return sirectory of Listings Images
+        self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
         self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
 
         ####### Load Data
@@ -44,18 +46,22 @@ class MainWindow(QMainWindow):
             'lon': float,
             'label': "category",
         }
+        
         for feature, dtype in self._training_features.items():
             self.df[feature] = self.df[feature].astype(dtype)
 
         ####### Load Models
         self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
         self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
+        self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
+        self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
 
         self._data = self.df
         self._config = self.config
+        self._config = self.config
         self.setCentralWidget(self.create_central_widget())
         self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
-        
+
     def create_central_widget(self):
         ####### Defining Tab 2
         # Define the Second Tab
@@ -65,6 +71,8 @@ class MainWindow(QMainWindow):
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
         self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
         self._tab2_w.modelToTrain.connect(self.on_train_model)
+        self._tab2_w.cosineFeature.connect(self.on_save_feature)
+        self._tab2_w.dataFeature.connect(self.on_save_feature)
         ####### Defining Tab 1
         self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
@@ -119,6 +127,12 @@ class MainWindow(QMainWindow):
     def on_updated_showed_data_tab_2(self, show_data, source):
         self._tab1_w.update_data_show(show_data)
 
+    @QtCore.pyqtSlot(list, QWidget)
+    def on_save_feature(self):
+        
+        self._data = self._tab2_w.update_database_features()
+        
+
     @QtCore.pyqtSlot(str, pd.DataFrame, QWidget)
     def on_train_model(self, model_name, selected_data:pd.DataFrame, source):
         # BEGIN: TODO: Insert your code for training a model
@@ -126,6 +140,7 @@ class MainWindow(QMainWindow):
 
         # preprocess data
         model_df = self._data.loc[selected_data.index].copy()
+        
         model_df = model.preprocess(model_df, selected_data.columns)
         train_X, test_X, val_X, train_y, test_y, val_y = model.split_data(model_df)
         # label which rows where in which split

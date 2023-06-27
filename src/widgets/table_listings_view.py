@@ -81,7 +81,7 @@ class TableListingsView(QtWidgets.QTableView):
         self.clicked.connect(self.__cell_was_clicked)
         self.doubleClicked.connect(self.__cell_was_double_clicked)
         self._selected_entries = set()
-        self.setFixedWidth(600)
+        
 
     def update_model(self, model: TableListingsModel):
         self.setModel(model)

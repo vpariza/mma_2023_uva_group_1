@@ -7,12 +7,17 @@ import numpy as np
 
 class ButtonWidget(QWidget):
     """ Build custom title widget
-
     """
-    def __init__(self, button_title, size = None):
+
+    # Signal for Emitting the requrested query text
+    buttonClicked = QtCore.pyqtSignal(list, QWidget)
+
+
+    def __init__(self, button_title, size = None, arr = []):
         super().__init__()
         self.button_title = button_title
         self.size = size
+        self.arr = arr
         
 
         self.button = QPushButton(self.button_title)
@@ -21,7 +26,10 @@ class ButtonWidget(QWidget):
             self.button.setFixedSize(QSize(self.size[0], self.size[1]))  
         
         self.button.setStyleSheet("border: 1px solid darkgray; QPushButton { qproperty-alignment: AlignCenter; }")   
-
+        self.button.clicked.connect(self.clickMethod)
+        
+    def clickMethod(self):
+        self.buttonClicked.emit(self.arr, self)
 
 class TitleWidget(QWidget):
     """ Build custom title widget

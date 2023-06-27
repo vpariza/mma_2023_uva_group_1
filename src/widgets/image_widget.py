@@ -54,7 +54,7 @@ class ImageWidget(QWidget):
         if self.img_paths is None:
             return
         if selected_points==[]:
-            self.selected_images = random.sample(self.img_paths,min(len(self.img_paths),self.images_per_row*self.rows))
+            self.selected_images = random.sample(self.img_paths.tolist(),min(len(self.img_paths),self.images_per_row*self.rows))
             self.update()
         else:
             self.selected_points = selected_points

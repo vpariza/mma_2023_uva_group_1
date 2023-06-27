@@ -1,0 +1,1 @@
+{"categorical_features": ["label"], "used_features": ["living_area", "year_of_construction", "lat"], "target": "price"}
