@@ -56,6 +56,7 @@ class FeatureEngineeringWidget(QWidget):
         self._table_listings_model = widgets.get('table_listings_model')
         self._table_listings_widget = widgets.get('table_listings_widget')
         self._image_widget = ImageWidget(img_paths, config)
+        self._sentence_widget = None #TODO implement
         
         # default values for UMAP/t-SNE columns
         self._umap_col_name = "umap"
@@ -278,7 +279,7 @@ class FeatureEngineeringWidget(QWidget):
             self._umap_col_name = feature_name + "-umap"
             self._tsne_col_name = feature_name + "-tsne"
 
-        if query_type == 'image':
+        if query_type == "image":
             image_paths = data["funda_identifier"].astype(str) + "/image" + data[feature_name + '-max_id'].astype(str) + ".jpeg"
             self._image_widget.update_image_paths(image_paths)
         
