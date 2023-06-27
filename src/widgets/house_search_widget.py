@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
-
 import matplotlib
 matplotlib.use('QtAgg')
 
