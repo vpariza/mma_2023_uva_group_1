@@ -25,12 +25,14 @@ class MainWindow(QMainWindow):
 
         #load data using the config file 'config.ini'
         self._preprocessing = Preprocessing()
+        self._preprocessing = Preprocessing()
         self.models_table_data = None
         self.p_data_x = {}
         self.p_data_y = {}
         self.p_data_feature = {}
         self.p_data_feature_importance = {}
         # TODO: Return sirectory of Listings Images
+        self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
         self.config, self.df, self.images_dir_path = self._preprocessing.load_data()
 
         ####### Load Data
@@ -49,12 +51,15 @@ class MainWindow(QMainWindow):
         
         for feature, dtype in self._training_features.items():
             self.df[feature] = self.df[feature].astype(dtype)
-        
+
         ####### Load Models
+        self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
+        self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
         self.image_model = VisionModel(precomputed_features_path=self.config['main']['image_features_path'])
         self.text_model = LanguageModel(precomputed_features_path=self.config['main']['text_features_path'])
 
         self._data = self.df
+        self._config = self.config
         self._config = self.config
         self.setCentralWidget(self.create_central_widget())
         self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
@@ -62,12 +67,9 @@ class MainWindow(QMainWindow):
     def create_central_widget(self):
         ####### Defining Tab 2
         # Define the Second Tab
-        self.img_features = self._data['image_features'].values
-        self.img_paths = self._data['image_path'].values
-
         self._tab2_w = FeatureEngineeringWidget(data=self._data,
                                                 training_features=list(self._training_features.keys()), 
-                                                config=self._config, widgets={}, parent=self)
+                                                config=self._config, widgets={}, parent=self, img_paths = self._data['image_path'])
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
         self._tab2_w.txtQuerySubmitted.connect(self.on_query_submitted)
         self._tab2_w.modelToTrain.connect(self.on_train_model)
@@ -101,10 +103,10 @@ class MainWindow(QMainWindow):
         query is a string and you must filter the 
         """
         
-        query_type = "text" 
-
-        if self._tab2_w.query_options_widget.Filter.currentText() != '':
+        if self._tab2_w.query_options_widget.Filter.currentText() != '': #TODO use image by default and remove empty string as standard option
             query_type = self._tab2_w.query_options_widget.Filter.currentText()
+        else:
+            query_type = "image"
             
         if query_type == "image":
             data = self.image_model.calculate_similarity(query, self._data)
@@ -114,7 +116,7 @@ class MainWindow(QMainWindow):
         self._data = data
         self._tab1_w.update_original_data(data)
 
-        self._tab2_w.update_data_show(data, query)
+        self._tab2_w.update_data_show(data, query, query_type)
         self._tab2_w.update_original_data(data)
 
         #TODO update training_features values to include columns that end with "_similarity-max_score" to also consider new features during training

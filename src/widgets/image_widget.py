@@ -24,7 +24,10 @@ class ImageWidget(QWidget):
         
         self.selected_points = []
         self.selected_points_button = []
-        self.set_selected_points([])
+        self.set_selected_points(list(range(len(self.img_paths))))
+
+    def update_image_paths(self, img_paths):
+        self.img_paths = img_paths
 
     def update(self):
         """Update the widget with the new indices"""
@@ -48,22 +51,26 @@ class ImageWidget(QWidget):
     def set_selected_points(self, selected_points):
         """Method that sets the selected points and updates the wordcloud"""
         ## only update the wordcloud if the selected points in the scatterplot have changed
+        if self.img_paths is None:
+            return
         if selected_points==[]:
             self.selected_images = random.sample(self.img_paths.tolist(),min(len(self.img_paths),self.images_per_row*self.rows))
+            self.selected_images = []
             self.update()
         else:
             self.selected_points = selected_points
-            self.selected_images = random.sample(self.img_paths[self.selected_points].tolist(),min(len(self.img_paths[self.selected_points]),self.images_per_row*self.rows))
+            self.selected_images = random.sample(self.img_paths.iloc[self.selected_points].tolist(),min(len(self.img_paths.iloc[self.selected_points]),self.images_per_row*self.rows))
             self.update()
 
     def set_selected_points_button(self, selected_points):
         """Method that sets the selected points and updates the wordcloud"""
         if selected_points==[]:
-            self.selected_images = random.sample(self.img_paths[self.selected_points].tolist(),min(len(self.img_paths[self.selected_points]),self.images_per_row*self.rows))
+            self.selected_images = random.sample(self.img_paths.iloc[self.selected_points].tolist(),min(len(self.img_paths.iloc[self.selected_points]),self.images_per_row*self.rows))
+            self.selected_images = []
             self.update()
         else:
             self.selected_points_button = selected_points
-            self.selected_images = random.sample(self.img_paths[np.intersect1d(self.selected_points_button,self.selected_points)].tolist(),min(len(self.img_paths[np.intersect1d(self.selected_points_button,self.selected_points)]),self.images_per_row*self.rows))
+            self.selected_images = random.sample(self.img_paths.iloc[np.intersect1d(self.selected_points_button,self.selected_points)].tolist(),min(len(self.img_paths.iloc[np.intersect1d(self.selected_points_button,self.selected_points)]),self.images_per_row*self.rows))
             self.update()
             
 

@@ -66,9 +66,9 @@ class Model():
         similarity_scores = self.cosine_similarity(query_features, self.features.T)
         print(similarity_scores)
 
-        max_scores, max_scores_ids = self.max_aggregation(similarity_scores)
+        max_scores, max_scores_ids, max_scores_idxs = self.max_aggregation(similarity_scores)
 
-        df = self.merge_to_df(df, max_scores, max_scores_ids)
+        df = self.merge_to_df(df, max_scores, max_scores_ids, max_scores_idxs)
 
         return df
 
@@ -88,10 +88,11 @@ class Model():
         max_scores_ids.name = self.feature_name + "-max_id"
         max_scores = self.df.loc[max_scores_idxs][self.feature_name]
         max_scores.name = self.feature_name + "-max_score"
+        max_scores.index = max_scores.index.droplevel(1)
         
-        return max_scores, max_scores_ids
+        return max_scores, max_scores_ids, max_scores_idxs
     
-    def merge_to_df(self, df, max_scores, max_scores_ids):
+    def merge_to_df(self, df, max_scores, max_scores_ids, max_scores_idxs):
         """
         Merge the similarity scores and indices of items with maximum scores to the original dataframe
         
@@ -102,10 +103,14 @@ class Model():
         Returns:
             (pd.DataFrame): Dataframe with containing additional columns
         """
-        max_scores.index = max_scores.index.droplevel(1)
+        for col in df.columns:
+            if col.startswith(self.feature_name):
+                # If the column already exists, drop it
+                df.drop(col, axis=1, inplace=True)
         df_merged = df.merge(max_scores, how="left", left_index=True, right_index=True)
         df_merged = df_merged.merge(max_scores_ids, how="left", left_index=True, right_index=True)
         df_merged = self.add_extra_info(df_merged)
+        df_merged = self.add_2d_representation(df_merged, max_scores_idxs)
         return df_merged
 
     def add_extra_info(self, df):
@@ -114,10 +119,39 @@ class Model():
         
         Args:
             df (pd.DataFrame): Original dataframe
+            add_2d_representation (bool): Whether to add a 2D representations (UMAP & t-SNE) of the image
         Returns:
             (pd.DataFrame): Dataframe potentially containing additional columns
         """
         return df
+    
+    def add_2d_representation(self, df, max_scores_idxs):
+        """
+        Add 2D representations (UMAP & t-SNE) of the image to the dataframe
+        
+        Args:
+            df (pd.DataFrame): Original dataframe
+            max_scores_idxs (pd.Series): Series with indices of items with maximum scores for each funda_id
+        Returns:
+            (pd.DataFrame): Dataframe containing additional columns
+        """
+        umap_x = self.df.loc[max_scores_idxs].umap_x
+        umap_x.index = umap_x.index.droplevel(1)
+        umap_x.name = self.feature_name + "-umap_x"
+        df_merged = df.merge(umap_x, how="left", left_index=True, right_index=True)
+        umap_y = self.df.loc[max_scores_idxs].umap_y
+        umap_y.index = umap_y.index.droplevel(1)
+        umap_y.name = self.feature_name + "-umap_y"
+        df_merged = df_merged.merge(umap_y, how="left", left_index=True, right_index=True)
+        tsne_x = self.df.loc[max_scores_idxs].tsne_x
+        tsne_x.index = tsne_x.index.droplevel(1)
+        tsne_x.name = self.feature_name + "-tsne_x"
+        df_merged = df_merged.merge(tsne_x, how="left", left_index=True, right_index=True)
+        tsne_y = self.df.loc[max_scores_idxs].tsne_y
+        tsne_y.index = tsne_y.index.droplevel(1)
+        tsne_y.name = self.feature_name + "-tsne_y"
+        df_merged = df_merged.merge(tsne_y, how="left", left_index=True, right_index=True)
+        return df_merged
     
     def cosine_similarity(self, a, b):
         """
