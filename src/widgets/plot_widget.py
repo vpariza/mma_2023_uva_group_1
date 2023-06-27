@@ -98,18 +98,22 @@ class ScatterPlotWidget(QWidget):
         for point in self.Figure.ax.collections:
             point.remove()
         
-
-        self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color)
-        for i in self.selected_points:
-            point = self.points[i]
-            if self.is_point_in_rectangle(point) or self.outside_points_visible:
-                self.Figure.ax.scatter(point[0], point[1], s=self.selection_points_size, c=self.selection_color)
+        if self.points is not None:
+            self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color)
+            for i in self.selected_points:
+                point = self.points[i]
+                if self.is_point_in_rectangle(point) or self.outside_points_visible:
+                    self.Figure.ax.scatter(point[0], point[1], s=self.selection_points_size, c=self.selection_color)
         
         
         self.Figure.canvas.draw()
         
     def update_scatterplot(self, x, y, kmeans = False, k = 2, alpha_ = 1):
         """Update scatterplot with new dataframe"""
+        if x is None or y is None:
+            self.Figure.ax.cla()
+            self.Figure.canvas.draw()
+            return
         if not kmeans:
             self.Figure.ax.cla() 
             self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color, alpha=alpha_)
@@ -128,6 +132,11 @@ class ScatterPlotWidget(QWidget):
             self.Figure.ax.scatter(x, y, s=self.points_size, c=labels, alpha=alpha_)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
             self.Figure.canvas.draw()
+
+    def update_points(self, points):
+        """Update scatterplot with new dataframe"""
+        self.points = points
+        self.draw_scatterplot()
 
     
     def resizeEvent(self, event):

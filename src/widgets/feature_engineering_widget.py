@@ -45,10 +45,9 @@ class FeatureEngineeringWidget(QWidget):
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
     updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
 
-    def __init__(self, data:pd.DataFrame, img_features, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, img_paths = None, *args, **kwargs):
+    def __init__(self, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, img_paths = None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
-        self.img_features = img_features
         # Use pre-existing widgets if given
         self._query_widget = widgets.get('query_widget ')
         self._filter_widget = widgets.get('filter_widget')
@@ -56,6 +55,10 @@ class FeatureEngineeringWidget(QWidget):
         self._table_listings_widget = widgets.get('table_listings_widget')
         self._image_widget = ImageWidget(img_paths, config)
         
+        # default values for UMAP/t-SNE columns
+        self._umap_col_name = "umap"
+        self._tsne_col_name = "tsne"
+
         # Save the given data
         # These are the data showed at each moment
         self._data_show = data.copy()
@@ -65,13 +68,9 @@ class FeatureEngineeringWidget(QWidget):
         self._config = config
         self._images_dir_path = config['main']['images_dir_path']
         self.setLayout(self.create_layout())
-        self._scatter_x = self._data_show['umap_x']
-        self._scatter_y = self._data_show['umap_y']
         self.kmeans = False
         self.k = 1
         self.alpha_ = 1
-       
-
 
 
     def get_dict_widgets(self):
@@ -196,13 +195,6 @@ class FeatureEngineeringWidget(QWidget):
         widget.setFixedWidth(self.columnwidth)
         return widget
 
-
-
-    @property
-    def model_names(self):
-        return self._model_train_widget.model_names
-
-
     def _bottom_layout(self):
         bottom_layout = QHBoxLayout()      
         self._model_train_widget = ModelTrainWidget(self._training_features, base_model_name='model_{}', widgets=self.widgets, parent=self)
@@ -213,28 +205,50 @@ class FeatureEngineeringWidget(QWidget):
 
     ###### Properties of the object ######
     @property
+    def model_names(self):
+        return self._model_train_widget.model_names
+
+    @property
     def _umap_points(self):
-        return self._data_show[['umap_x','umap_y']].values
-    
+        return self._data_show[[self._umap_col_name + "_x",self._umap_col_name + "_y"]].values
+
     @property
     def _umap_points_x(self):
-        return self._data_show['umap_x'].values
+        return self._data_show[self._umap_col_name + "_x"].values
     
     @property
     def _umap_points_y(self):
-        return self._data_show['umap_y'].values
+        return self._data_show[self._umap_col_name + "_y"].values
     
     @property
     def _tsne_points(self):
-        return self._data_show[['tsne_x','tsne_y']].values
+        return self._data_show[[self._tsne_col_name + "_x", self._tsne_col_name + "_y"]].values
     
     @property
     def _tsne_points_x(self):
-        return self._data_show['tsne_x'].values
+        return self._data_show[self._tsne_col_name + "_x"].values
     
     @property
     def _tsne_points_y(self):
-        return self._data_show['tsne_y'].values
+        return self._data_show[self._tsne_col_name + "_y"].values
+
+    @property
+    def _scatter_x(self):
+        if (self._select_scatter_plot.dim_reduct_method.Filter.currentText()) == 'umap' or (self._select_scatter_plot.dim_reduct_method.Filter.currentText() == ''):
+            return self._umap_points_x
+        elif self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 't-sne':
+            return self._tsne_points_x
+        else:
+            raise ValueError('No valid dimensionality reduction method selected.')
+
+    @property
+    def _scatter_y(self):
+        if (self._select_scatter_plot.dim_reduct_method.Filter.currentText()) == 'umap' or (self._select_scatter_plot.dim_reduct_method.Filter.currentText() == ''):
+            return self._umap_points_y
+        elif self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 't-sne':
+            return self._tsne_points_y
+        else:
+            raise ValueError('No valid dimensionality reduction method selected.')
 
     @property
     def _training_data(self):
@@ -244,13 +258,21 @@ class FeatureEngineeringWidget(QWidget):
         return self._data_show[self._model_train_widget.selected_features]
 
     ###### Update Methods ######
-    def update_data_show(self, data:pd.DataFrame, query = None):
+    def update_data_show(self, data:pd.DataFrame, query = None, query_type=None):
         self._data_show = data
         print('update original data')
-        if query != None:
-            num = data[query.replace(" ", "_") + '_' + 'text_similarity-max_score'].values
+        if query is not None:
+            feature_name = query.lower().replace(" ", "_") + f"_{query_type}_similarity"
+            num = data[feature_name + '-max_score'].values
             # Visualization purposes
             self.alpha_ = self.minmaxnorm(num)
+
+            self._umap_col_name = feature_name + "-umap"
+            self._tsne_col_name = feature_name + "-tsne"
+
+        if query_type == 'image':
+            image_paths = data["funda_identifier"].astype(str) + "/image" + data[feature_name + '-max_id'].astype(str) + ".jpeg"
+            self._image_widget.update_image_paths(image_paths)
         
         self.update()
 
@@ -273,6 +295,7 @@ class FeatureEngineeringWidget(QWidget):
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
 
+        self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k, alpha_ = self.alpha_)
 
     def add_new_features(self, feature_names:list):
@@ -294,13 +317,6 @@ class FeatureEngineeringWidget(QWidget):
     def _on_scatterconfig_applied(self):      
         """  Update according to tsne or umap select
         """
-        if (self._select_scatter_plot.dim_reduct_method.Filter.currentText()) == 'umap' or (self._select_scatter_plot.dim_reduct_method.Filter.currentText() == ''):
-            self._scatter_x = self._umap_points_x
-            self._scatter_y = self._umap_points_y
-        elif self._select_scatter_plot.dim_reduct_method.Filter.currentText() == 't-sne':
-            self._scatter_x = self._tsne_points_x
-            self._scatter_y = self._tsne_points_y
-        
         if self._select_scatter_plot.clustering_method.Filter.currentText() == 'k-means':
             self.kmeans = True
             try:

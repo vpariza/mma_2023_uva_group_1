@@ -26,6 +26,9 @@ class ImageWidget(QWidget):
         self.selected_points_button = []
         self.set_selected_points([])
 
+    def update_image_paths(self, img_paths):
+        self.img_paths = img_paths
+
     def update(self):
         """Update the widget with the new indices"""
         # Remove all images from the layout
@@ -48,6 +51,8 @@ class ImageWidget(QWidget):
     def set_selected_points(self, selected_points):
         """Method that sets the selected points and updates the wordcloud"""
         ## only update the wordcloud if the selected points in the scatterplot have changed
+        if self.img_paths is None:
+            return
         if selected_points==[]:
             self.selected_images = random.sample(self.img_paths,min(len(self.img_paths),self.images_per_row*self.rows))
             self.update()
