@@ -44,17 +44,17 @@ class FeatureEngineeringWidget(QWidget):
     modelToTrain = QtCore.pyqtSignal(str, pd.DataFrame, QWidget)
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
     updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
+    cosineFeature = QtCore.pyqtSignal(list, QWidget)
 
-    def __init__(self, data:pd.DataFrame, img_features, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, img_paths = None, *args, **kwargs):
+    def __init__(self, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
-        self.img_features = img_features
         # Use pre-existing widgets if given
         self._query_widget = widgets.get('query_widget ')
         self._filter_widget = widgets.get('filter_widget')
         self._table_listings_model = widgets.get('table_listings_model')
         self._table_listings_widget = widgets.get('table_listings_widget')
-        self._image_widget = ImageWidget(img_paths, config)
+        self._image_widget = ImageWidget(data['image_path'].values, config)
         
         # Save the given data
         # These are the data showed at each moment
@@ -133,7 +133,7 @@ class FeatureEngineeringWidget(QWidget):
         self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
         options_query = ['text', 'images']
         self.query_options_widget = ComboFilter('Select query type', options_query)
-        print('options ', self.query_options_widget)
+        
 
 
         self._select_scatter_plot = SelectClusterWidget()
@@ -146,9 +146,13 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         
         v22 = self.add_block([self._scatter_plot_widget, self._image_widget], QHBoxLayout())
-        print('image widget - ', self._image_widget)
-        self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight]).button
-        v32 = self._store_qfeat_button
+        
+        self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
+        print(self._store_qfeat_button.buttonClicked)
+
+        self._store_qfeat_button.buttonClicked.connect(self._on_store_feature)
+
+        v32 = self._store_qfeat_button.button
 
         return v12, v22, v32
 
@@ -246,11 +250,12 @@ class FeatureEngineeringWidget(QWidget):
     ###### Update Methods ######
     def update_data_show(self, data:pd.DataFrame, query = None):
         self._data_show = data
-        print('update original data')
+        self.query_text = query.replace(" ", "_")
+        
         if query != None:
-            num = data[query.replace(" ", "_") + '_' + 'text_similarity-max_score'].values
+            self.cosinesimilarity = data[query.replace(" ", "_") + '_' + 'text_similarity-max_score']
             # Visualization purposes
-            self.alpha_ = self.minmaxnorm(num)
+            self.alpha_ = self.minmaxnorm(self.cosinesimilarity.values)
         
         self.update()
 
@@ -263,6 +268,15 @@ class FeatureEngineeringWidget(QWidget):
         """ Apply min max norm to array
         """
         return (v - v.min()) / (v.max() - v.min())
+    
+    def update_database_features(self):
+        new_feature_name = 'query_' + self.query_text
+        self._data[new_feature_name] = self.cosinesimilarity
+        self._data_show[new_feature_name] = self.cosinesimilarity
+        self._model_train_widget.add_features([new_feature_name])
+        self.update()   
+        #self_data['query_' +update_feature_list self.query_text]
+        #print('Made it here', self.cosinesimilarity)
 
 
 
@@ -277,6 +291,7 @@ class FeatureEngineeringWidget(QWidget):
 
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
+        
 
     ###### Slot of Handling Signals ######
     @QtCore.pyqtSlot(object, QWidget)
@@ -306,18 +321,16 @@ class FeatureEngineeringWidget(QWidget):
             try:
                 self.k = eval(self._select_scatter_plot.n_clusters_method.Filter.currentText())
             except (NameError, SyntaxError):
-                # TODO: Setup request for k
-                pass
+                BasicDialog(window_title='No Results found!', message='Pleas select k to choose the number of clusters!').exec()
         elif self._select_scatter_plot.clustering_method.Filter.currentText() == 'None':
             self.kmeans = False
-
         self.update()
         
         
 
 
     @QtCore.pyqtSlot(str, QWidget)
-    def _on_txt_query_submitted(self, txt_query, source):
+    def _on_txt_query_submitted(self, txt_query):
         self.txtQuerySubmitted.emit(txt_query, self)
 
     @QtCore.pyqtSlot(str, list, QWidget)
@@ -328,6 +341,12 @@ class FeatureEngineeringWidget(QWidget):
     def _on_deleted_model(self, model_name, source):
         self.modelDeleted.emit(model_name,self)
 
+    @QtCore.pyqtSlot(list, QWidget)
+    def _on_store_feature(self):
+        try:
+            self.cosineFeature.emit(self.cosinesimilarity.values, self)
+        except AttributeError:
+            BasicDialog(window_title='No Results found!', message='Pleas enter a query to store feature!').exec()
 
 import sys
 import numpy as np
