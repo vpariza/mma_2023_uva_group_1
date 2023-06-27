@@ -22,6 +22,7 @@ from src.widgets.filter_widget import FilterWidget
 from src.widgets.query_widget import QueryWidget
 from src.widgets.plot_widget import ScatterPlotWidget, SelectClusterWidget
 from src.widgets.image_widget import ImageWidget
+from src.widgets.sentence_widget import SentenceWidget
 from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.multi_hist_plot_widget import MultiHistogramPlotWidget
 from src.widgets.table_listings_model import TableListingsModel
@@ -32,7 +33,6 @@ from src.utils.filtering_utils import apply_filters
 from src.widgets.model_train_widget import ModelTrainWidget
 from src.widgets.elements.custom_blocks import TitleWidget, ButtonWidget, CheckBoxWidget
 from src.widgets.filter_widget import ComboFilter
-from src.widgets.image_widget import ImageWidget
 from sklearn.preprocessing import minmax_scale
 from sklearn.preprocessing import scale
 from sklearn.preprocessing import robust_scale
@@ -56,7 +56,8 @@ class FeatureEngineeringWidget(QWidget):
         self._table_listings_model = widgets.get('table_listings_model')
         self._table_listings_widget = widgets.get('table_listings_widget')
         self._image_widget = ImageWidget(img_paths, config)
-        self._sentence_widget = None #TODO implement
+        self._sentence_widget = SentenceWidget(data_size=data.shape[0])
+        self._sentence_widget.hide()
         
         # default values for UMAP/t-SNE columns
         self._umap_col_name = "umap"
@@ -146,8 +147,9 @@ class FeatureEngineeringWidget(QWidget):
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
+        self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
         
-        v22 = self.add_block([self._scatter_plot_widget, self._image_widget], QHBoxLayout())
+        v22 = self.add_block([self._scatter_plot_widget, self._image_widget, self._sentence_widget], QHBoxLayout())
         
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
         
@@ -282,6 +284,12 @@ class FeatureEngineeringWidget(QWidget):
         if query_type == "image":
             image_paths = data["funda_identifier"].astype(str) + "/image" + data[feature_name + '-max_id'].astype(str) + ".jpeg"
             self._image_widget.update_image_paths(image_paths)
+            self._sentence_widget.hide()
+            self._image_widget.show()
+        elif query_type == "text":
+            self._sentence_widget.update_sentences(data[feature_name + '-max_sentence'])
+            self._image_widget.hide()
+            self._sentence_widget.show()
         
         self.update()
 
