@@ -89,7 +89,7 @@ class ModelComparisonWidget(QWidget):
         self._m_bar_p_w.show_bars(show_bars=model_names)
         # Show table rows for the models selected
         data = self._models_table_model_full.to_dataframe()
-        self._models_table_model = TableModel(data[data['model'].isin(model_names)])
+        self._models_table_model = TableModel(data[data.index.isin(model_names)])
         self._models_table_view.update_model(self._models_table_model)
 
     def update_model_names(self, model_names:List[str]):
