@@ -41,7 +41,7 @@ class HouseSearchWidget(QWidget):
         screen = app.primaryScreen()
         self.size = screen.size()
         self.columnwidth = int(((self.size.width()-100)/3)//1)
-        self.columnheight = int(((self.size.height()-100)/2)//1)
+        self.columnheight = int(((self.size.height()-100)/4)//1)
   
         # Save the given data
         # These are the data showed at each moment
@@ -84,11 +84,13 @@ class HouseSearchWidget(QWidget):
             self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
         
         self.filters = self._filter_widget.filters
+
+        self._filter_widget.setFixedSize(self.columnwidth-10, 2*self.columnheight-10)
+
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
         self._filter_widget = self.add_block([TitleWidget('Define data scope:', size = [600, 25]).title, self._filter_widget], QVBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
-        self._filter_widget.setFixedSize(self.columnwidth-10, self.columnheight-10)
         self.right_layout.addWidget(self._filter_widget)
         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
