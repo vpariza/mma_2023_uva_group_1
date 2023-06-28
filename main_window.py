@@ -71,6 +71,7 @@ class MainWindow(QMainWindow):
         self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
         self._tab1_w.txtQuerySubmitted.connect(self.on_query_submitted)
+        
         # ####### Defining Tab 3
         self._tab3_w = ModelComparisonWidget([],
                                               pd.DataFrame([]),
@@ -81,7 +82,7 @@ class MainWindow(QMainWindow):
         # Defien the Tabs widget 
         tabwidget = QTabWidget()
         ## Tab 1
-        tabwidget.addTab(self._tab1_w, "House Search")
+        tabwidget.addTab(self._tab1_w, "Define Data Scope")
         ## Tab 2
         tabwidget.addTab(self._tab2_w, "Feature Engineering")
         # Tab 3
@@ -117,6 +118,11 @@ class MainWindow(QMainWindow):
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
     def on_updated_showed_data_tab_1(self, show_data, source):
         self._tab2_w.update_data_show(show_data)
+    
+    @QtCore.pyqtSlot(object, QWidget)
+    def on_updated_showed_data_tab_1(self, filters, source):
+        self._tab2_w.update_filters_show(filters)
+        
 
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
     def on_updated_showed_data_tab_2(self, show_data, source):
