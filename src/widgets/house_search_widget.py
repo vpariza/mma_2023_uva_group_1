@@ -74,8 +74,12 @@ class HouseSearchWidget(QWidget):
         # Define filters 
         combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms', 'closest_city'] # combofilters -> {Element Title: [displayed textprompt]}
         minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
-        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
-
+        
+        placeholdertext_ = {}
+        for filter in minmaxfilters_:
+            placeholdertext_['min_' + filter] = np.min(self._data_show[filter].values)
+            placeholdertext_['max_' + filter] = np.max(self._data_show[filter].values)
+        
         if self._filter_widget is None:
             self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
         
@@ -132,11 +136,12 @@ class HouseSearchWidget(QWidget):
         self.update()
 
     def update_placeholder_values(self):
+        
         for filter in self.filters['combo']:
             self.filters['combo'][filter].resetComboBoxes()
         for filter in self.filters['range']:
-            self.filters['range'][filter].Min.resetRangeFilter()
-            self.filters['range'][filter].Max.resetRangeFilter()
+            self.filters['range'][filter].Min.resetRangeFilter('min:' + str(np.min(self._data_show[filter].values)))
+            self.filters['range'][filter].Max.resetRangeFilter('max:' + str(np.max(self._data_show[filter].values)))
             
 
     def update(self):
@@ -156,7 +161,13 @@ class HouseSearchWidget(QWidget):
             self.update()
         else:
             BasicDialog(window_title='No Results found!', message='There are no entries matching your filtering!').exec()
-    
+        for filter in self.filters['range']:
+            print()
+            if self.filters['range'][filter].Min.QueryText.text() == '':
+                self.filters['range'][filter].Min.resetRangeFilter('min:' + str(np.min(self._data_show[filter].values)))
+            if self.filters['range'][filter].Max.QueryText.text() == '':
+                self.filters['range'][filter].Max.resetRangeFilter('max:' + str(np.max(self._data_show[filter].values)))
+        
     @QtCore.pyqtSlot(str, QWidget)
     def _on_txt_query_submitted(self, txt_query, source):
         self.txtQuerySubmitted.emit(txt_query, self)

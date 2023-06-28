@@ -30,7 +30,7 @@ class FilterWidget(QWidget):
         # Block 2  - Range Filters (MinMax format)
         self.minmaxfilters_widgets = {}
         for filter in range(len(self.minmaxfilters)):
-            minmaxfilter = MinMaxWidget(RangeFilter, self.minmaxfilters[filter], placeholdertext[filter])
+            minmaxfilter = MinMaxWidget(RangeFilter, self.minmaxfilters[filter], placeholdertext, filter = self.minmaxfilters[filter])
             self.minmaxfilters_widgets[self.minmaxfilters[filter]] = minmaxfilter
 
         # Block 3  - Combo Filters Title
@@ -114,12 +114,18 @@ class MinMaxWidget(QWidget):
     """ Class for organizing layout of subwidgets
     
     """
-    def __init__(self, Filter, name, placeholdertext = 'select', method = 'MinMax'):
+    def __init__(self, Filter, name, placeholdertext = 'select', method = 'MinMax', filter = ''):
         super().__init__()
         self.Filter = Filter
         self.name = name 
-        self.placeholdertext = placeholdertext 
 
+        if placeholdertext != 'select':
+            self.placeholdertext_min = 'min: ' + str(placeholdertext['min_' + filter])
+            self.placeholdertext_max = 'max: ' + str(placeholdertext['max_' + filter])
+        else:
+            self.placeholdertext_min = placeholdertext
+            self.placeholdertext_max = placeholdertext
+        
         if method == 'MinMax':
             self.minmax_layout()
         else:
@@ -129,10 +135,10 @@ class MinMaxWidget(QWidget):
         ## Initialize widgets
         minmax_layout = QHBoxLayout(self, spacing=2)
 
-        self.Min = RangeFilter('Min ' + self.name, self.placeholdertext)
+        self.Min = RangeFilter('Min ' + self.name, self.placeholdertext_min)
         minmax_layout.addWidget(self.Min)
 
-        self.Max = RangeFilter('Max ' + self.name, self.placeholdertext)
+        self.Max = RangeFilter('Max ' + self.name, self.placeholdertext_max)
         minmax_layout.addWidget(self.Max)
 
         # Configure widget style
@@ -167,9 +173,10 @@ class RangeFilter(QWidget):
         self.setStyleSheet("border: 0px;")
         #self.setFixedSize(QSize(250 , 50))
     
-    def resetRangeFilter(self):
+    def resetRangeFilter(self, new_placeholdertext):
         self.QueryText.clear()
-        self.QueryText.setPlaceholderText(self.placeholdertext)
+        self.QueryText.setPlaceholderText(new_placeholdertext)
+
 
 
 class ComboFilter(QWidget):
