@@ -289,8 +289,8 @@ class FeatureEngineeringWidget(QWidget):
         else:
             self._data_show = data
         
-        self.query = query
         if query != None:
+            self.query = query
             self.query_text = query.lower().replace(" ", "_")
             feature_name = self.query_text + f"_{query_type}_similarity"
             self.cosinesimilarity = self._data_show[feature_name + '-max_score']
@@ -354,7 +354,8 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
         if self.query is not None:
             price_per_m2 = self._data_show['price']/self._data_show['living_area']
-            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = price_per_m2, kmeans = self.kmeans[1], k = self.k[1])
+            cos_sim = self.cosinesimilarity[self.cosinesimilarity.to_frame().index.isin(self._data_show['funda_identifier'].values)]
+            self._scatter_cosine_widget.update_cosine_price(y = cos_sim, x = price_per_m2, kmeans = self.kmeans[1], k = self.k[1])
 
             
     def add_new_features(self, feature_names:list):
