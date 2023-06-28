@@ -26,6 +26,8 @@ class MultiHistogramPlotModel(QtCore.QObject):
         FACILITIES_TYPE = 'type_of_facilities'
         PLOT_SIZE = 'plot_size'
         YEAR_OF_CONSTRUCTION = 'year_of_construction'
+        POPULATION_CLOSEST_CITY = 'poulation_of_closest_city'
+        DISTANCE_TO_CENTER = 'distance_to_center'
 
         @classmethod
         def list_values(cls):
