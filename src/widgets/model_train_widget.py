@@ -1,7 +1,7 @@
 from PyQt6 import QtCore, QtWidgets
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton, QListWidget
+    QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton, QListWidget, QInputDialog
 )
 import typing
 from src.widgets.list_options_widget import ListOptionsWidget
@@ -15,6 +15,7 @@ class ModelTrainWidget(QWidget):
     trainFeaturesSelected = QtCore.pyqtSignal(str, list, QWidget)
     modelToTrain = QtCore.pyqtSignal(str, list, QWidget)
     modelDeleted = QtCore.pyqtSignal(str, QWidget)
+    modelRenamed = QtCore.pyqtSignal(str, str, QWidget)
 
     def __init__(self, training_features:List[str], base_model_name='model_{}', widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(ModelTrainWidget, self).__init__(parent=parent, *args, **kwargs)
@@ -59,11 +60,13 @@ class ModelTrainWidget(QWidget):
         self._train_new_model_button = QPushButton('Train New Model', self)
         self._train_new_model_button.clicked.connect(self._on_train_model_button_clicked)
         buttons_layout.addWidget(self._train_new_model_button)
-        self._delete_models_button = QPushButton('Delete Model', self)
+        self._delete_models_button = QPushButton('Delete Models', self)
         self._delete_models_button.clicked.connect(self._on_model_deleted_button_clicked)
-        # self._delete_models_button.clicked.connect.connect(a)
-        # self._delete_models_button.clicked.connect.connect(b)
         buttons_layout.addWidget(self._delete_models_button)
+        self._rename_model_button = QPushButton('Rename Model', self)
+        self._rename_model_button.clicked.connect(self._on_model_rename_button_clicked)
+        buttons_layout.addWidget(self._rename_model_button)
+        
         layout.addLayout(buttons_layout)
         return layout
 
@@ -109,6 +112,27 @@ class ModelTrainWidget(QWidget):
         self.modelDeleted.emit(deleted_model_name, self)
 
     @QtCore.pyqtSlot() 
+    def _on_model_rename_button_clicked(self):
+        mnames = self._list_models_w.selected_options
+        if len(mnames) == 0:
+            BasicDialog(window_title='No Model Selected for Renaming!', message='To rename a model you first need to select it from the list of models!').exec()
+            return
+        renaming_model_name = mnames[0]
+        new_model_name, ok = QInputDialog.getText(self, 'Renaming the model {}'.format(renaming_model_name), 
+                                                  'Enter the new name for the model {}:'.format(renaming_model_name))
+        if ok:
+            if new_model_name in self._models_confs:
+                BasicDialog(window_title='Model name already in use!', message='Model name \'{}\' is already in use!'.format(new_model_name)).exec()
+                return
+            # Just move the things of the one model  from their entry to the other entry
+            self._models_confs[new_model_name] = self._models_confs[renaming_model_name]
+            # Delete the previous name
+            del self._models_confs[renaming_model_name]
+            self._list_models_w.update_options(list(self._models_confs.keys()))
+            self.modelRenamed.emit(renaming_model_name, new_model_name, self)
+
+
+    @QtCore.pyqtSlot() 
     def _on_train_model_button_clicked(self):
         mnames = self._list_models_w.selected_options
         if len(mnames) == 0:
@@ -124,6 +148,9 @@ class ModelTrainWidget(QWidget):
     @QtCore.pyqtSlot() 
     def _on_create_empty_train_model_button_clicked(self):
         mname = self._base_model_name.format(self._model_count)
+        while mname in self._models_confs:
+            self._model_count += 1
+            mname = self._base_model_name.format(self._model_count)
         self._model_count += 1
         self._models_confs[mname] = list()
         self._list_models_w.update_options(list(self._models_confs.keys()))

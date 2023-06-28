@@ -1,7 +1,4 @@
 import sys
-sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
-
-import sys
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow,QWidget, QTabWidget
 from PyQt6.QtWidgets import QWidget
@@ -126,7 +123,6 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(list, QWidget)
     def on_save_feature(self):
-        
         self._data = self._tab2_w.update_database_features()
         
 

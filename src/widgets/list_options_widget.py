@@ -12,7 +12,7 @@ class ListOptionsWidget(QWidget):
 
     def __init__(self, options:List[str], title_text:str=None, selection_mode=QListWidget.SelectionMode.MultiSelection, parent:QWidget=None):
         super().__init__(parent)
-        self._options = options
+        # self._options = options
         layout = QVBoxLayout()
         if title_text is not None:
             # Add a Title only if it is defined
@@ -21,7 +21,7 @@ class ListOptionsWidget(QWidget):
             layout.addWidget(self._title)
         # Define the widge of list of points
         self._list_widget = QListWidget()
-        for option in self._options:
+        for option in options:
             self._list_widget.addItem(option)
         # Define the type of selection for the List Widget
         self._list_widget.setSelectionMode(selection_mode)
@@ -30,32 +30,30 @@ class ListOptionsWidget(QWidget):
         self.setLayout(layout)
 
     def update_options(self, options:List[str]):
-        self._options = list()
         self._list_widget.clear()
         self.add_options(options)
 
     def add_options(self, options:List[str]):
-        print('Added New options', options, self._list_widget)
-        self._options.extend(options)
         for option in options:
             self._list_widget.addItem(option)
         self.update()
 
     def set_selection(self, selected_options:List[str]):
-        selected_options = set(selected_options).intersection(self._options)
-        for i in range(len(self._options)):
-            if self._options[i] in selected_options:
-                self._list_widget.item(i).setSelected(True)
+        selected_options = set(selected_options)
+        for i in range(self._list_widget.count()):
+            item = self._list_widget.item(i)
+            if item.text() in selected_options:
+                item.setSelected(True)
             else:
-                self._list_widget.item(i).setSelected(False)
+                item.setSelected(False)
 
+    @property
+    def options(self):
+        return [self._list_widget.item(i).text() for i in range(self._list_widget.count())]
+    
     @property
     def selected_options(self):
         return [item.text() for item in self._list_widget.selectedItems()]
-    
-    @property
-    def options(self):
-        return copy.copy(self._options)
 
     @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def __options_were_selected(self, selected, deselected):

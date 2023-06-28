@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/Users/valentinospariza/Library/CloudStorage/OneDrive-UvA/Repositories/multimedia_analytics/mma_2023_uva_group_1/')
-
 import matplotlib
 matplotlib.use('QtAgg')
 
@@ -169,7 +166,7 @@ class HouseSearchWidget(QWidget):
     @QtCore.pyqtSlot(object, QWidget)
     def on_map_entry_clicked(self, entry, source):
         # TODO
-        print('Map Entry Clicked', entry)
+        # print('Map Entry Clicked', entry)
         pass
 
     @QtCore.pyqtSlot(object, QWidget)

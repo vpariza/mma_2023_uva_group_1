@@ -9,8 +9,14 @@ from enum import Enum
 import os
 
 from src.widgets.table_listings_model import TableListingsModel
-
 from typing import List
+
+class HeaderView(QtWidgets.QHeaderView):
+    def mouseReleaseEvent(self, event):
+        index = self.visualIndexAt(event.pos().x())
+        logical_index = self.logicalIndex(index)
+        super().mouseReleaseEvent(event)
+
 class ImageWindow(QWidget):
     """
     This "window" is a QWidget. If it has no parent, it
@@ -81,7 +87,8 @@ class TableListingsView(QtWidgets.QTableView):
         self.clicked.connect(self.__cell_was_clicked)
         self.doubleClicked.connect(self.__cell_was_double_clicked)
         self._selected_entries = set()
-        
+        self.setSortingEnabled(True)
+
 
     def update_model(self, model: TableListingsModel):
         self.setModel(model)

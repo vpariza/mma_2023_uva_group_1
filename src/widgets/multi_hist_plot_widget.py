@@ -17,8 +17,7 @@ from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.checkbox_list_widget import CheckBoxListWidget
 
 from src.widgets.dialog_widgets import BasicDialog
-
-import numbers
+import numpy as np
 import pandas as pd
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -73,6 +72,20 @@ class MultiHistogramPlotWidget(QWidget):
 
     @QtCore.pyqtSlot(dict, QWidget)
     def options_state_changed(self, options_state, source):
+        self.update()
+
+    def get_transformed_column_data(self, data:pd.DataFrame):
+        column_data = dict()
+        for option_name, fn in self._options_fn.items():
+            if not self._checkbox.is_checked(option_name):
+                continue
+            new_data_column = '{}_{}'.format(self._dropdown_list_widget.currentText(),option_name)
+            if new_data_column not in data.columns:
+                column_data[new_data_column] = list(fn(data[self._dropdown_list_widget.currentText()].values))
+        return pd.DataFrame(column_data)
+
+    def update_model(self, hist_p_model: MultiHistogramPlotModel):
+        self._hist_p_model = hist_p_model
         self.update()
 
     def apply_option_fns(self, data):
@@ -133,6 +146,11 @@ class MultiHistogramPlotWidget(QWidget):
 
 
 if __name__ == '__main__':
+
+    from sklearn.preprocessing import minmax_scale
+    from sklearn.preprocessing import scale
+    from sklearn.preprocessing import robust_scale
+    from sklearn.preprocessing import maxabs_scale
     class MainWindow(QtWidgets.QMainWindow):
         
         def __init__(self, *args, **kwargs):
@@ -142,8 +160,13 @@ if __name__ == '__main__':
             from src.widgets.hist_plot_widget import HistogramPlotWidget
             df = load_from_pickle('data.pkl')
             h_p_model = MultiHistogramPlotModel(df)
-
-            h_p_widget = HistogramPlotWidget(h_p_model, list(options_fn.keys()), options_fn)
+            options_fn = {
+                'minmax_scale': minmax_scale,
+                'standard_scale': scale,
+                'robust_scale': robust_scale,
+                'maxabs_scale': maxabs_scale
+            }
+            h_p_widget = MultiHistogramPlotWidget(h_p_model, list(options_fn.keys()), options_fn)
             self.setCentralWidget(h_p_widget)
             self.show()
 
@@ -151,4 +174,4 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     w = MainWindow()
-    app.exec()
+    app.exec() 
