@@ -231,12 +231,10 @@ class SearchWidget(QWidget):
         self.QueryButton = QPushButton('Filter', self)
         self.QueryButton.clicked.connect(self.clickMethod)
         self.QueryButton.setFixedSize(QSize(150, 25))  
-        self.QueryButton.setStyleSheet("border: 1px solid darkgray;")      
         layout.addWidget(self.QueryButton)
         
         # Combine widgets
         self.setLayout(layout)
-        self.setStyleSheet("border: 0px;")  
 
     def clickMethod(self):
         self.filtersApplied.emit(self.filters, self)
@@ -259,12 +257,10 @@ class ClearAllWidget(QWidget):
         self.QueryButton = QPushButton('Clear all', self)
         self.QueryButton.clicked.connect(self.clickMethod)
         self.QueryButton.setFixedSize(QSize(150, 25))  
-        self.QueryButton.setStyleSheet("border: 1px solid darkgray;")      
         layout.addWidget(self.QueryButton)
         
         # Combine widgets
         self.setLayout(layout)
-        self.setStyleSheet("border: 0px;")  
 
     def clickMethod(self):
         self.buttonClearAll.emit(self.filters, self)
