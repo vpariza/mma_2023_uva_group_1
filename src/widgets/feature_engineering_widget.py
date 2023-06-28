@@ -54,6 +54,7 @@ class FeatureEngineeringWidget(QWidget):
         self._image_widget = ImageWidget(img_paths, config)
         self._sentence_widget = SentenceWidget(data_size=data.shape[0])
         self._sentence_widget.hide()
+        self.query = None
         
         # default values for UMAP/t-SNE columns
         self._umap_col_name = "umap"
@@ -128,8 +129,9 @@ class FeatureEngineeringWidget(QWidget):
         
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
+        self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Cosine similarity vs. Price")
         
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self._scatter_cosine_widget], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
@@ -271,6 +273,7 @@ class FeatureEngineeringWidget(QWidget):
         else:
             self._data_show = data
         
+        self.query = query
         if query != None:
             self.query_text = query.lower().replace(" ", "_")
             feature_name = self.query_text + f"_{query_type}_similarity"
@@ -333,7 +336,8 @@ class FeatureEngineeringWidget(QWidget):
 
         self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k, alpha_ = self.alpha_)
-
+        if self.query is not None:
+            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = self._data_show['price'])
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
         
