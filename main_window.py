@@ -17,9 +17,9 @@ import pandas as pd
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
-
+        self.app = app
         #load data using the config file 'config.ini'
         self._preprocessing = Preprocessing()
         self.models_table_data = None
@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
     def create_central_widget(self):
         ####### Defining Tab 2
         # Define the Second Tab
-        self._tab2_w = FeatureEngineeringWidget(data=self._data,
+        self._tab2_w = FeatureEngineeringWidget(app = self.app, data=self._data,
                                                 training_features=list(self._training_features.keys()), 
                                                 config=self._config, widgets={}, parent=self, img_paths = self._data['image_path'])
         self._tab2_w.updatedShowedData.connect(self.on_updated_showed_data_tab_2)
@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
         self._tab2_w.cosineFeature.connect(self.on_save_feature)
         self._tab2_w.dataFeature.connect(self.on_save_feature)
         ####### Defining Tab 1
-        self._tab1_w = HouseSearchWidget(data=self._data, config=self._config, widgets={}, parent=self)
+        self._tab1_w = HouseSearchWidget(app=self.app, data=self._data, config=self._config, widgets={}, parent=self)
         self._tab1_w.updatedShowedData.connect(self.on_updated_showed_data_tab_1)
         self._tab1_w.txtQuerySubmitted.connect(self.on_query_submitted)
         
@@ -119,9 +119,6 @@ class MainWindow(QMainWindow):
     def on_updated_showed_data_tab_1(self, show_data, source):
         self._tab2_w.update_data_show(show_data)
     
-    @QtCore.pyqtSlot(object, QWidget)
-    def on_updated_showed_data_tab_1(self, filters, source):
-        self._tab2_w.update_filters_show(filters)
         
 
     @QtCore.pyqtSlot(pd.DataFrame, QWidget)
@@ -215,6 +212,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = MainWindow()
+    main_window = MainWindow(app)
     main_window.show()
     sys.exit(app.exec())

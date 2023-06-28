@@ -15,16 +15,24 @@ from matplotlib.patches import Rectangle
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbarna
 
 class MplCanvas(FigureCanvasQTAgg):
     """Setup canvas for plotting"""
 
-    def __init__(self, parent=None, width=4, height=3, dpi=100, title = "Query Cosinesimilarity"):
+    def __init__(self, parent=None, width=3, height=3, dpi=100, title = "Query Cosinesimilarity", x_lab = None, y_lab = None):
         self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
         self.fig.suptitle(title)
+        self.fig.subplots_adjust(left = 0.1, right = 0.9, bottom = 0.1, top = 0.9)
+        if x_lab is not None:
+            self.ax.set_xlabel(x_lab)
+        if y_lab is not None:
+            self.ax.set_ylabel(y_lab)
+            self.ax.yaxis.set_label_position("right")
+        self.fig.tight_layout()
         super(MplCanvas, self).__init__(self.fig)
 
 
@@ -37,8 +45,10 @@ class ScatterPlotWidget(QWidget):
     label = QtCore.pyqtSignal(str)
     
 
-    def __init__(self,points, config, title = "Query Cosinesimilarity"):
+    def __init__(self,points, config, title = "Query Cosinesimilarity", x_lab = None, y_lab =None):
         super().__init__()
+        self.x_lab = x_lab
+        self.y_lab = y_lab
         # Setup plot configurations
         self.setMouseTracking(True)
         self.config = config
@@ -49,7 +59,7 @@ class ScatterPlotWidget(QWidget):
         self._alpha = 1
 
         # create a matplotlib figure and add a subplot
-        self.Figure = MplCanvas(title = title)
+        self.Figure = MplCanvas(title = title, x_lab=x_lab, y_lab=y_lab)
         
         """"""
         # Load points
@@ -109,7 +119,12 @@ class ScatterPlotWidget(QWidget):
             if self.kmeans:
                 self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.labels, alpha=self._alpha)
                 self.Figure.ax.scatter(self.cluster_centers[:, 0], self.cluster_centers[:, 1], c='red', marker='x')
-            
+        if self.x_lab is not None:
+            self.Figure.ax.set_xlabel(self.x_lab)
+        if self.y_lab is not None:
+            self.Figure.ax.set_ylabel(self.y_lab)
+            self.Figure.ax.yaxis.set_label_position("right")
+        self.Figure.fig.tight_layout()
         
         
         self.Figure.canvas.draw()
@@ -120,12 +135,11 @@ class ScatterPlotWidget(QWidget):
         self.kmeans = kmeans
         if x is None or y is None:
             self.Figure.ax.cla()
-            self.Figure.canvas.draw()
             return
         if not kmeans:
             self.Figure.ax.cla() 
             self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color, alpha=self._alpha)
-            self.Figure.canvas.draw()
+        
         if kmeans:
             #scaler = StandardScaler()
             #scaler.fit()
@@ -139,13 +153,21 @@ class ScatterPlotWidget(QWidget):
             self.Figure.ax.cla() 
             self.Figure.ax.scatter(x, y, s=self.points_size, c=self.labels, alpha=self._alpha)
             self.Figure.ax.scatter(self.cluster_centers[:, 0], self.cluster_centers[:, 1], c='red', marker='x')
-            self.Figure.canvas.draw()
+
+        if self.x_lab is not None:
+            self.Figure.ax.set_xlabel(self.x_lab)
+        if self.y_lab is not None:
+            self.Figure.ax.set_ylabel(self.y_lab)
+            self.Figure.ax.yaxis.set_label_position("right")
+        self.Figure.fig.tight_layout()
+        
+        self.Figure.canvas.draw()
 
     def update_cosine_price(self, x, y, kmeans = False, k = 2):
         if not kmeans:
             self.Figure.ax.cla() 
             self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
-            self.Figure.canvas.draw()
+            
         if kmeans:
             print('reached')
             kmeans_method = KMeans(n_clusters=k)
@@ -158,7 +180,14 @@ class ScatterPlotWidget(QWidget):
             self.Figure.ax.cla() 
             self.Figure.ax.scatter(x, y, s=self.points_size, c=labels)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
-            self.Figure.canvas.draw()
+            
+        if self.x_lab is not None:
+            self.Figure.ax.set_xlabel(self.x_lab)
+        if self.y_lab is not None:
+            self.Figure.ax.set_ylabel(self.y_lab)
+            self.Figure.ax.yaxis.set_label_position("right")
+        self.Figure.fig.tight_layout()
+        self.Figure.canvas.draw()
 
 
 
@@ -177,7 +206,7 @@ class ScatterPlotWidget(QWidget):
     def resize_widget(self):
         # Adjust scatter plot size to fit the widget
         size = min(self.Figure.canvas.width(), self.Figure.canvas.height())
-        self.Figure.canvas.setFixedSize(size, size)
+        self.Figure.canvas.setFixedSize(size-20, size-20)
 
     def on_mouse_move(self, event):
         """Method that handles mouse movement on the canvas"""

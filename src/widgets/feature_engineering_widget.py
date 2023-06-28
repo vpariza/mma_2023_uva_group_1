@@ -5,13 +5,14 @@ import numpy as np
 from PyQt6 import QtCore, QtWidgets
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton
+    QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton, QSizePolicy
 )
 import typing
 from typing import List, Dict
 
 from src.widgets.multi_hist_plot_model import MultiHistogramPlotModel
 from src.widgets.multi_hist_plot_widget import MultiHistogramPlotWidget
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 
 import pandas as pd
 from src.widgets.filter_widget import FilterWidget
@@ -43,7 +44,7 @@ class FeatureEngineeringWidget(QWidget):
     cosineFeature = QtCore.pyqtSignal(list, QWidget)
     dataFeature = QtCore.pyqtSignal(list, QWidget)
 
-    def __init__(self, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, img_paths = None, *args, **kwargs):
+    def __init__(self, app, data:pd.DataFrame, training_features:List[str], config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, img_paths = None, *args, **kwargs):
         super(FeatureEngineeringWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
         # Use pre-existing widgets if given
@@ -55,6 +56,10 @@ class FeatureEngineeringWidget(QWidget):
         self._sentence_widget = SentenceWidget(data_size=data.shape[0])
         self._sentence_widget.hide()
         self.query = None
+        screen = app.primaryScreen()
+        self.size = screen.size()
+        
+        
         
         # default values for UMAP/t-SNE columns
         self._umap_col_name = "umap"
@@ -85,16 +90,19 @@ class FeatureEngineeringWidget(QWidget):
 
     ###### Creating the general Layout ######
     def create_layout(self):
-        self.columnwidth = 600
-        self.buttonwidth = 400
-        self.buttonheight = 75
-        self.titlewidth = 25
+        self.columnwidth = int(((self.size.width()-100)/3)//1)
+        self.columnheight = int(((self.size.height()-100)/3)//1)
+        self.buttonwidth = int(((self.size.width()-100)/6)//1)
+        self.buttonheight = int(((self.size.height()-100)*5/60)//1)
+        self.titlewidth = int(((self.size.width()-100)/60)//1)
+        
         self.main_layout = QGridLayout()
         v11, v21, v31 = self._col1_layout()
         v12, v22, v32 = self._col2_layout()
         v13, v23, v33 = self._col3_layout()
-
-        self.main_layout.addWidget(v11, 0, 0)
+        
+        self.main_layout.addWidget(self.add_block([QWidget()]), 0, 0)
+        self.main_layout.addWidget(v11, 0, 0, alignment = QtCore.Qt.AlignmentFlag.AlignTop)
         self.main_layout.addWidget(v21, 1, 0)
         self.main_layout.addWidget(v31, 2, 0, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         
@@ -105,14 +113,21 @@ class FeatureEngineeringWidget(QWidget):
         self.main_layout.addWidget(v23, 1, 2)
         
         return self.main_layout
+
+    def adjust_size(self, num, col_vals):
+        return int(((num-50)/col_vals)//1)
     
     def _col3_layout(self):
         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
-            self._table_listings_widget.setFixedWidth(575)
-            self._table_listings_widget.setFixedHeight(200)
+            
+            # Set the size policy of the widget to expand horizontally and vertically
+            size_policy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+            self._table_listings_widget.setSizePolicy(size_policy)
+            self._table_listings_widget.setFixedWidth(self.columnwidth-100)
+            
             
         self._model_train_widget = ModelTrainWidget(self._training_features, base_model_name='model_{}', widgets=self.widgets, parent=self)
         self._model_train_widget.modelToTrain.connect(self._on_model_to_train)
@@ -120,8 +135,11 @@ class FeatureEngineeringWidget(QWidget):
 
         v13 = self.add_block([self._model_train_widget], QVBoxLayout(), size = [self.columnwidth], alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         v13 = self.add_block([TitleWidget('Build model:', size = [self.columnwidth, self.titlewidth]).title, v13], QVBoxLayout(), size = [self.columnwidth])
-        v23 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth])
+        v23 = self.add_block([self._table_listings_widget], QVBoxLayout(), alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         
+        v23 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, v23], QVBoxLayout(), size = [self.columnwidth])
+        self._table_listings_widget.setFixedHeight(v23.size().height()-2*self.titlewidth)
+            
         
         return v13, v23, 0
 
@@ -129,18 +147,19 @@ class FeatureEngineeringWidget(QWidget):
         
         self._select_scatter_plot_cosine = SelectClusterWidget(dim_red = False)
         #self._select_scatter_plot_cosine.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)cosine
-        self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Cosine similarity vs. Price")
-        v12 = self.add_block([self._scatter_cosine_widget], QHBoxLayout(), size = [self.columnwidth])
+        self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Feature vs. Price", x_lab = 'Price/m2', y_lab = 'Cosine Similarity')
+        v12 = self.add_block([self._scatter_cosine_widget], QHBoxLayout(),  alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, v12], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
+        
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
         
-        v22 = self.add_block([self._scatter_plot_widget, self._select_scatter_plot], QHBoxLayout())
-        v22 = self.add_block([v22, self._image_widget, self._sentence_widget], QVBoxLayout())
+        v22 = self.add_block([self._scatter_plot_widget, self._select_scatter_plot], QHBoxLayout(), alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
+        v22 = self.add_block([v22, self._image_widget, self._sentence_widget], QVBoxLayout(),  alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_qfeat_button.buttonClicked.connect(self._on_store_cosine_feature)
 
@@ -151,11 +170,7 @@ class FeatureEngineeringWidget(QWidget):
 
     def _col1_layout(self):
         # Filter widgets tab 1 with layout option 1
-        # Define filters 
-        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
-        minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
-        placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
-
+        
         ####### Add the Query Widget
         if self._query_widget is None:      
             self._query_widget = QueryWidget()
@@ -163,9 +178,10 @@ class FeatureEngineeringWidget(QWidget):
         self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
         options_query = ['text', 'images']
         self.query_options_widget = ComboFilter('Select query type', options_query)
-        
+        empty_widget = QueryWidget()
         
         v11 = self.add_block([TitleWidget('Feature engineering:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget], QVBoxLayout(), size = [self.columnwidth])
+        
         
         ####### Add the Multi Histogram Widget   
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
@@ -192,8 +208,6 @@ class FeatureEngineeringWidget(QWidget):
         for wid in widgetlist:
             layout.addWidget(wid, alignment=alignment_)
         widget.setLayout(layout)
-        if size is not None:
-            widget.setFixedWidth(size[0])
         widget.setStyleSheet("background-color: #f5f5f5;")
         widget.setFixedWidth(self.columnwidth)
         return widget
@@ -339,7 +353,8 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
         if self.query is not None:
-            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = self._data_show['price'].values/self._data_show['living_area'].values, kmeans = self.kmeans[1], k = self.k[1])
+            price_per_m2 = self._data_show['price']/self._data_show['living_area']
+            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = price_per_m2, kmeans = self.kmeans[1], k = self.k[1])
 
             
     def add_new_features(self, feature_names:list):

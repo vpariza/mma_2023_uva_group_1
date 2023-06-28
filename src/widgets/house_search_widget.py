@@ -30,13 +30,19 @@ class HouseSearchWidget(QWidget):
     clear_data = QtCore.pyqtSignal()
 
 
-    def __init__(self, data:pd.DataFrame, config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
+    def __init__(self, app, data:pd.DataFrame, config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(HouseSearchWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
         # Use pre-existing widgets if given
         self._filter_widget = widgets.get('filter_widget')
         self._table_listings_model = widgets.get('table_listings_model')
         self._table_listings_widget = widgets.get('table_listings_widget')
+
+        screen = app.primaryScreen()
+        self.size = screen.size()
+        self.columnwidth = int(((self.size.width()-100)/3)//1)
+        self.columnheight = int(((self.size.height()-100)/2)//1)
+  
         # Save the given data
         # These are the data showed at each moment
         self._data_show = data.copy()
@@ -66,7 +72,7 @@ class HouseSearchWidget(QWidget):
         
         ####### Add the Filtering Widget
         # Define filters 
-        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
+        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms', 'closest_city'] # combofilters -> {Element Title: [displayed textprompt]}
         minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
         placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
 
@@ -78,17 +84,18 @@ class HouseSearchWidget(QWidget):
         self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
         self._filter_widget = self.add_block([TitleWidget('Define data scope:', size = [600, 25]).title, self._filter_widget], QVBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
+        self._filter_widget.setFixedSize(self.columnwidth-10, self.columnheight-10)
         self.right_layout.addWidget(self._filter_widget)
         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
+            
         self._table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
-        self._table_listings_widget.setFixedWidth(600)
+        self._table_listings_widget.setFixedSize(self.columnwidth-10, self.columnheight-10)
         self.right_layout.addWidget(self._table_listings_widget)
         return self.right_layout
     
-
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
         widget = QWidget()
         layout = block_type
@@ -98,6 +105,7 @@ class HouseSearchWidget(QWidget):
         widget.setStyleSheet("background-color: #f5f5f5;")
         
         return widget
+
 
     def _left_layout(self):
         right_layout = QVBoxLayout()      
