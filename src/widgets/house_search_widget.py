@@ -85,7 +85,7 @@ class HouseSearchWidget(QWidget):
         
         self.filters = self._filter_widget.filters
 
-        self._filter_widget.setFixedSize(self.columnwidth-10, 2*self.columnheight-10)
+        self._filter_widget.setFixedSize(self.columnwidth-10, int(2.5*self.columnheight-10))
 
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
