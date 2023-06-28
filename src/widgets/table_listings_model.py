@@ -1,4 +1,3 @@
-
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt
 import pandas as pd
@@ -26,10 +25,10 @@ class TableListingsModel(QtCore.QAbstractTableModel):
             value = self._data.iloc[index.row(), index.column()]
             return str(value)
 
-    def rowCount(self, index):
+    def rowCount(self, index=None):
         return self._data.shape[0]
 
-    def columnCount(self, index):
+    def columnCount(self, index=None):
         return self._data.shape[1]
 
     def headerData(self, section, orientation, role):
@@ -37,9 +36,20 @@ class TableListingsModel(QtCore.QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal:
                 return str(self._data.columns[section])
-
             if orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[section])
+
+    def sort(self, Ncol, order):
+        """Sort table by given column number.
+        """
+        try:
+            self.layoutAboutToBeChanged.emit()
+            self._data = self._data.sort_values(self._data.columns[Ncol], ascending=(order == Qt.SortOrder.AscendingOrder))   
+            self.layoutChanged.emit()
+        except Exception as e:
+            pass
+            # Skip Sorting
+            # print(e)
 
     def _str_to_list(self, slist:str):
         return [s.strip().replace("'",'').replace('"','') for s in slist.strip('][').split(',')]
