@@ -1,6 +1,7 @@
 import sys
 import matplotlib
 matplotlib.use('QtAgg')
+import matplotlib.pyplot as plt
 
 from PyQt6 import QtWidgets
 
@@ -21,6 +22,7 @@ class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
+        self.fig = fig
         super(MplCanvas, self).__init__(fig)
 
 class MultiBarPlotWidget(QWidget):
@@ -74,6 +76,7 @@ class MultiBarPlotWidget(QWidget):
             
         self._sc.axes.set_xticks(x_tick)
         self._sc.axes.set_xticklabels(categories)
+        plt.setp(self._sc.axes.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
         self._sc.axes.legend()
         if self._plot_configs.get('ylabel') is not None:
             self._sc.axes.set_ylabel(self._plot_configs['ylabel'])
@@ -81,6 +84,7 @@ class MultiBarPlotWidget(QWidget):
             self._sc.axes.set_xlabel(self._plot_configs['xlabel'])
         if self._plot_configs.get('title') is not None:
             self._sc.axes.set_title(self._plot_configs['title'])
+        self._sc.fig.tight_layout()
         self._sc.draw()
         self._toolbar.update()
         self._bar_p_widget.update()
