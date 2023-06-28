@@ -12,8 +12,8 @@ class ImageWidget(QWidget):
         super().__init__()
         self.base_path = config['main']['images_dir_path']
         self.img_paths = img_paths
-        self.images_per_row = 2
-        self.rows = 3
+        self.images_per_row = 5
+        self.rows = 1
         #self.setGeometry(100,100,1000,200)
         
         

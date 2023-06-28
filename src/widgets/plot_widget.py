@@ -19,12 +19,12 @@ from sklearn.preprocessing import StandardScaler
 class MplCanvas(FigureCanvasQTAgg):
     """Setup canvas for plotting"""
 
-    def __init__(self, parent=None, width=4, height=3, dpi=100):
+    def __init__(self, parent=None, width=4, height=3, dpi=100, title = "Query Cosinesimilarity"):
         self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
-        self.fig.suptitle("Query Cosinesimilarity")
+        self.fig.suptitle(title)
         super(MplCanvas, self).__init__(self.fig)
 
 
@@ -37,16 +37,17 @@ class ScatterPlotWidget(QWidget):
     label = QtCore.pyqtSignal(str)
     
 
-    def __init__(self,points, config):
+    def __init__(self,points, config, title = "Query Cosinesimilarity"):
         super().__init__()
         # Setup plot configurations
         self.setMouseTracking(True)
         self.config = config
         self.points = points
+        
         self.load_configurations()
 
         # create a matplotlib figure and add a subplot
-        self.Figure = MplCanvas()
+        self.Figure = MplCanvas(title = title)
         
         """"""
         # Load points
@@ -63,9 +64,6 @@ class ScatterPlotWidget(QWidget):
         self.outside_points_visible = False
         """"""
         
-        
-
-
         # set up the layout
         layout = QVBoxLayout(self)
         layout.addWidget(self.Figure.canvas)
@@ -134,6 +132,12 @@ class ScatterPlotWidget(QWidget):
             self.Figure.ax.scatter(x, y, s=self.points_size, c=labels, alpha=self._alpha)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
             self.Figure.canvas.draw()
+
+    def update_cosine_price(self, x, y):
+        self.Figure.ax.cla() 
+        self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
+        self.Figure.canvas.draw()
+
 
     def update_points(self, points):
         """Update scatterplot with new dataframe"""

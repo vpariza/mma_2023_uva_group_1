@@ -54,6 +54,7 @@ class FeatureEngineeringWidget(QWidget):
         self._image_widget = ImageWidget(img_paths, config)
         self._sentence_widget = SentenceWidget(data_size=data.shape[0])
         self._sentence_widget.hide()
+        self.query = None
         
         # default values for UMAP/t-SNE columns
         self._umap_col_name = "umap"
@@ -111,7 +112,7 @@ class FeatureEngineeringWidget(QWidget):
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
             self._table_listings_widget.setFixedWidth(575)
-            self._table_listings_widget.setFixedHeight(400)
+            self._table_listings_widget.setFixedHeight(200)
             
         v13 = self.add_block([self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth], alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, v13], QVBoxLayout(), size = [self.columnwidth])
@@ -125,25 +126,19 @@ class FeatureEngineeringWidget(QWidget):
         return v13, v23, 0
 
     def _col2_layout(self):
-        ####### Add the Query Widget
-        if self._query_widget is None:      
-            self._query_widget = QueryWidget()
-            self._query_widget.resize(600, 200) 
-        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
-        options_query = ['text', 'images']
-        self.query_options_widget = ComboFilter('Select query type', options_query)
         
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
+        self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Cosine similarity vs. Price")
         
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self._scatter_cosine_widget], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
         
-        v22 = self.add_block([self._scatter_plot_widget, self._image_widget, self._sentence_widget], QHBoxLayout())
-        
+        v22 = self.add_block([self._scatter_plot_widget, self._select_scatter_plot], QHBoxLayout())
+        v22 = self.add_block([v22, self._image_widget, self._sentence_widget], QVBoxLayout())
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_qfeat_button.buttonClicked.connect(self._on_store_cosine_feature)
 
@@ -159,14 +154,16 @@ class FeatureEngineeringWidget(QWidget):
         minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
         placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
 
-        if self._filter_widget is None:
-            self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
+        ####### Add the Query Widget
+        if self._query_widget is None:      
+            self._query_widget = QueryWidget()
+            self._query_widget.resize(600, 200) 
+        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
+        options_query = ['text', 'images']
+        self.query_options_widget = ComboFilter('Select query type', options_query)
         
-        self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
-        self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
-        self.filters = self._filter_widget.filters
         
-        v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._filter_widget], QVBoxLayout(), size = [self.columnwidth])
+        v11 = self.add_block([TitleWidget('Feature engineering:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget], QVBoxLayout(), size = [self.columnwidth])
         
         ####### Add the Multi Histogram Widget   
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
@@ -178,7 +175,7 @@ class FeatureEngineeringWidget(QWidget):
         }
         self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
 
-        v21 = self.add_block([self._multi_hist_p_widget], QHBoxLayout())
+        v21 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._multi_hist_p_widget], QVBoxLayout())
 
         self._store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_datfeat_button.buttonClicked.connect(self._on_store_data_feature)
@@ -270,13 +267,17 @@ class FeatureEngineeringWidget(QWidget):
         return self._data_show[self._model_train_widget.selected_features]
 
     ###### Update Methods ######
-    def update_data_show(self, data:pd.DataFrame, query = None, query_type=None):
-        self._data_show = data
-
+    def update_data_show(self, data:pd.DataFrame, query = None, query_type=None, keep_show_entries=False):
+        if keep_show_entries:
+            self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
+        else:
+            self._data_show = data
+        
+        self.query = query
         if query != None:
             self.query_text = query.lower().replace(" ", "_")
             feature_name = self.query_text + f"_{query_type}_similarity"
-            self.cosinesimilarity = data[feature_name + '-max_score']
+            self.cosinesimilarity = self._data_show[feature_name + '-max_score']
             # Visualization purposes
             self.alpha_ = self.minmaxnorm(self.cosinesimilarity.values)
 
@@ -284,12 +285,12 @@ class FeatureEngineeringWidget(QWidget):
             self._tsne_col_name = feature_name + "-tsne"
 
         if query_type == "image":
-            image_paths = data["funda_identifier"].astype(str) + "/image" + data[feature_name + '-max_id'].astype(str) + ".jpeg"
+            image_paths = self._data_show["funda_identifier"].astype(str) + "/image" + self._data_show[feature_name + '-max_id'].astype(str) + ".jpeg"
             self._image_widget.update_image_paths(image_paths)
             self._sentence_widget.hide()
             self._image_widget.show()
         elif query_type == "text":
-            self._sentence_widget.update_sentences(data[feature_name + '-max_sentence'])
+            self._sentence_widget.update_sentences(self._data_show[feature_name + '-max_sentence'])
             self._image_widget.hide()
             self._sentence_widget.show()
         
@@ -297,7 +298,7 @@ class FeatureEngineeringWidget(QWidget):
 
     def update_original_data(self, data:pd.DataFrame):
         self._data = data.copy()
-        self._data_show = data.copy()
+        self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
         self.update()
 
     def minmaxnorm(self, v):
@@ -335,7 +336,8 @@ class FeatureEngineeringWidget(QWidget):
 
         self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k, alpha_ = self.alpha_)
-
+        if self.query is not None:
+            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = self._data_show['price'])
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
         

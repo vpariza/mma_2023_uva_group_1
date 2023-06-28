@@ -19,6 +19,7 @@ from src.widgets.dialog_widgets import BasicDialog
 from src.utils.filtering_utils import apply_filters
 from src.widgets.geo_map_model import QGeoMapModel
 from src.widgets.geo_map_widget import GeoMapWidget
+from src.widgets.elements.custom_blocks import TitleWidget
 
 import numpy as np
 
@@ -33,7 +34,6 @@ class HouseSearchWidget(QWidget):
         super(HouseSearchWidget, self).__init__(parent=parent, *args, **kwargs)
         self.widgets = widgets
         # Use pre-existing widgets if given
-        self._query_widget = widgets.get('query_widget')
         self._filter_widget = widgets.get('filter_widget')
         self._table_listings_model = widgets.get('table_listings_model')
         self._table_listings_widget = widgets.get('table_listings_widget')
@@ -48,7 +48,6 @@ class HouseSearchWidget(QWidget):
 
     def get_dict_widgets(self):
         return {
-            'query_widget': self._query_widget,
             'filter_widget': self._filter_widget,
             'table_listings_model': self._table_listings_model,
             'table_listings_widget': self._table_listings_widget
@@ -64,12 +63,7 @@ class HouseSearchWidget(QWidget):
     def _right_layout(self):
         self.right_layout = QVBoxLayout()
         ####### Add the Query Widget
-        if self._query_widget is None:      
-            self._query_widget = QueryWidget()
-            self._query_widget.resize(600, 200) 
-        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
-        self._query_widget = self.add_block([self._query_widget], QHBoxLayout())
-        self.right_layout.addWidget(self._query_widget)
+        
         ####### Add the Filtering Widget
         # Define filters 
         combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms'] # combofilters -> {Element Title: [displayed textprompt]}
@@ -82,7 +76,7 @@ class HouseSearchWidget(QWidget):
         self.filters = self._filter_widget.filters
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
-        self._filter_widget = self.add_block([self._filter_widget], QHBoxLayout())
+        self._filter_widget = self.add_block([TitleWidget('Define data scope:', size = [600, 25]).title, self._filter_widget], QVBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
         self.right_layout.addWidget(self._filter_widget)
         ####### Add the Table Listings Widget
@@ -117,13 +111,16 @@ class HouseSearchWidget(QWidget):
         return right_layout
 
     ###### Update Methods ######
-    def update_data_show(self, data:pd.DataFrame):
-        self._data_show = data
+    def update_data_show(self, data:pd.DataFrame, keep_show_entries=False):
+        if keep_show_entries:
+            self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
+        else:
+            self._data_show = data
         self.update()
 
     def update_original_data(self, data:pd.DataFrame):
         self._data = data.copy()
-        self._data_show = data.copy()
+        self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
         self.update()
 
     def update_placeholder_values(self):
