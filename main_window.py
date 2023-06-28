@@ -108,7 +108,8 @@ class MainWindow(QMainWindow):
         self._data = data
         self._tab1_w.update_original_data(data)
 
-        self._tab2_w.update_data_show(data, query, query_type)
+        self._tab2_w.update_data_show(data, query, query_type, keep_show_entries=True)
+        self._tab1_w.update_original_data(data)
         self._tab2_w.update_original_data(data)
 
         #TODO update training_features values to include columns that end with "_similarity-max_score" to also consider new features during training

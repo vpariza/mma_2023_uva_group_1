@@ -117,13 +117,16 @@ class HouseSearchWidget(QWidget):
         return right_layout
 
     ###### Update Methods ######
-    def update_data_show(self, data:pd.DataFrame):
-        self._data_show = data
+    def update_data_show(self, data:pd.DataFrame, keep_show_entries=False):
+        if keep_show_entries:
+            self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
+        else:
+            self._data_show = data
         self.update()
 
     def update_original_data(self, data:pd.DataFrame):
         self._data = data.copy()
-        self._data_show = data.copy()
+        self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
         self.update()
 
     def update_placeholder_values(self):

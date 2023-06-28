@@ -270,13 +270,16 @@ class FeatureEngineeringWidget(QWidget):
         return self._data_show[self._model_train_widget.selected_features]
 
     ###### Update Methods ######
-    def update_data_show(self, data:pd.DataFrame, query = None, query_type=None):
-        self._data_show = data
-
+    def update_data_show(self, data:pd.DataFrame, query = None, query_type=None, keep_show_entries=False):
+        if keep_show_entries:
+            self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
+        else:
+            self._data_show = data
+        
         if query != None:
             self.query_text = query.lower().replace(" ", "_")
             feature_name = self.query_text + f"_{query_type}_similarity"
-            self.cosinesimilarity = data[feature_name + '-max_score']
+            self.cosinesimilarity = self._data_show[feature_name + '-max_score']
             # Visualization purposes
             self.alpha_ = self.minmaxnorm(self.cosinesimilarity.values)
 
@@ -284,12 +287,12 @@ class FeatureEngineeringWidget(QWidget):
             self._tsne_col_name = feature_name + "-tsne"
 
         if query_type == "image":
-            image_paths = data["funda_identifier"].astype(str) + "/image" + data[feature_name + '-max_id'].astype(str) + ".jpeg"
+            image_paths = self._data_show["funda_identifier"].astype(str) + "/image" + self._data_show[feature_name + '-max_id'].astype(str) + ".jpeg"
             self._image_widget.update_image_paths(image_paths)
             self._sentence_widget.hide()
             self._image_widget.show()
         elif query_type == "text":
-            self._sentence_widget.update_sentences(data[feature_name + '-max_sentence'])
+            self._sentence_widget.update_sentences(self._data_show[feature_name + '-max_sentence'])
             self._image_widget.hide()
             self._sentence_widget.show()
         
@@ -297,7 +300,7 @@ class FeatureEngineeringWidget(QWidget):
 
     def update_original_data(self, data:pd.DataFrame):
         self._data = data.copy()
-        self._data_show = data.copy()
+        self._data_show = data[data['funda_identifier'].isin(self._data_show['funda_identifier'].values)].copy()
         self.update()
 
     def minmaxnorm(self, v):
