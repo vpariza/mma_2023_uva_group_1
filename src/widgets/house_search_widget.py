@@ -26,6 +26,7 @@ class HouseSearchWidget(QWidget):
  
     txtQuerySubmitted = QtCore.pyqtSignal(str, QWidget)
     updatedShowedData = QtCore.pyqtSignal(pd.DataFrame, QWidget)
+    clear_data = QtCore.pyqtSignal()
 
 
     def __init__(self, data:pd.DataFrame, config, widgets:Dict[str, QWidget]={}, parent: typing.Optional['QWidget']=None, *args, **kwargs):
@@ -80,6 +81,7 @@ class HouseSearchWidget(QWidget):
         
         self.filters = self._filter_widget.filters
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
+        self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
         self._filter_widget = self.add_block([self._filter_widget], QHBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
         self.right_layout.addWidget(self._filter_widget)
@@ -90,9 +92,6 @@ class HouseSearchWidget(QWidget):
         self._table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
         self._table_listings_widget.setFixedWidth(600)
         self.right_layout.addWidget(self._table_listings_widget)
-        self._clear_all_button = QPushButton('Clear All', self)
-        self._clear_all_button.clicked.connect(self.clear_all_button_clicked)
-        self.right_layout.addWidget(self._clear_all_button)
         return self.right_layout
     
 
@@ -175,8 +174,8 @@ class HouseSearchWidget(QWidget):
         self._geo_map_widget.focus_on_entry(entry)
         self.update()
 
-    @QtCore.pyqtSlot()
-    def clear_all_button_clicked(self):
+    @QtCore.pyqtSlot(object, QWidget)
+    def _on_clear_all_button_clicked(self):
         self._data_show = self._data.copy()
         self._geo_map_widget.focus_on_coord(None)
         self.updatedShowedData.emit(self._data_show, self)

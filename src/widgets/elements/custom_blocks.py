@@ -25,7 +25,6 @@ class ButtonWidget(QWidget):
         if self.size is not None:
             self.button.setFixedSize(QSize(self.size[0], self.size[1]))  
         
-        self.button.setStyleSheet("border: 1px solid darkgray; QPushButton { qproperty-alignment: AlignCenter; }")   
         self.button.clicked.connect(self.clickMethod)
         
     def clickMethod(self):

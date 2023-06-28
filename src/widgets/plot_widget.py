@@ -292,7 +292,6 @@ class SelectClusterWidget(QWidget):
 
         # Combine widgets
         self.setLayout(select_layout)
-        self.setStyleSheet("border: 0px ; background-color: #f5f5f5;")
         self.adjustSize()
 
 

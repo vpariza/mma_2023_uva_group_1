@@ -36,17 +36,14 @@ class QueryWidget(QWidget):
         self.QueryButton = QPushButton('Search Query', self)
         self.QueryButton.clicked.connect(self.clickMethod)
         self.QueryButton.setFixedSize(QSize(150, 25))  
-        self.QueryButton.setStyleSheet("border: 1px solid darkgray;")      
         hbox_layout.addWidget(self.QueryButton)
         
         # Combine widgets
         hbox.setLayout(hbox_layout)
-        hbox.setStyleSheet("border: 0px solid darkgray; background-color: #f5f5f5;")
         vbox_layout.addWidget(hbox)
         self.setLayout(vbox_layout)
         # set widget style
         self.resize(450, 100)
-        self.setStyleSheet("border: 2px solid darkgray; background-color: #f5f5f5;")
-
+        
     def clickMethod(self):
         self.querySubmitted.emit(self.QueryText.text(), self)
