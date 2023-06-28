@@ -45,8 +45,9 @@ class ScatterPlotWidget(QWidget):
     label = QtCore.pyqtSignal(str)
     
 
-    def __init__(self,points, config, title = "Query Cosinesimilarity", x_lab = None, y_lab =None):
+    def __init__(self,points, config, title = "Query Cosinesimilarity", x_lab = None, y_lab =None, drawing_possible = True):
         super().__init__()
+        self.drawing_possible = drawing_possible
         self.x_lab = x_lab
         self.y_lab = y_lab
         # Setup plot configurations
@@ -83,10 +84,11 @@ class ScatterPlotWidget(QWidget):
         self.draw_scatterplot()
         """"""
         #connect the mouse press event to the selection method
-        self.Figure.canvas.mpl_connect('button_press_event', self.on_canvas_click)
-        self.Figure.canvas.mpl_connect('button_release_event', self.on_canvas_release)
+        if self.drawing_possible:
+            self.Figure.canvas.mpl_connect('button_press_event', self.on_canvas_click)
+            self.Figure.canvas.mpl_connect('button_release_event', self.on_canvas_release)
         #connect the mouse move event to the label method
-        self.Figure.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+            self.Figure.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
         # Set initial widget size
         self.resize_widget()
         """"""
@@ -228,7 +230,8 @@ class ScatterPlotWidget(QWidget):
                 self.end_point = (event.xdata, event.ydata)
                 if self.start_point == self.end_point:
                     return
-                self.draw_selection_rectangle()
+                if self.drawing_possible:
+                    self.draw_selection_rectangle()
                 # reset the drawing of the selected points
                 self.selected_points = []
                 self.draw_scatterplot()
