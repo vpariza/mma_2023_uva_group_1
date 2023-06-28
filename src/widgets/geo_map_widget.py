@@ -64,6 +64,7 @@ class GeoMapWidget(QWidget):
 
     def __init__(self, geo_map_model:QGeoMapModel, parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(QWidget, self).__init__(parent=parent, *args, **kwargs)
+        self._add_focus_coord_marker = False
         self._geo_map_model = geo_map_model
         # the widget should have a layout
         layout = QVBoxLayout()
@@ -86,7 +87,9 @@ class GeoMapWidget(QWidget):
         self._focus_coord = coords
 
     def focus_on_entry(self, entry_id):
+        self._focus_entry = entry_id
         self._focus_coord = self._geo_map_model.get_coords_of_entry(entry_id)
+        self._add_focus_coord_marker = True
     
     def update(self):
         self.map_view.setHtml(self.__generate_html_map(self._focus_coord).getvalue().decode())
@@ -94,7 +97,8 @@ class GeoMapWidget(QWidget):
 
     def __generate_html_map(self, centroid=None):
         m = self.__create_basic_map(centroid)
-        self.__add_markers_on_map(m)
+
+        self.__add_markers_on_map(m, selected_entries=([self._focus_entry] if self._add_focus_coord_marker else None))
         self.__add_draw_features_on_map(m)
         data = io.BytesIO()
         m.save(data, close_file=False)
@@ -115,20 +119,26 @@ class GeoMapWidget(QWidget):
         html.script._children[e.get_name()] = e
         return m
 
-    def __add_markers_on_map(self, map):
+    def __add_markers_on_map(self, map, selected_entries=None):
         """
         Adding the markers on the map. Note that the more we
         increase the number of markers, the more time the rendering
         of the html takes.
         """
+        selected_entries = set() if selected_entries is None else set(selected_entries)
         info = self._geo_map_model.get_entries_summary()
+        first = True
         for id, coord, html   in zip(info['ids'], info['coords'], info['html_summaries']):
             # iframe = folium.IFrame(html=html, width=200, height=200)
             # popup = folium.Popup(iframe, max_width=2650)
             # tooltip = "Id: {}".format(id)
             # folium.Marker(coord, popup=popup, tooltip=tooltip).add_to(map)
             # folium.Marker(coord, popup='Listing Id: {}'.format(id)).add_to(map)
-            folium.Marker(coord, popup='Listing Id: {} Location: {}'.format(id, coord)).add_to(map)
+            if id in selected_entries:
+                # To the selected entries add red color
+                folium.Marker(coord, popup='Listing Id: {} Location: {}'.format(id, coord), icon=folium.Icon(color='red')).add_to(map)
+            else:
+                folium.Marker(coord, popup='Listing Id: {} Location: {}'.format(id, coord)).add_to(map)
 
     def __add_draw_features_on_map(self, map):
         """     
