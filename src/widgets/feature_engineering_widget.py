@@ -111,7 +111,7 @@ class FeatureEngineeringWidget(QWidget):
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
             self._table_listings_widget.setFixedWidth(575)
-            self._table_listings_widget.setFixedHeight(400)
+            self._table_listings_widget.setFixedHeight(200)
             
         v13 = self.add_block([self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth], alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, v13], QVBoxLayout(), size = [self.columnwidth])
@@ -125,25 +125,18 @@ class FeatureEngineeringWidget(QWidget):
         return v13, v23, 0
 
     def _col2_layout(self):
-        ####### Add the Query Widget
-        if self._query_widget is None:      
-            self._query_widget = QueryWidget()
-            self._query_widget.resize(600, 200) 
-        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
-        options_query = ['text', 'images']
-        self.query_options_widget = ComboFilter('Select query type', options_query)
         
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
         
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget, self._select_scatter_plot], QVBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
         
-        v22 = self.add_block([self._scatter_plot_widget, self._image_widget, self._sentence_widget], QHBoxLayout())
-        
+        v22 = self.add_block([self._scatter_plot_widget, self._select_scatter_plot], QHBoxLayout())
+        v22 = self.add_block([v22, self._image_widget, self._sentence_widget], QVBoxLayout())
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_qfeat_button.buttonClicked.connect(self._on_store_cosine_feature)
 
@@ -159,14 +152,16 @@ class FeatureEngineeringWidget(QWidget):
         minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
         placeholdertext_ = ['Ex.: 100000', 'Ex.: 50', 'Ex.: 1990']
 
-        if self._filter_widget is None:
-            self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
+        ####### Add the Query Widget
+        if self._query_widget is None:      
+            self._query_widget = QueryWidget()
+            self._query_widget.resize(600, 200) 
+        self._query_widget.querySubmitted.connect(self._on_txt_query_submitted)
+        options_query = ['text', 'images']
+        self.query_options_widget = ComboFilter('Select query type', options_query)
         
-        self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
-        self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
-        self.filters = self._filter_widget.filters
         
-        v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._filter_widget], QVBoxLayout(), size = [self.columnwidth])
+        v11 = self.add_block([TitleWidget('Feature engineering:', size = [self.columnwidth, self.titlewidth]).title, self.query_options_widget, self._query_widget], QVBoxLayout(), size = [self.columnwidth])
         
         ####### Add the Multi Histogram Widget   
         self._multi_hist_p_model = MultiHistogramPlotModel(self._data_show, self)
@@ -178,7 +173,7 @@ class FeatureEngineeringWidget(QWidget):
         }
         self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
 
-        v21 = self.add_block([self._multi_hist_p_widget], QHBoxLayout())
+        v21 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._multi_hist_p_widget], QVBoxLayout())
 
         self._store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_datfeat_button.buttonClicked.connect(self._on_store_data_feature)
