@@ -69,8 +69,8 @@ class FeatureEngineeringWidget(QWidget):
         self._config = config
         self._images_dir_path = config['main']['images_dir_path']
         self.setLayout(self.create_layout())
-        self.kmeans = False
-        self.k = 1
+        self.kmeans = [False, False]
+        self.k = [1, 1]
         self.alpha_ = 1
 
 
@@ -114,28 +114,30 @@ class FeatureEngineeringWidget(QWidget):
             self._table_listings_widget.setFixedWidth(575)
             self._table_listings_widget.setFixedHeight(200)
             
-        v13 = self.add_block([self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth], alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
-        v13 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, v13], QVBoxLayout(), size = [self.columnwidth])
-        
         self._model_train_widget = ModelTrainWidget(self._training_features, base_model_name='model_{}', widgets=self.widgets, parent=self)
         self._model_train_widget.modelToTrain.connect(self._on_model_to_train)
         self._model_train_widget.modelDeleted.connect(self._on_deleted_model)
-        v23 = self.add_block([self._model_train_widget], QVBoxLayout(), size = [self.columnwidth])
+
+        v13 = self.add_block([self._model_train_widget], QVBoxLayout(), size = [self.columnwidth], alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
+        v13 = self.add_block([TitleWidget('Build model:', size = [self.columnwidth, self.titlewidth]).title, v13], QVBoxLayout(), size = [self.columnwidth])
+        v23 = self.add_block([TitleWidget('Current datapoint selection:', size = [self.columnwidth, self.titlewidth]).title, self._table_listings_widget], QVBoxLayout(), size = [self.columnwidth])
         
         
         return v13, v23, 0
 
     def _col2_layout(self):
         
-        self._select_scatter_plot = SelectClusterWidget()
-        self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
+        self._select_scatter_plot_cosine = SelectClusterWidget(dim_red = False)
+        #self._select_scatter_plot_cosine.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)cosine
         self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Cosine similarity vs. Price")
-        
-        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, self._scatter_cosine_widget], QVBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([self._scatter_cosine_widget], QHBoxLayout(), size = [self.columnwidth])
+        v12 = self.add_block([TitleWidget('Query driven features:', size = [self.columnwidth, self.titlewidth]).title, v12], QVBoxLayout(), size = [self.columnwidth])
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
+        self._select_scatter_plot = SelectClusterWidget()
+        self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
         
         v22 = self.add_block([self._scatter_plot_widget, self._select_scatter_plot], QHBoxLayout())
         v22 = self.add_block([v22, self._image_widget, self._sentence_widget], QVBoxLayout())
@@ -335,9 +337,11 @@ class FeatureEngineeringWidget(QWidget):
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
 
         self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
-        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans, k = self.k, alpha_ = self.alpha_)
+        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
         if self.query is not None:
-            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = self._data_show['price'])
+            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = self._data_show['price'].values/self._data_show['living_area'].values, kmeans = self.kmeans[1], k = self.k[1])
+
+            
     def add_new_features(self, feature_names:list):
         self._model_train_widget.add_features(feature_names)
         
@@ -358,14 +362,17 @@ class FeatureEngineeringWidget(QWidget):
     def _on_scatterconfig_applied(self):      
         """  Update according to tsne or umap select
         """
-        if self._select_scatter_plot.clustering_method.Filter.currentText() == 'k-means':
-            self.kmeans = True
-            try:
-                self.k = eval(self._select_scatter_plot.n_clusters_method.Filter.currentText())
-            except (NameError, SyntaxError):
-                BasicDialog(window_title='No Results found!', message='Pleas select k to choose the number of clusters!').exec()
-        elif self._select_scatter_plot.clustering_method.Filter.currentText() == 'None':
-            self.kmeans = False
+        methods = [self._select_scatter_plot, self._select_scatter_plot_cosine]
+        for instance in range(2):
+            if methods[instance].clustering_method.Filter.currentText() == 'k-means':
+                self.kmeans[instance] = True
+                try:
+                    self.k[instance] = eval(methods[instance].n_clusters_method.Filter.currentText())
+                except (NameError, SyntaxError):
+                    BasicDialog(window_title='No Results found!', message='Pleas select k to choose the number of clusters!').exec()
+            elif methods[instance].clustering_method.Filter.currentText() == 'None':
+                self.kmeans[instance] = False
+                
         self.update()
 
     @QtCore.pyqtSlot(object, QWidget)

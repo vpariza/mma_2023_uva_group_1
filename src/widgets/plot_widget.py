@@ -45,6 +45,8 @@ class ScatterPlotWidget(QWidget):
         self.points = points
         
         self.load_configurations()
+        self.kmeans = False
+        self._alpha = 1
 
         # create a matplotlib figure and add a subplot
         self.Figure = MplCanvas(title = title)
@@ -57,9 +59,9 @@ class ScatterPlotWidget(QWidget):
         # create a button under the scatterplot that removes the rectangle and the selected points
         #self.clear_button = QPushButton("Clear Selection")
         #self.clear_button.clicked.connect(self.clear_selection)
-        self.zp = ZoomPan()
-        self.figZoom = self.zp.zoom_factory(self.Figure.ax, base_scale = 1.5)
-        self.figPan = self.zp.pan_factory(self.Figure.ax)
+        #self.zp = ZoomPan()
+        #self.figZoom = self.zp.zoom_factory(self.Figure.ax, base_scale = 1.5)
+        #self.figPan = self.zp.pan_factory(self.Figure.ax)
         self.selected_points = []
         self.outside_points_visible = False
         """"""
@@ -98,11 +100,16 @@ class ScatterPlotWidget(QWidget):
             point.remove()
         
         if self.points is not None:
-            self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color, alpha=self._alpha)
+            if not self.kmeans:
+                self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.points_color, alpha=self._alpha)
             for i in self.selected_points:
                 point = self.points[i]
                 if self.is_point_in_rectangle(point) or self.outside_points_visible:
                     self.Figure.ax.scatter(point[0], point[1], s=self.selection_points_size, c=self.selection_color, alpha=self._alpha)
+            if self.kmeans:
+                self.Figure.ax.scatter(self.points[:,0], self.points[:,1], s=self.points_size, c=self.labels, alpha=self._alpha)
+                self.Figure.ax.scatter(self.cluster_centers[:, 0], self.cluster_centers[:, 1], c='red', marker='x')
+            
         
         
         self.Figure.canvas.draw()
@@ -110,6 +117,7 @@ class ScatterPlotWidget(QWidget):
     def update_scatterplot(self, x, y, kmeans = False, k = 2, alpha_ = 1):
         """Update scatterplot with new dataframe"""
         self._alpha = alpha_
+        self.kmeans = kmeans
         if x is None or y is None:
             self.Figure.ax.cla()
             self.Figure.canvas.draw()
@@ -121,22 +129,37 @@ class ScatterPlotWidget(QWidget):
         if kmeans:
             #scaler = StandardScaler()
             #scaler.fit()
-            kmeans = KMeans(n_clusters=k)
+            kmeans_method = KMeans(n_clusters=k)
             # Fit the data to the k-means model
             data = np.array(list(zip(x, y)))
-            kmeans.fit(data)
-            labels = kmeans.labels_
+            kmeans_method.fit(data)
+            self.labels = kmeans_method.labels_
             # Get the coordinates of the cluster centers
-            cluster_centers = kmeans.cluster_centers_
+            self.cluster_centers = kmeans_method.cluster_centers_
             self.Figure.ax.cla() 
-            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels, alpha=self._alpha)
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.labels, alpha=self._alpha)
+            self.Figure.ax.scatter(self.cluster_centers[:, 0], self.cluster_centers[:, 1], c='red', marker='x')
+            self.Figure.canvas.draw()
+
+    def update_cosine_price(self, x, y, kmeans = False, k = 2):
+        if not kmeans:
+            self.Figure.ax.cla() 
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
+            self.Figure.canvas.draw()
+        if kmeans:
+            print('reached')
+            kmeans_method = KMeans(n_clusters=k)
+            # Fit the data to the k-means model
+            data = np.array(list(zip(x, y)))
+            kmeans_method.fit(data)
+            labels = kmeans_method.labels_
+            # Get the coordinates of the cluster centers
+            cluster_centers = kmeans_method.cluster_centers_
+            self.Figure.ax.cla() 
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=labels)
             self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
             self.Figure.canvas.draw()
 
-    def update_cosine_price(self, x, y):
-        self.Figure.ax.cla() 
-        self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
-        self.Figure.canvas.draw()
 
 
     def update_points(self, points):
@@ -262,7 +285,7 @@ class ScatterPlotWidget(QWidget):
 
 class SelectClusterWidget(QWidget):
 
-    def __init__(self):
+    def __init__(self, dim_red = True):
         super().__init__()
         # Histogram Widget
         self.select_widget = QWidget(self)
@@ -276,7 +299,8 @@ class SelectClusterWidget(QWidget):
         method = [0, 1]
         method_tags = ['umap', 't-sne']
         self.dim_reduct_method = ComboFilter('Dimensionality Reduction mehtod     ', method, method_tags)
-        select_layout.addWidget(self.dim_reduct_method)
+        if dim_red:
+            select_layout.addWidget(self.dim_reduct_method)
         filter['dimensionality_reduction_method'] = self.dim_reduct_method.Filter.currentText()
 
         method = [0, 1]
