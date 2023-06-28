@@ -7,6 +7,7 @@ class FilterWidget(QWidget):
     """ Build main filtering widget for dashboard
 
     """
+    
     def __init__(self, df, minmaxfilters = [], combofilters =  {}, placeholdertext = {}, config = '1'):    
         """ Init filtering widget for dashboard
 
@@ -53,12 +54,16 @@ class FilterWidget(QWidget):
         self.filters.update({'range': self.minmaxfilters_widgets})
         
         self.searchbutton = SearchWidget(self.filters)
-
+        self._clear_all_button = ClearAllWidget(self.filters)
+        
         # Configure widget style
         self.make_main_layout(config)
 
     def get_filters(self):
         return self.filters
+    
+    def clickmethod_clearall(self):
+        self.buttonClearAll.emit(self)
     
 
     def make_main_layout(self, config = '1'):
@@ -97,7 +102,10 @@ class FilterWidget(QWidget):
             hblock.setLayout(hblock_layout)
             
         widget_layout.addWidget(hblock)
-        widget_layout.addWidget(self.searchbutton, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.searchbutton, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        button_layout.addWidget(self._clear_all_button, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        widget_layout.addLayout(button_layout)
         self.setLayout(widget_layout)
         self.setStyleSheet("background-color: #f5f5f5;")
 
@@ -190,11 +198,6 @@ class ComboFilter(QWidget):
         self.Filter.setPlaceholderText('Select')
         self.Filter.setStyleSheet('background-color: white;')
 
-        # Connect signals to the methods.
-        self.Filter.activated.connect(self.check_index)
-        self.Filter.activated.connect(self.current_text)
-        self.Filter.activated.connect(self.current_text_via_index)
-        self.Filter.activated.connect(self.current_count)
         
         layout.addWidget(self.label)
         layout.addWidget(self.Filter)
@@ -208,20 +211,7 @@ class ComboFilter(QWidget):
             if isinstance(widget, QComboBox):
                 widget.setCurrentIndex(-1)
                 widget.setPlaceholderText('Select')
-        
-    
-    def check_index(self, index):
-        cindex = self.Filter.currentIndex()
 
-    def current_text(self, _): 
-        ctext = self.Filter.currentText()
-        
-
-    def current_text_via_index(self, index):
-        ctext = self.Filter.itemText(index) 
-
-    def current_count(self, index):
-        count = self.Filter.count()
 
 
 class SearchWidget(QWidget):
@@ -250,3 +240,31 @@ class SearchWidget(QWidget):
 
     def clickMethod(self):
         self.filtersApplied.emit(self.filters, self)
+
+
+class ClearAllWidget(QWidget):
+    """ Class for building main filtering button and update plots
+    """
+
+    # Signal for Emitting the filtered data
+    buttonClearAll = QtCore.pyqtSignal(object, QWidget)
+
+    def __init__(self, filters):
+        super().__init__()
+        self.filters = filters
+        
+        layout = QVBoxLayout(self)
+        
+        # Set search button 
+        self.QueryButton = QPushButton('Clear all', self)
+        self.QueryButton.clicked.connect(self.clickMethod)
+        self.QueryButton.setFixedSize(QSize(150, 25))  
+        self.QueryButton.setStyleSheet("border: 1px solid darkgray;")      
+        layout.addWidget(self.QueryButton)
+        
+        # Combine widgets
+        self.setLayout(layout)
+        self.setStyleSheet("border: 0px;")  
+
+    def clickMethod(self):
+        self.buttonClearAll.emit(self.filters, self)

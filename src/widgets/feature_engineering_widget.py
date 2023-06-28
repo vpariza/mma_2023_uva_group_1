@@ -170,7 +170,10 @@ class FeatureEngineeringWidget(QWidget):
 
         if self._filter_widget is None:
             self._filter_widget = FilterWidget(self._data_show, minmaxfilters = minmaxfilters_, combofilters = combofilters_, placeholdertext = placeholdertext_, config = '1')
+        
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
+        self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
+        self.filters = self._filter_widget.filters
         
         v11 = self.add_block([TitleWidget('Data driven features:', size = [self.columnwidth, self.titlewidth]).title, self._filter_widget], QVBoxLayout(), size = [self.columnwidth])
         
@@ -212,6 +215,14 @@ class FeatureEngineeringWidget(QWidget):
         self._model_train_widget.modelDeleted.connect(self._on_deleted_model)
         bottom_layout.addWidget(self._model_train_widget)
         return bottom_layout
+
+
+    def update_placeholder_values(self):
+        for filter in self.filters['combo']:
+            self.filters['combo'][filter].resetComboBoxes()
+        for filter in self.filters['range']:
+            self.filters['range'][filter].Min.resetRangeFilter()
+            self.filters['range'][filter].Max.resetRangeFilter()
 
     ###### Properties of the object ######
     @property
@@ -356,6 +367,15 @@ class FeatureEngineeringWidget(QWidget):
         elif self._select_scatter_plot.clustering_method.Filter.currentText() == 'None':
             self.kmeans = False
         self.update()
+
+    @QtCore.pyqtSlot(object, QWidget)
+    def _on_clear_all_button_clicked(self):
+        self._data_show = self._data.copy()
+        self.updatedShowedData.emit(self._data_show, self)
+        self.update_placeholder_values()
+        self.update()
+    
+
         
         
 
