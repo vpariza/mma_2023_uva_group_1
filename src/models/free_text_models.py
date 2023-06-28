@@ -63,7 +63,7 @@ class Model():
 
         query_features = self.encode_query(query)
 
-        similarity_scores = self.cosine_similarity(query_features, self.features.T)
+        similarity_scores = self.cosine_similarity(query_features, self.features)
         print(similarity_scores)
 
         max_scores, max_scores_ids, max_scores_idxs = self.max_aggregation(similarity_scores)
@@ -159,11 +159,11 @@ class Model():
         
         Args:
             a (np.array): First vector
-            b (np.array): Second vector
+            b (np.array): Second array of vectors
         Returns:
             (np.array): Cosine similarity between the two vectors
         """
-        return (np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))).squeeze(0)
+        return (np.dot(b, a.T).squeeze(-1) / (np.linalg.norm(a) * np.linalg.norm(b, axis=1)))
     
 
 class VisionModel(Model):
