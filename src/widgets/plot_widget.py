@@ -171,7 +171,7 @@ class ScatterPlotWidget(QWidget):
             self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
             
         if kmeans:
-            print('reached')
+            # print('reached')
             kmeans_method = KMeans(n_clusters=k)
             # Fit the data to the k-means model
             data = np.array(list(zip(x, y)))

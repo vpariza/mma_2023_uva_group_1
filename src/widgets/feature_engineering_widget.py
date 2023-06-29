@@ -154,6 +154,7 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
+        self._scatter_plot_widget.selected_idx.connect(self._on_scatter_plot_indices_selected)
         
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
@@ -398,7 +399,10 @@ class FeatureEngineeringWidget(QWidget):
         self.update_placeholder_values()
         self.update()
     
-
+    @QtCore.pyqtSlot(list)
+    def _on_scatter_plot_indices_selected(self, indices:list):
+        for i in indices:
+            self._table_listings_widget.selectRow(i)
         
     @QtCore.pyqtSlot(str, QWidget)
     def _on_txt_query_submitted(self, txt_query):
