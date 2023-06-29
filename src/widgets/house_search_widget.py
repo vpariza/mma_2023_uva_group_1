@@ -40,8 +40,6 @@ class HouseSearchWidget(QWidget):
 
         screen = app.primaryScreen()
         self.size = screen.size()
-        self.columnwidth = int(((self.size.width()-100)/3)//1)
-        self.columnheight = int(((self.size.height()-100)/4)//1)
   
         # Save the given data
         # These are the data showed at each moment
@@ -61,20 +59,27 @@ class HouseSearchWidget(QWidget):
 
     ###### Creating the general Layout ######
     def create_layout(self):
-        self.main_layout = QHBoxLayout()
-        self.main_layout.addLayout(self._left_layout())
-        self.main_layout.addLayout(self._right_layout())
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addLayout(self._top_layout())
+        self.main_layout.addLayout(self._bottom_layout())
+        
         return self.main_layout
 
-    def _right_layout(self):
-        self.right_layout = QVBoxLayout()
+    def _top_layout(self):
+        self.top_layout = QHBoxLayout()
         ####### Add the Query Widget
         
         ####### Add the Filtering Widget
         # Define filters 
         combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms', 'closest_city'] # combofilters -> {Element Title: [displayed textprompt]}
         minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
-        
+        ####### Add the Geo Map Model Widget   
+        # Define the Geo Map Widget
+        self._geo_map_model = QGeoMapModel(self._data_show )
+        self._geo_map_widget = GeoMapWidget(self._geo_map_model)
+        self._geo_map_widget.entryClicked.connect(self.on_map_entry_clicked)
+        self._geo_map_widget.entriesSelected.connect(self.on_map_entries_selected)
+
         placeholdertext_ = {}
         for filter in minmaxfilters_:
             placeholdertext_['min_' + filter] = np.min(self._data_show[filter].values)
@@ -85,23 +90,30 @@ class HouseSearchWidget(QWidget):
         
         self.filters = self._filter_widget.filters
 
-        self._filter_widget.setFixedSize(self.columnwidth-10, int(2.5*self.columnheight-10))
 
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
         self._filter_widget = self.add_block([TitleWidget('Define data scope:', size = [600, 25]).title, self._filter_widget], QVBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
-        self.right_layout.addWidget(self._filter_widget)
-        ####### Add the Table Listings Widget
+        self.top_layout.addWidget(self._geo_map_widget)
+        self.top_layout.addWidget(self._filter_widget)
+       
+        return self.top_layout
+    
+    def _bottom_layout(self):
+        bottom_layout = QVBoxLayout()      
+        
+         ####### Add the Table Listings Widget
         if self._table_listings_widget is None:
             self._table_listings_model = TableListingsModel(self._data_show, self._images_dir_path)
             self._table_listings_widget = TableListingsView(self._table_listings_model)
             
         self._table_listings_widget.entryDoubleClicked.connect(self.on_table_entry_double_clicked)
-        self._table_listings_widget.setFixedSize(self.columnwidth-10, self.columnheight-10)
-        self.right_layout.addWidget(self._table_listings_widget)
-        return self.right_layout
-    
+        
+        bottom_layout.addWidget(self._table_listings_widget)
+        
+        return bottom_layout
+
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
         widget = QWidget()
         layout = block_type
@@ -113,16 +125,7 @@ class HouseSearchWidget(QWidget):
         return widget
 
 
-    def _left_layout(self):
-        right_layout = QVBoxLayout()      
-        ####### Add the Geo Map Model Widget   
-        # Define the Geo Map Widget
-        self._geo_map_model = QGeoMapModel(self._data_show )
-        self._geo_map_widget = GeoMapWidget(self._geo_map_model)
-        self._geo_map_widget.entryClicked.connect(self.on_map_entry_clicked)
-        self._geo_map_widget.entriesSelected.connect(self.on_map_entries_selected)
-        right_layout.addWidget(self._geo_map_widget)
-        return right_layout
+
 
     ###### Update Methods ######
     def update_data_show(self, data:pd.DataFrame, keep_show_entries=False):
