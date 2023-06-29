@@ -446,8 +446,9 @@ class FeatureEngineeringWidget(QWidget):
         try:
             datafeature, feature_names  = self._multi_hist_p_widget.get_transformed_column_data(self._data)
             if datafeature is None:
-                BasicDialog(window_title='Store Data Feature Failed', message='You cannot include the column \'{}\'' 
-                            + 'you specified because it does not have numerical values.'.format(feature_names)).exec()
+                BasicDialog(window_title='Store Data Feature Failed', 
+                            message='You cannot include the column \'{}\' '.format(feature_names) 
+                            + 'you specified because it does not have numerical values.').exec()
             else:
                 self._datafeature = datafeature
                 BasicDialog(window_title='Store Data Feature Succeeded', 
@@ -464,6 +465,7 @@ class FeatureEngineeringWidget(QWidget):
             self.selection_window = None
         self.selection_window = TableListingsWindow(data, images_dir_path)
         self.selection_window.show()
+        self.selection_window.resize(500, 300)
 
 
 
