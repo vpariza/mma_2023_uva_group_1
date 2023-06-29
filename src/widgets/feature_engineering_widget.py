@@ -35,6 +35,23 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import robust_scale
 from sklearn.preprocessing import maxabs_scale
 
+class TableListingsWindow(QWidget):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self, data:pd.DataFrame, images_dir_path:str):
+        super().__init__()
+        layout = QGridLayout(self)
+        self._data = data
+        self._images_dir_path = images_dir_path
+        self._table_listings_model = TableListingsModel(self._data, self._images_dir_path)
+        self._table_listings_widget = TableListingsView(self._table_listings_model)
+        layout.addWidget(self._table_listings_widget)
+        self.setLayout(layout)
+        self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
+        self.setWindowTitle("Selected entries from scatter plot")
+
 class FeatureEngineeringWidget(QWidget):
  
     txtQuerySubmitted = QtCore.pyqtSignal(str, QWidget)
@@ -58,6 +75,7 @@ class FeatureEngineeringWidget(QWidget):
         self.query = None
         screen = app.primaryScreen()
         self.size = screen.size()
+        self.selection_window = None
         
         
         
@@ -168,7 +186,6 @@ class FeatureEngineeringWidget(QWidget):
 
         return v12, v22, v32
 
-
     def _col1_layout(self):
         # Filter widgets tab 1 with layout option 1
         
@@ -202,7 +219,6 @@ class FeatureEngineeringWidget(QWidget):
         
         return v11, v21, v31
     
-
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
         widget = QWidget()
         layout = block_type
@@ -220,7 +236,6 @@ class FeatureEngineeringWidget(QWidget):
         self._model_train_widget.modelDeleted.connect(self._on_deleted_model)
         bottom_layout.addWidget(self._model_train_widget)
         return bottom_layout
-
 
     def update_placeholder_values(self):
         for filter in self.filters['combo']:
@@ -401,6 +416,8 @@ class FeatureEngineeringWidget(QWidget):
     
     @QtCore.pyqtSlot(list)
     def _on_scatter_plot_indices_selected(self, indices:list):
+        if len(indices) > 0:
+            self.show_selected_entries_window(self._data_show.iloc[indices], self._images_dir_path)
         for i in indices:
             self._table_listings_widget.selectRow(i)
         
@@ -432,6 +449,15 @@ class FeatureEngineeringWidget(QWidget):
             self.dataFeature.emit(self._datafeature, self)
         except AttributeError:
             BasicDialog(window_title='No Results found!', message='Pleas select data and transformation to store feature!').exec()
+
+    ##### Other Utility Methods #####
+
+    def show_selected_entries_window(self, data:pd.DataFrame, images_dir_path:str):
+        if self.selection_window is not None:
+            self.selection_window.close()  # Close window.
+            self.selection_window = None
+        self.selection_window = TableListingsWindow(data, images_dir_path)
+        self.selection_window.show()
 
 
 
