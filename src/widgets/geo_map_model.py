@@ -18,9 +18,12 @@ class QGeoMapModel(QObject):
         LATITUDE = 'lat'
         LISTING_ID = 'funda_identifier'
 
-    def __init__(self, data:pd.DataFrame, summary_keys:str=None, parent: typing.Optional['QObject'] = None ) -> None:
+    def __init__(self, data:pd.DataFrame, summary_keys:str=None, sampling_n=1500, parent: typing.Optional['QObject'] = None) -> None:
         super(QObject, self).__init__(parent)
-        self._data = data
+        if sampling_n is None:
+            self._data = data
+        else:
+            self._data = data.sample(min(sampling_n, data.shape[0]), replace=False)
         self._summary_keys = summary_keys
         self._coords = self.__get_location_points()
 
