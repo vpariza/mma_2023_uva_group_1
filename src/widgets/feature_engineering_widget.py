@@ -165,7 +165,7 @@ class FeatureEngineeringWidget(QWidget):
         
         self._select_scatter_plot_cosine = SelectClusterWidget(dim_red = False)
         #self._select_scatter_plot_cosine.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)cosine
-        self._scatter_cosine_widget = FeaturesPlotWidget(pd.DataFrame([]))
+        self._scatter_cosine_widget = FeaturesPlotWidget(pd.DataFrame(self._data_show.copy()))
         self._scatter_cosine_widget.setMinimumSize(200, 250)
         # self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Feature vs. Price", x_lab = 'Price/m2', y_lab = 'Cosine Similarity', drawing_possible = False)
         v12 = self.add_block([self._scatter_cosine_widget], QHBoxLayout(),  alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -378,6 +378,8 @@ class FeatureEngineeringWidget(QWidget):
             data = self._data_show.copy()
             data['cos_sim'] = cos_sim
             self._scatter_cosine_widget.upadte_model(data)
+        else:
+            self._scatter_cosine_widget.upadte_model(self._data_show.copy())
 
             
     def add_new_features(self, feature_names:list):
