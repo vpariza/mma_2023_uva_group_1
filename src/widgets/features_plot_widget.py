@@ -82,10 +82,6 @@ class FeaturesPlotWidget(QWidget):
                 self._numeric_headers.append(column)
         return self._numeric_headers
 
-    def handleItemPressed(self, index):
-        item = self._dropdown_list_ly_widget.model().itemFromIndex(index)
-        print("Do something with the selected item:", item)
-
     def upadte_model(self, data:pd.DataFrame):
         self._data = data
         self._identify_numerical_headers()
@@ -102,7 +98,7 @@ class FeaturesPlotWidget(QWidget):
 
     @QtCore.pyqtSlot(str)
     def dropdown_label_y_changed(self, label):
-        print('dropdown_label_y_changed', label)
+        # print('dropdown_label_y_changed', label)
         self._selected_label_y = label
         self.update()
     

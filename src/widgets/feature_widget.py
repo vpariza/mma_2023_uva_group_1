@@ -34,8 +34,9 @@ class FeatureBoxWidget(QWidget):
       
  
     def showDetails(self):
-        print("Selected: ", self.sender().isChecked(),
-              "  Name: ", self.sender().text())
+        # print("Selected: ", self.sender().isChecked(),
+            #   "  Name: ", self.sender().text())
+            pass
 
 
 from PyQt6.QtWidgets import QWidget, QListWidget, QLineEdit, QComboBox, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QGridLayout, QCheckBox
@@ -81,7 +82,7 @@ class ModelBoxWidget(QWidget):
         selected_items = list_widget.selectedItems()
         if selected_items:
             selected_item = selected_items[0]
-            print("Selected:", selected_item.text())
+            # print("Selected:", selected_item.text())
 
             # Highlight the selected item
             list_widget.setCurrentItem(selected_item)

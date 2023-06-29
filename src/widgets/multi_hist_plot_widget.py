@@ -123,11 +123,13 @@ class MultiHistogramPlotWidget(QWidget):
         except:
             numeric_data = False
         
-        return numeric_data and not data.dtypes==bool
+        return numeric_data
 
     def update(self):
         data = self._hist_p_model.get_column(self._selected_col)
         numeric_data = True
+        if data.dtypes==bool:
+            data = data.astype(int)
         try:
             options_data, labels = self.apply_option_fns(data.values)
         except ValueError as e:
@@ -155,6 +157,8 @@ class MultiHistogramPlotWidget(QWidget):
         self._sc = MplCanvas(parent, width=5, height=4, dpi=100)
         data = self._hist_p_model.get_column(self._selected_col)
         numeric_data = True
+        if data.dtypes==bool:
+            data = data.astype(int)
         try:
             options_data, labels = self.apply_option_fns(data.values)
         except ValueError as e:

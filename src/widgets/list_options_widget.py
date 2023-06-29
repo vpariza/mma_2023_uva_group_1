@@ -87,7 +87,7 @@ if __name__ == '__main__':
                 self.w._list_widget.item(3).setSelected(True)
                 # self.w._list_widget.setCurrentRow(2)
                 # self.w._list_widget.setCurrentRow(3)
-            print(selected)
+            # print(selected)
     app = QApplication(sys.argv)
     window = MainWindow()
     app.exec()

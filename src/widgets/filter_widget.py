@@ -129,7 +129,8 @@ class MinMaxWidget(QWidget):
         if method == 'MinMax':
             self.minmax_layout()
         else:
-            print(method, ' layout method not implemented')
+            # print(method, ' layout method not implemented')
+            pass
 
     def minmax_layout(self):
         ## Initialize widgets

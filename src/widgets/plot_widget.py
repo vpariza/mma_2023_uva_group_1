@@ -222,7 +222,7 @@ class ScatterPlotWidget(QWidget):
 
     def on_canvas_release(self, event):
         if event.inaxes is None:
-            print("Releasing click outside axes. Ignoring. Please click inside the axes of the scatterplot")
+            # print("Releasing click outside axes. Ignoring. Please click inside the axes of the scatterplot")
             return
         pass
 
@@ -241,7 +241,7 @@ class ScatterPlotWidget(QWidget):
         """Method that handles mouse clicks on the canvas"""
         # Ignore clicks outside the plot area
         if event.inaxes is None:
-            print("click outside axes. Ignoring. Please click inside the axes of the scatterplot")
+            # print("click outside axes. Ignoring. Please click inside the axes of the scatterplot")
             return
         # left click to select points
         if event.button == 1:

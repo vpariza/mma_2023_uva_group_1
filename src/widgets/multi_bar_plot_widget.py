@@ -76,11 +76,11 @@ class MultiBarPlotWidget(QWidget):
         
 
         self._sc.axes.set_xticks(x_tick)
-        print(categories)
-        print(len(categories))
+        # print(categories)
+        # print(len(categories))
         categories_ = [categories[i][0:12] + '...\n' + categories[i][-7:] if len(categories[i]) > 20 else categories[i] for i in range(len(categories))]
-        print(len(categories_))
-        print(categories_)
+        # print(len(categories_))
+        # print(categories_)
         self._sc.axes.set_xticklabels(categories_)
         plt.setp(self._sc.axes.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
         self._sc.axes.legend()
