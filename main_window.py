@@ -42,6 +42,11 @@ class MainWindow(QMainWindow):
             'lat': float,
             'lon': float,
             'label': "category",
+            'garden': "category",
+            'type_of_facilities': "category",
+            'distance_to_center': float,
+            'population_of_closest_city': int,
+            'number_of_bath_rooms': int,
         }
         
         for feature, dtype in self._training_features.items():
@@ -172,9 +177,9 @@ class MainWindow(QMainWindow):
 
         # update widgets with results
         eval_function_name_mapping = {
-            "mean_absolute_error": "Mean Absolute Error [%]",
+            "mean_absolute_error": "Mean Absolute Error",
             "mean_absolute_percentage_error": "Mean Absolute Percentage Error [%]",
-            "r2_score": "R2 Score [%]",
+            "r2_score": "R2 Score",
         }
         scores = {eval_function_name_mapping.get(k, k): v for k, v in scores.items()}
         scores = {k: round(v, 2) for k, v in scores.items()}
