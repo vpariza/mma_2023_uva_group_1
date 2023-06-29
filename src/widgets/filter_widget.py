@@ -159,7 +159,7 @@ class RangeFilter(QWidget):
         self.QueryLabel = QLabel(self)
         self.QueryLabel.setText(self.name.replace("_", " "))
         self.QueryLabel.setStyleSheet("border: 0px;")
-        self.QueryLabel.setFixedSize(QSize(125, 25))  
+        #self.QueryLabel.setFixedSize(QSize(125, 25))  
         self.layout.addWidget(self.QueryLabel)
         
         # Set query input box
@@ -199,7 +199,7 @@ class ComboFilter(QWidget):
 
         self.label.setStyleSheet("border: 0px;")
         self.Filter = QComboBox(self)
-        self.Filter.setFixedSize(QSize(75, 25))  
+        self.Filter.setMaximumWidth(100)  
         self.Filter.addItems(filter_tags)
         self.Filter.setCurrentIndex(-1)
         self.Filter.setPlaceholderText('Select')
@@ -237,7 +237,7 @@ class SearchWidget(QWidget):
         # Set search button 
         self.QueryButton = QPushButton('Filter', self)
         self.QueryButton.clicked.connect(self.clickMethod)
-        self.QueryButton.setFixedSize(QSize(150, 25))  
+        #self.QueryButton.setFixedSize(QSize(150, 25))  
         layout.addWidget(self.QueryButton)
         
         # Combine widgets
@@ -263,7 +263,7 @@ class ClearAllWidget(QWidget):
         # Set search button 
         self.QueryButton = QPushButton('Clear all', self)
         self.QueryButton.clicked.connect(self.clickMethod)
-        self.QueryButton.setFixedSize(QSize(150, 25))  
+        #self.QueryButton.setFixedSize(QSize(150, 25))  
         layout.addWidget(self.QueryButton)
         
         # Combine widgets

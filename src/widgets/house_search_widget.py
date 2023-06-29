@@ -71,7 +71,7 @@ class HouseSearchWidget(QWidget):
         
         ####### Add the Filtering Widget
         # Define filters 
-        combofilters_ = ['kind_of_house', 'building_type','number_of_rooms', 'bedrooms', 'closest_city'] # combofilters -> {Element Title: [displayed textprompt]}
+        combofilters_ = ['kind_of_house', 'building_type', 'bedrooms', 'closest_city'] # combofilters -> {Element Title: [displayed textprompt]}
         minmaxfilters_ = ['price', 'living_area', 'year_of_construction']
         ####### Add the Geo Map Model Widget   
         # Define the Geo Map Widget
