@@ -196,6 +196,7 @@ class ScatterPlotWidget(QWidget):
     def update_points(self, points):
         """Update scatterplot with new dataframe"""
         self.points = points
+        self.labels = None
         self.draw_scatterplot()
 
     
