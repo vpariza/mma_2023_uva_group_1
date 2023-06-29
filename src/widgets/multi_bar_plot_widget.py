@@ -73,9 +73,15 @@ class MultiBarPlotWidget(QWidget):
         for i, vals in enumerate(values):
             offset = (i - num_values / 2) * width
             self._bar_plots.append(self._sc.axes.bar(x_tick + offset, vals, width, label=features.keys().values[i].replace('_','\n')))
-            
+        
+
         self._sc.axes.set_xticks(x_tick)
-        self._sc.axes.set_xticklabels(categories)
+        print(categories)
+        print(len(categories))
+        categories_ = [categories[i][0:12] + '...\n' + categories[i][-7:] if len(categories[i]) > 20 else categories[i] for i in range(len(categories))]
+        print(len(categories_))
+        print(categories_)
+        self._sc.axes.set_xticklabels(categories_)
         plt.setp(self._sc.axes.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
         self._sc.axes.legend()
         if self._plot_configs.get('ylabel') is not None:
