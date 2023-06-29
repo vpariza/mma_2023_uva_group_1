@@ -168,7 +168,7 @@ class HouseSearchWidget(QWidget):
         else:
             BasicDialog(window_title='No Results found!', message='There are no entries matching your filtering!').exec()
         for filter in self.filters['range']:
-            print()
+            # print()
             if self.filters['range'][filter].Min.QueryText.text() == '':
                 self.filters['range'][filter].Min.resetRangeFilter('min:' + str(np.min(self._data_show[filter].values)))
             if self.filters['range'][filter].Max.QueryText.text() == '':
