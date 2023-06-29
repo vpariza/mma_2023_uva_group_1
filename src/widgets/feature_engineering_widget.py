@@ -169,6 +169,7 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._on_scatter_plot_indices_selected)
+        self._scatter_plot_widget.resize(self._scatter_plot_widget.Figure.canvas.width(), self._scatter_plot_widget.Figure.canvas.height())
         
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
