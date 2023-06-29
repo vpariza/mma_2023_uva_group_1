@@ -76,13 +76,23 @@ class MultiHistogramPlotWidget(QWidget):
 
     def get_transformed_column_data(self, data:pd.DataFrame):
         column_data = dict()
+        at_least_one_opt_clicked = False
+        feature_name = self._dropdown_list_widget.currentText()
         for option_name, fn in self._options_fn.items():
             if not self._checkbox.is_checked(option_name):
                 continue
-            new_data_column = '{}_{}'.format(self._dropdown_list_widget.currentText(),option_name)
+            at_least_one_opt_clicked = True
+            new_data_column = '{}_{}'.format(feature_name,option_name)
             if new_data_column not in data.columns:
-                column_data[new_data_column] = list(fn(data[self._dropdown_list_widget.currentText()].values))
-        return pd.DataFrame(column_data)
+                column_data[new_data_column] = list(fn(data[feature_name].values))
+        if at_least_one_opt_clicked:
+            return pd.DataFrame(column_data), list(column_data.keys())
+        elif self._is_numeric_data(data[feature_name]):
+            column_data[feature_name] = list(data[feature_name].values)
+            return pd.DataFrame(column_data), feature_name
+        else:
+            return None, feature_name
+
 
     def update_model(self, hist_p_model: MultiHistogramPlotModel):
         self._hist_p_model = hist_p_model
@@ -102,6 +112,19 @@ class MultiHistogramPlotWidget(QWidget):
         self._hist_p_model = hist_p_model
         self.update()
 
+    def _is_numeric_data(self, data):
+        numeric_data = pd.to_numeric(data, errors='coerce').notnull().all() == True
+        try:
+            data.astype(int)
+        except:
+            numeric_data = False
+        try:
+            data.astype(float)
+        except:
+            numeric_data = False
+        
+        return numeric_data and not data.dtypes==bool
+
     def update(self):
         data = self._hist_p_model.get_column(self._selected_col)
         numeric_data = True
@@ -109,7 +132,7 @@ class MultiHistogramPlotWidget(QWidget):
             options_data, labels = self.apply_option_fns(data.values)
         except ValueError as e:
             numeric_data = False
-        numeric_data = numeric_data and pd.to_numeric(data, errors='coerce').notnull().all() == True
+        numeric_data = numeric_data and self._is_numeric_data(data)
         if numeric_data == False:
             options_data = labels = []
             self._checkbox.uncheck_all()
@@ -131,12 +154,20 @@ class MultiHistogramPlotWidget(QWidget):
     def _create_hist(self, col_name, parent):
         self._sc = MplCanvas(parent, width=5, height=4, dpi=100)
         data = self._hist_p_model.get_column(self._selected_col)
-        options_data, labels = self.apply_option_fns(data.values)
+        numeric_data = True
+        try:
+            options_data, labels = self.apply_option_fns(data.values)
+        except ValueError as e:
+            numeric_data = False
+        numeric_data = numeric_data and self._is_numeric_data(data)
+        if numeric_data == False:
+            options_data = labels = []
+            self._checkbox.uncheck_all()
         num_u_labels = len(set(data.values.tolist()))
-        if len(options_data) > 0:
+        if len(options_data) > 0 and numeric_data:
             self._hist = self._sc.axes.hist(options_data, density=False, bins=min(30, num_u_labels), label=labels)  # density=False would make counts
         else:
-            self._hist = self._sc.axes.hist(data, density=False, bins=min(30, num_u_labels), label='Original')  # density=False would make counts
+            self._hist = self._sc.axes.hist( data if (numeric_data and not data.dtypes==bool) else data.astype(str), density=False, bins=min(30, num_u_labels), label='Original')  # density=False would make counts
         self._sc.axes.legend()
         self._sc.axes.set_ylabel('Counts')
         self._sc.axes.set_xlabel(col_name)

@@ -77,8 +77,6 @@ class FeatureEngineeringWidget(QWidget):
         self.size = screen.size()
         self.selection_window = None
         
-        
-        
         # default values for UMAP/t-SNE columns
         self._umap_col_name = "umap"
         self._tsne_col_name = "tsne"
@@ -446,10 +444,17 @@ class FeatureEngineeringWidget(QWidget):
     def _on_store_data_feature(self):
         self.featuretype = 'data'
         try:
-            self._datafeature  = self._multi_hist_p_widget.get_transformed_column_data(self._data)
-            self.dataFeature.emit(self._datafeature, self)
+            datafeature, feature_names  = self._multi_hist_p_widget.get_transformed_column_data(self._data)
+            if datafeature is None:
+                BasicDialog(window_title='Store Data Feature Failed', message='You cannot include the column \'{}\'' 
+                            + 'you specified because it does not have numerical values.'.format(feature_names)).exec()
+            else:
+                self._datafeature = datafeature
+                BasicDialog(window_title='Store Data Feature Succeeded', 
+                            message='You included in the training features the following columns: {}.'.format(feature_names)).exec()
+                self.dataFeature.emit(self._datafeature, self)
         except AttributeError:
-            BasicDialog(window_title='No Results found!', message='Pleas select data and transformation to store feature!').exec()
+            BasicDialog(window_title='No Results found!', message='Please select data and transformation to store feature!').exec()
 
     ##### Other Utility Methods #####
 

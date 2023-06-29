@@ -7,6 +7,8 @@ import typing
 import pandas as pd
 from enum import Enum
 
+from copy import copy 
+
 class MultiHistogramPlotModel(QtCore.QObject):
     class HouseInfoDistKeys(Enum):
         LONGITUDE = 'lon'
@@ -36,9 +38,18 @@ class MultiHistogramPlotModel(QtCore.QObject):
     def __init__(self, data:pd.DataFrame, parent: typing.Optional[QtCore.QObject] = None ) -> None:
         super(MultiHistogramPlotModel, self).__init__(parent)
         self._data = data
-    
+        self._headers = list(set(self.HouseInfoDistKeys.list_values()).union(set(self.get_numric_headers())))
+
+    def get_numric_headers(self):
+        numeric_headers = list()
+        for column in self._data.columns:
+            if pd.to_numeric(self._data[column], errors='coerce').notnull().all():
+                numeric_headers.append(column)
+        return numeric_headers
+
+
     def get_headers(self):
-        return self.HouseInfoDistKeys.list_values()
+        return copy(self._headers)
     
     def get_column(self, column_name:str) -> pd.DataFrame:
         return self._data[column_name]
