@@ -26,7 +26,7 @@ class MplCanvas(FigureCanvasQTAgg):
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
         self.fig.suptitle(title)
-        self.fig.subplots_adjust(left = 0.16, right = 0.72, bottom = 0.38, top = 0.99)
+        self.fig.subplots_adjust(left = 0.16, right = 0.72, bottom = 0.38, top = 0.98)
         if x_lab is not None:
             self.ax.set_xlabel(x_lab)
         if y_lab is not None:
