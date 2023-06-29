@@ -39,15 +39,23 @@ class MainWindow(QMainWindow):
             'living_area': int,
             'plot_size': int,
             # 'year_of_construction': int,
-            'age': int,
+            ''
+            'building_age': int,
             'lat': float,
             'lon': float,
             'label': "category",
-            'garden': "category",
             'type_of_facilities': "category",
             'distance_to_center': float,
             'population_of_closest_city': int,
             'number_of_bath_rooms': int,
+            'kind_of_house': "category",
+            'volume_in_cubic_meters': int,
+            'type_of_facilities': "category",
+            'zip_code': "category",
+            'has_terrace': int,
+            'has_garden': int,
+            'has_balcony': int,
+            'building_type': "category",
         }
         
         for feature, dtype in self._training_features.items():
