@@ -212,7 +212,7 @@ class FeatureEngineeringWidget(QWidget):
         }
         self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
 
-        v21 = self.add_block([TitleWidget('Build data driven features:').title, self._multi_hist_p_widget], QVBoxLayout())
+        v21 = self.add_block([TitleWidget('Build data driven features').title, self._multi_hist_p_widget], QVBoxLayout())
 
         self._store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_datfeat_button.buttonClicked.connect(self._on_store_data_feature)
