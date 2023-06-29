@@ -111,24 +111,28 @@ class FeatureEngineeringWidget(QWidget):
         self.columnwidth = int(((self.size.width()-100)/3)//1)
         self.buttonwidth = int(((self.size.width()-100)/6)//1)
         self.buttonheight = int(((self.size.height()-100)*5/60)//1)
-        
+        self.main_layout_ = QVBoxLayout()
         self.main_layout = QGridLayout()
         v11, v21, v31 = self._col1_layout()
         v12, v22, v32 = self._col2_layout()
         v13, v23, v33 = self._col3_layout()
         
-        self.main_layout.addWidget(self.add_block([QWidget()]), 0, 0)
-        self.main_layout.addWidget(v11, 0, 0, alignment = QtCore.Qt.AlignmentFlag.AlignTop)
+        self.main_layout.addWidget(self.add_block([QWidget()]), 0, 1)
+        self.main_layout.addWidget(v12, 0, 0)
         self.main_layout.addWidget(v21, 1, 0)
         self.main_layout.addWidget(v31, 2, 0, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
         
-        self.main_layout.addWidget(v12, 0, 1)
+        self.main_layout.addWidget(v11, 0, 1, alignment = QtCore.Qt.AlignmentFlag.AlignTop)
         self.main_layout.addWidget(v22, 1, 1)
         self.main_layout.addWidget(v32, 2, 1, alignment = QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.main_layout.addWidget(v13, 0, 2)
-        self.main_layout.addWidget(v23, 1, 2)
+        self.main_layout.addWidget(self.add_block([QWidget()]), 0, 2)
+        self.main_layout.addWidget(v13, 0, 2, alignment = QtCore.Qt.AlignmentFlag.AlignTop)
         
-        return self.main_layout
+        self.main_layout.addWidget(v23, 1, 2)
+        self.main_layout_.addWidget(TitleWidget('Feature Engineering:').title)
+        self.main_layout_.addLayout(self.main_layout)
+        
+        return self.main_layout_
 
     
     def _col3_layout(self):
@@ -147,10 +151,10 @@ class FeatureEngineeringWidget(QWidget):
         self._model_train_widget.modelDeleted.connect(self._on_deleted_model)
 
         v13 = self.add_block([self._model_train_widget], QVBoxLayout(), alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
-        v13 = self.add_block([TitleWidget('Build model:').title, v13], QVBoxLayout())
+        v13 = self.add_block([TitleWidget('Build model').title, v13], QVBoxLayout())
         v23 = self.add_block([self._table_listings_widget], QVBoxLayout(), alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         
-        v23 = self.add_block([TitleWidget('Current datapoint selection:').title, v23], QVBoxLayout())
+        v23 = self.add_block([TitleWidget('Current datapoint selection').title, v23], QVBoxLayout())
         self._table_listings_widget.setFixedWidth(v23.size().width()-50)
         self._table_listings_widget.setFixedHeight(v23.size().height()-150)
             
@@ -163,7 +167,7 @@ class FeatureEngineeringWidget(QWidget):
         #self._select_scatter_plot_cosine.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)cosine
         self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Feature vs. Price", x_lab = 'Price/m2', y_lab = 'Cosine Similarity', drawing_possible = False)
         v12 = self.add_block([self._scatter_cosine_widget], QHBoxLayout(),  alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
-        v12 = self.add_block([TitleWidget('Query driven features:').title, v12], QVBoxLayout())
+        v12 = self.add_block([TitleWidget('Explore feature correlations').title, v12], QVBoxLayout())
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
@@ -176,6 +180,7 @@ class FeatureEngineeringWidget(QWidget):
         
         v22 = self.add_block([self._scatter_plot_widget, self._select_scatter_plot], QHBoxLayout(), alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         v22 = self.add_block([v22, self._image_widget, self._sentence_widget], QVBoxLayout(),  alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
+        v22 = self.add_block([TitleWidget('Explore free-text driven features').title, v22],  QVBoxLayout())
         self._store_qfeat_button = ButtonWidget('Store Query\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_qfeat_button.buttonClicked.connect(self._on_store_cosine_feature)
 
@@ -194,7 +199,7 @@ class FeatureEngineeringWidget(QWidget):
         self.query_options_widget = ComboFilter('Select query type', options_query)
         empty_widget = QueryWidget()
         
-        v11 = self.add_block([TitleWidget('Feature engineering:').title, self.query_options_widget, self._query_widget], QVBoxLayout())
+        v11 = self.add_block([TitleWidget('Build free-text driven features').title, self.query_options_widget, self._query_widget], QVBoxLayout())
         
         
         ####### Add the Multi Histogram Widget   
@@ -207,7 +212,7 @@ class FeatureEngineeringWidget(QWidget):
         }
         self._multi_hist_p_widget = MultiHistogramPlotWidget(self._multi_hist_p_model, options=list(options_fn.keys()), options_fn=options_fn, parent=self)
 
-        v21 = self.add_block([TitleWidget('Data driven features:').title, self._multi_hist_p_widget], QVBoxLayout())
+        v21 = self.add_block([TitleWidget('Build data driven features:').title, self._multi_hist_p_widget], QVBoxLayout())
 
         self._store_datfeat_button = ButtonWidget('Store Data\nFeature', size = [self.buttonwidth, self.buttonheight])
         self._store_datfeat_button.buttonClicked.connect(self._on_store_data_feature)

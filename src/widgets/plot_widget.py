@@ -45,7 +45,7 @@ class ScatterPlotWidget(QWidget):
     label = QtCore.pyqtSignal(str)
     
 
-    def __init__(self,points, config, title = "Query Cosinesimilarity", x_lab = None, y_lab =None, drawing_possible = True):
+    def __init__(self,points, config, title = "", x_lab = None, y_lab =None, drawing_possible = True):
         super().__init__()
         self.drawing_possible = drawing_possible
         self.x_lab = x_lab

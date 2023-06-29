@@ -7,6 +7,7 @@ from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QVBoxLayout, QPushButton
 )
+
 import typing
 from typing import List
 
@@ -17,6 +18,7 @@ from src.widgets.multi_line_plot_model import MultiLinePlotModel
 from src.widgets.multi_line_plot_widget import MultiLinePlotWidget
 from src.widgets.multi_bar_plot_model import MultiBarPlotModel
 from src.widgets.multi_bar_plot_widget import MultiBarPlotWidget
+from src.widgets.elements.custom_blocks import TitleWidget
 
 import pandas as pd
 
@@ -33,6 +35,7 @@ class ModelComparisonWidget(QWidget):
                  widgets:Dict[str, QWidget]={},
                  parent: typing.Optional['QWidget']=None, *args, **kwargs):
         super(ModelComparisonWidget, self).__init__(parent=parent, *args, **kwargs)
+        main_layout_ = QVBoxLayout()
         main_layout = QGridLayout()
         # Left side layout
         # Add a Title for Selection of models list
@@ -75,8 +78,9 @@ class ModelComparisonWidget(QWidget):
                                                plot_configs={'title': 'Model Feature Importance', 'ylabel': 'Percent [%]', 'xlabel': 'Feature'},
                                                parent=self)
         main_layout.addWidget(self._m_bar_p_w, 1, 1)
-
-        self.setLayout(main_layout)
+        main_layout_.addWidget(TitleWidget('Compare model performance:').title)
+        main_layout_.addLayout(main_layout)
+        self.setLayout(main_layout_)
 
     @property
     def model_names(self):

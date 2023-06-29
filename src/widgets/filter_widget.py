@@ -120,8 +120,8 @@ class MinMaxWidget(QWidget):
         self.name = name 
 
         if placeholdertext != 'select':
-            self.placeholdertext_min = 'min: ' + str(placeholdertext['min_' + filter])
-            self.placeholdertext_max = 'max: ' + str(placeholdertext['max_' + filter])
+            self.placeholdertext_min = 'min:  ' + str(placeholdertext['min_' + filter])
+            self.placeholdertext_max = 'max:  ' + str(placeholdertext['max_' + filter])
         else:
             self.placeholdertext_min = placeholdertext
             self.placeholdertext_max = placeholdertext

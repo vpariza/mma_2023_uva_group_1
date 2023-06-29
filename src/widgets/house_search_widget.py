@@ -60,6 +60,7 @@ class HouseSearchWidget(QWidget):
     ###### Creating the general Layout ######
     def create_layout(self):
         self.main_layout = QVBoxLayout()
+        self.main_layout.addWidget(TitleWidget('Define Data Scope:').title)
         self.main_layout.addLayout(self._top_layout())
         self.main_layout.addLayout(self._bottom_layout())
         
@@ -93,7 +94,7 @@ class HouseSearchWidget(QWidget):
 
         self._filter_widget.searchbutton.filtersApplied.connect(self._on_filters_applied)
         self._filter_widget._clear_all_button.buttonClearAll.connect(self._on_clear_all_button_clicked)
-        self._filter_widget = self.add_block([TitleWidget('Define data scope:', size = [600, 25]).title, self._filter_widget], QVBoxLayout())
+        self._filter_widget = self.add_block([TitleWidget('Apply Filtering', size = [600, 25]).title, self._filter_widget], QVBoxLayout())
         self._filter_widget.setStyleSheet("background-color: #f5f5f5;")
         self.top_layout.addWidget(self._geo_map_widget)
         self.top_layout.addWidget(self._filter_widget)
