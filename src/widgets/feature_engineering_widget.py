@@ -35,6 +35,23 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import robust_scale
 from sklearn.preprocessing import maxabs_scale
 
+class TableListingsWindow(QWidget):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self, data:pd.DataFrame, images_dir_path:str):
+        super().__init__()
+        layout = QGridLayout(self)
+        self._data = data
+        self._images_dir_path = images_dir_path
+        self._table_listings_model = TableListingsModel(self._data, self._images_dir_path)
+        self._table_listings_widget = TableListingsView(self._table_listings_model)
+        layout.addWidget(self._table_listings_widget)
+        self.setLayout(layout)
+        self.setWindowState(QtCore.Qt.WindowState.WindowMaximized)
+        self.setWindowTitle("Selected entries from scatter plot")
+
 class FeatureEngineeringWidget(QWidget):
  
     txtQuerySubmitted = QtCore.pyqtSignal(str, QWidget)
@@ -58,6 +75,7 @@ class FeatureEngineeringWidget(QWidget):
         self.query = None
         screen = app.primaryScreen()
         self.size = screen.size()
+        self.selection_window = None
         
         
         
@@ -154,6 +172,7 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
+        self._scatter_plot_widget.selected_idx.connect(self._on_scatter_plot_indices_selected)
         
         self._select_scatter_plot = SelectClusterWidget()
         self._select_scatter_plot.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)
@@ -166,7 +185,6 @@ class FeatureEngineeringWidget(QWidget):
         v32 = self._store_qfeat_button.button
 
         return v12, v22, v32
-
 
     def _col1_layout(self):
         # Filter widgets tab 1 with layout option 1
@@ -201,7 +219,6 @@ class FeatureEngineeringWidget(QWidget):
         
         return v11, v21, v31
     
-
     def add_block(self, widgetlist = [], block_type = QVBoxLayout(), alignment_ = QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft, size = None):
         widget = QWidget()
         layout = block_type
@@ -219,7 +236,6 @@ class FeatureEngineeringWidget(QWidget):
         self._model_train_widget.modelDeleted.connect(self._on_deleted_model)
         bottom_layout.addWidget(self._model_train_widget)
         return bottom_layout
-
 
     def update_placeholder_values(self):
         for filter in self.filters['combo']:
@@ -289,8 +305,8 @@ class FeatureEngineeringWidget(QWidget):
         else:
             self._data_show = data
         
-        self.query = query
         if query != None:
+            self.query = query
             self.query_text = query.lower().replace(" ", "_")
             feature_name = self.query_text + f"_{query_type}_similarity"
             self.cosinesimilarity = self._data_show[feature_name + '-max_score']
@@ -354,7 +370,8 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
         if self.query is not None:
             price_per_m2 = self._data_show['price']/self._data_show['living_area']
-            self._scatter_cosine_widget.update_cosine_price(y = self.cosinesimilarity, x = price_per_m2, kmeans = self.kmeans[1], k = self.k[1])
+            cos_sim = self.cosinesimilarity[self.cosinesimilarity.to_frame().index.isin(self._data_show['funda_identifier'].values)]
+            self._scatter_cosine_widget.update_cosine_price(y = cos_sim, x = price_per_m2, kmeans = self.kmeans[1], k = self.k[1])
 
             
     def add_new_features(self, feature_names:list):
@@ -397,7 +414,12 @@ class FeatureEngineeringWidget(QWidget):
         self.update_placeholder_values()
         self.update()
     
-
+    @QtCore.pyqtSlot(list)
+    def _on_scatter_plot_indices_selected(self, indices:list):
+        if len(indices) > 0:
+            self.show_selected_entries_window(self._data_show.iloc[indices], self._images_dir_path)
+        for i in indices:
+            self._table_listings_widget.selectRow(i)
         
     @QtCore.pyqtSlot(str, QWidget)
     def _on_txt_query_submitted(self, txt_query):
@@ -427,6 +449,15 @@ class FeatureEngineeringWidget(QWidget):
             self.dataFeature.emit(self._datafeature, self)
         except AttributeError:
             BasicDialog(window_title='No Results found!', message='Pleas select data and transformation to store feature!').exec()
+
+    ##### Other Utility Methods #####
+
+    def show_selected_entries_window(self, data:pd.DataFrame, images_dir_path:str):
+        if self.selection_window is not None:
+            self.selection_window.close()  # Close window.
+            self.selection_window = None
+        self.selection_window = TableListingsWindow(data, images_dir_path)
+        self.selection_window.show()
 
 
 

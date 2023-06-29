@@ -11,12 +11,6 @@ import os
 from src.widgets.table_listings_model import TableListingsModel
 from typing import List
 
-class HeaderView(QtWidgets.QHeaderView):
-    def mouseReleaseEvent(self, event):
-        index = self.visualIndexAt(event.pos().x())
-        logical_index = self.logicalIndex(index)
-        super().mouseReleaseEvent(event)
-
 class ImageWindow(QWidget):
     """
     This "window" is a QWidget. If it has no parent, it
@@ -80,43 +74,49 @@ class TableListingsView(QtWidgets.QTableView):
     def __init__(self, model: TableListingsModel, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setItemDelegateForColumn(model.get_imgs_column(), ListingsImageDelegate(parent, model.get_imgs_column(), model._imgs_dir_path, model.get_imgs_paths_column()))
-        self.setModel(model)
+        # self.setModel(model)
+        self.proxy = QtCore.QSortFilterProxyModel()
+        self.proxy.setSourceModel(model)
+        self.setModel(self.proxy)
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.w = None
         self.selectionModel().selectionChanged.connect(self.__cells_were_selected)
         self.clicked.connect(self.__cell_was_clicked)
         self.doubleClicked.connect(self.__cell_was_double_clicked)
         self._selected_entries = set()
+        self.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
         self.setSortingEnabled(True)
 
-
     def update_model(self, model: TableListingsModel):
-        self.setModel(model)
+        # self.setModel(model)
+        self.proxy = QtCore.QSortFilterProxyModel()
+        self.proxy.setSourceModel(model)
+        self.setModel(self.proxy)
         self.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.update()
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def __cell_was_double_clicked(self, index):
-        d_clicked_entry = self.model().get_entry_id(index.row())
-        if index.column() == self.model().get_imgs_column():
-            self.show_new_window(d_clicked_entry,self.model()._imgs_dir_path, self.model().get_imgs_paths(index.row()))
+        d_clicked_entry = self.proxy.sourceModel().get_entry_id(index.row())
+        if index.column() == self.proxy.sourceModel().get_imgs_column():
+            self.show_new_window(d_clicked_entry,self.proxy.sourceModel()._imgs_dir_path, self.proxy.sourceModel().get_imgs_paths(index.row()))
         self.entryDoubleClicked.emit(d_clicked_entry, self)
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def __cell_was_clicked(self, index):
-        clicked_entry = self.model().get_entry_id(index.row())
-        if index.column() == self.model().get_imgs_column():
-            self.show_new_window(clicked_entry,self.model()._imgs_dir_path, self.model().get_imgs_paths(index.row()))
+        clicked_entry = self.proxy.sourceModel().get_entry_id(index.row())
+        if index.column() == self.proxy.sourceModel().get_imgs_column():
+            self.show_new_window(clicked_entry,self.proxy.sourceModel()._imgs_dir_path, self.proxy.sourceModel().get_imgs_paths(index.row()))
         self.entryClicked.emit(clicked_entry, self)
 
     @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def __cells_were_selected(self, selected, deselected):
         # =====Selected=====
         for ix in selected.indexes():
-            self._selected_entries.add(self.model().get_entry_id(ix.row()))
+            self._selected_entries.add(self.proxy.sourceModel().get_entry_id(ix.row()))
         # =====Deselected=====
         for ix in deselected.indexes():
-            self._selected_entries.discard(self.model().get_entry_id(ix.row()))
+            self._selected_entries.discard(self.proxy.sourceModel().get_entry_id(ix.row()))
         self.entriesSelected.emit(list(self._selected_entries),self)
 
     def show_new_window(self, entry_id:str, dir_name:str, imgs_paths:List[str]):
