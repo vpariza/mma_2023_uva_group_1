@@ -26,13 +26,13 @@ class MplCanvas(FigureCanvasQTAgg):
         self.ax = self.fig.add_subplot(111)
         # set title of the plot
         self.fig.suptitle(title)
-        self.fig.subplots_adjust(left = 0.1, right = 0.9, bottom = 0.1, top = 0.9)
+        self.fig.subplots_adjust(left = 0.16, right = 0.72, bottom = 0.38, top = 0.99)
         if x_lab is not None:
             self.ax.set_xlabel(x_lab)
         if y_lab is not None:
             self.ax.set_ylabel(y_lab)
             self.ax.yaxis.set_label_position("right")
-        self.fig.tight_layout()
+        # self.fig.tight_layout()
         super(MplCanvas, self).__init__(self.fig)
 
 
@@ -126,7 +126,7 @@ class ScatterPlotWidget(QWidget):
         if self.y_lab is not None:
             self.Figure.ax.set_ylabel(self.y_lab)
             self.Figure.ax.yaxis.set_label_position("right")
-        self.Figure.fig.tight_layout()
+        # self.Figure.fig.tight_layout()
         
         
         self.Figure.canvas.draw()
@@ -161,7 +161,7 @@ class ScatterPlotWidget(QWidget):
         if self.y_lab is not None:
             self.Figure.ax.set_ylabel(self.y_lab)
             self.Figure.ax.yaxis.set_label_position("right")
-        self.Figure.fig.tight_layout()
+        # self.Figure.fig.tight_layout()
         
         self.Figure.canvas.draw()
 
@@ -188,7 +188,7 @@ class ScatterPlotWidget(QWidget):
         if self.y_lab is not None:
             self.Figure.ax.set_ylabel(self.y_lab)
             self.Figure.ax.yaxis.set_label_position("right")
-        self.Figure.fig.tight_layout()
+        # self.Figure.fig.tight_layout()
         self.Figure.canvas.draw()
 
 
@@ -208,7 +208,7 @@ class ScatterPlotWidget(QWidget):
     def resize_widget(self):
         # Adjust scatter plot size to fit the widget
         size = min(self.Figure.canvas.width(), self.Figure.canvas.height())
-        self.Figure.canvas.setFixedSize(size-20, size-20)
+        self.Figure.canvas.setFixedSize(size-20, size-15)
 
     def on_mouse_move(self, event):
         """Method that handles mouse movement on the canvas"""

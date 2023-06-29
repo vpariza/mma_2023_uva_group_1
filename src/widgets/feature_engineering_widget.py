@@ -35,6 +35,8 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import robust_scale
 from sklearn.preprocessing import maxabs_scale
 
+from src.widgets.features_plot_widget import FeaturesPlotWidget
+
 class TableListingsWindow(QWidget):
     """
     This "window" is a QWidget. If it has no parent, it
@@ -163,11 +165,14 @@ class FeatureEngineeringWidget(QWidget):
         
         self._select_scatter_plot_cosine = SelectClusterWidget(dim_red = False)
         #self._select_scatter_plot_cosine.searchbutton.filtersApplied.connect(self._on_scatterconfig_applied)cosine
-        self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Feature vs. Price", x_lab = 'Price/m2', y_lab = 'Cosine Similarity', drawing_possible = False)
+        self._scatter_cosine_widget = FeaturesPlotWidget(pd.DataFrame([]))
+        self._scatter_cosine_widget.setMinimumSize(200, 250)
+        # self._scatter_cosine_widget = ScatterPlotWidget(np.array([[np.nan, np.nan]]), self._config, title = "Feature vs. Price", x_lab = 'Price/m2', y_lab = 'Cosine Similarity', drawing_possible = False)
         v12 = self.add_block([self._scatter_cosine_widget], QHBoxLayout(),  alignment_= QtCore.Qt.AlignmentFlag.AlignCenter)
         v12 = self.add_block([TitleWidget('Explore feature correlations').title, v12], QVBoxLayout())
         ####### Add the Clustering Widget 
         self._scatter_plot_widget = ScatterPlotWidget(self._umap_points, self._config)
+        self._scatter_plot_widget
         self._scatter_plot_widget.selected_idx.connect(self._image_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._sentence_widget.set_selected_points)
         self._scatter_plot_widget.selected_idx.connect(self._on_scatter_plot_indices_selected)
@@ -368,9 +373,11 @@ class FeatureEngineeringWidget(QWidget):
         self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
         self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
         if self.query is not None:
-            price_per_m2 = self._data_show['price']/self._data_show['living_area']
+            # price_per_m2 = self._data_show['price']/self._data_show['living_area']
             cos_sim = self.cosinesimilarity[self.cosinesimilarity.to_frame().index.isin(self._data_show['funda_identifier'].values)]
-            self._scatter_cosine_widget.update_cosine_price(y = cos_sim, x = price_per_m2, kmeans = self.kmeans[1], k = self.k[1])
+            data = self._data_show.copy()
+            data['cos_sim'] = cos_sim
+            self._scatter_cosine_widget.upadte_model(data)
 
             
     def add_new_features(self, feature_names:list):
