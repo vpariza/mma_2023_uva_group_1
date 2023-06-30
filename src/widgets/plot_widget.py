@@ -168,7 +168,7 @@ class ScatterPlotWidget(QWidget):
     def update_cosine_price(self, x, y, kmeans = False, k = 2):
         if not kmeans:
             self.Figure.ax.cla() 
-            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color)
+            self.Figure.ax.scatter(x, y, s=self.points_size, c=self.points_color, alpha = 0.2)
             
         if kmeans:
             # print('reached')
@@ -181,7 +181,7 @@ class ScatterPlotWidget(QWidget):
             cluster_centers = kmeans_method.cluster_centers_
             self.Figure.ax.cla() 
             self.Figure.ax.scatter(x, y, s=self.points_size, c=labels)
-            self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x')
+            self.Figure.ax.scatter(cluster_centers[:, 0], cluster_centers[:, 1], c='red', marker='x', alpha = 0.2)
             
         if self.x_lab is not None:
             self.Figure.ax.set_xlabel(self.x_lab)

@@ -371,15 +371,19 @@ class FeatureEngineeringWidget(QWidget):
         self._multi_hist_p_widget.update_model(self._multi_hist_p_model)
 
         self._scatter_plot_widget.update_points(np.array((self._scatter_x, self._scatter_y)).T)
-        self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
+        
         if self.query is not None:
             # price_per_m2 = self._data_show['price']/self._data_show['living_area']
             cos_sim = self.cosinesimilarity[self.cosinesimilarity.to_frame().index.isin(self._data_show['funda_identifier'].values)]
             data = self._data_show.copy()
             data['cos_sim'] = cos_sim
             self._scatter_cosine_widget.upadte_model(data)
+            self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = cos_sim)
+        
         else:
             self._scatter_cosine_widget.upadte_model(self._data_show.copy())
+            self._scatter_plot_widget.update_scatterplot(self._scatter_x, self._scatter_y, self.kmeans[0], k = self.k[0], alpha_ = self.alpha_)
+        
 
             
     def add_new_features(self, feature_names:list):

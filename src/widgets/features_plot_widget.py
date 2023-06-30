@@ -16,7 +16,7 @@ from typing import List, Dict, Set
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
+        fig = Figure(figsize=(width, height), dpi=dpi, facecolor='#f5f5f5')
         fig.subplots_adjust(left=0.2, right=0.98, top=0.99, bottom=0.21)
         fig.tight_layout()
         self.axes = fig.add_subplot(111)
@@ -118,7 +118,7 @@ class FeaturesPlotWidget(QWidget):
             data_x, data_y = self._data[self._selected_label_x], self._data[self._selected_label_y]
         else:
             data_x, data_y  = [], []
-        self._sc_plot = self._sc.axes.scatter(data_x, data_y) # s=self.points_size, c=self.points_color, alpha=self._alpha
+        self._sc_plot = self._sc.axes.scatter(data_x, data_y, alpha = 0.2) # s=self.points_size, c=self.points_color, alpha=self._alpha
         if self._selected_label_y is not None:
             self._sc.axes.set_ylabel(self._selected_label_y)
         if self._selected_label_x is not None:
