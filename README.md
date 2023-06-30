@@ -55,7 +55,7 @@ cd mma_2023_uva_group_1
 ```
 
 3. Download the data from the cloud:
-    1. Download the [images.zip](https://amsuni.sharepoint.com/:u:/s/STUDENT_Multimedia_Analytics___Team_1/ES2muzSPrNBNpnf6ht0_facByGQXnQQi5mpxrJoDQ0Twjg?e=ofUcdR),
+    1. Download the [images.zip](https://amsuni.sharepoint.com/:u:/s/STUDENT_Multimedia_Analytics___Team_1/ES2muzSPrNBNpnf6ht0_facByGQXnQQi5mpxrJoDQ0Twjg?e=b39ag4),
 
     2. Download the rest of the numerical and textual data of our dataset as well as pre-computed CLIP image and BERT text features from the folder [HOME DATA](https://amsuni.sharepoint.com/:f:/s/STUDENT_Multimedia_Analytics___Team_1/EiS9y5k59p5GgF5fZaHlElsBUi0fDX4uAQE7k2KFLuRPdA?e=ahObeN),
 
