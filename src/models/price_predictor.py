@@ -55,7 +55,7 @@ Class for predicting the price of a listing.
 
 class PricePredictor():
     def __init__(self) -> None:
-        self.model = XGBRegressor(n_estimators=1000, learning_rate=0.05, n_jobs=-1, early_stopping_rounds=5, eval_metric="mae")
+        self.model = XGBRegressor(n_estimators=1000, max_depth=15, learning_rate=0.05, early_stopping_rounds=5, eval_metric="mae")
         self.used_features = []
         self.categorical_features = []
         self.target = None
