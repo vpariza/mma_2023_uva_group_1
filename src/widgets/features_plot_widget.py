@@ -33,8 +33,14 @@ class FeaturesPlotWidget(QWidget):
         self._data = data
         self._identify_numerical_headers()
         if len(self.numerical_headers) > 0:
-            self._selected_label_x = self.numerical_headers[0] 
-            self._selected_label_y = self.numerical_headers[1]
+            if "price" in self.numerical_headers:
+                self._selected_label_x = "price"
+            else:
+                self._selected_label_x = self.numerical_headers[0] 
+            if "living_area" in self.numerical_headers:
+                self._selected_label_y = "living_area"
+            else:
+                self._selected_label_y = self.numerical_headers[1]
         else:
             self._selected_label_x  = self._selected_label_y = None
         # Plot Widget
@@ -52,6 +58,7 @@ class FeaturesPlotWidget(QWidget):
         buttons_layout.addWidget(self._label_x_widget)
         self._dropdown_list_lx_widget = QComboBox(self)
         self._dropdown_list_lx_widget.addItems(self.numerical_headers)
+        self._dropdown_list_lx_widget.setCurrentText(self._selected_label_x)
         # self._dropdown_list_lx_widget.currentTextChanged.connect(self.dropdown_label_x_changed)
         self._dropdown_list_lx_widget.view().pressed.connect(self.dropdown_label_x_changed_i)
         buttons_layout.addWidget(self._dropdown_list_lx_widget)
@@ -61,6 +68,7 @@ class FeaturesPlotWidget(QWidget):
         self._label_y_widget.setText('Axis Y Feature:')
         buttons_layout.addWidget(self._label_y_widget)
         self._dropdown_list_ly_widget.addItems(self.numerical_headers)
+        self._dropdown_list_ly_widget.setCurrentText(self._selected_label_y)
         # self._dropdown_list_ly_widget.currentTextChanged.connect(self.dropdown_label_y_changed)
         self._dropdown_list_ly_widget.view().pressed.connect(self.dropdown_label_y_changed_i)
         buttons_layout.addWidget(self._dropdown_list_ly_widget)
