@@ -4,6 +4,8 @@ The Dutch housing market faces challenges due to a shortage of supply and high h
 
 ## Description
 
+![Application Workflow](./images/workflow.png)
+
 The workflow of our Application and GUI involves an iterative process of performance enhancement between three tabs. More specifically:
 
 **Tab 1 - Data Scope:** This tab provides engineers with an overview of raw data distribution and features. It allows them to select a suitable data scope for their objective by applying region-based or property-based filters. The tab consists of a map showing geographical locations, a property filtering panel, and a data table that displays the selected data points resulting from the applied filters.
