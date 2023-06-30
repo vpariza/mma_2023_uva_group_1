@@ -77,6 +77,9 @@ python3 main_window.py
 ```
 ---
 
+### Changing Configurations
+In case you want to update which data are loaded and/or from where they are loaded, as well as other changes in the visualization and code please look into the [config.ini](./config.ini) file.
+
 ## Authors
 
 Contributors names and contact info
